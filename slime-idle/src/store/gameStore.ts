@@ -9,6 +9,10 @@ import { CHALLENGES, Challenge } from "../data/challenges";
 import { SYNERGIES } from "../data/synergies";
 import { ARTIFACTS } from "../data/artifacts";
 import { ASCENSION_UPGRADES } from "../data/ascension";
+import { SKILL_TREE } from "../data/skillTree";
+import { EQUIPMENT } from "../data/equipment";
+import { WORLD_MAP } from "../data/worldMap";
+import { RESEARCH_TREE } from "../data/research";
 
 const SAVE_KEY = "slime-idle-save";
 const COST_SCALE = 1.15;
@@ -237,10 +241,78 @@ function getAscensionBonus(type: string): number {
   } catch { return 0; }
 }
 
+// Skill tree bonus accessor (from localStorage)
+function getSkillTreeBonus(type: string): number {
+  try {
+    const raw = localStorage.getItem("slime-idle-skilltree");
+    if (!raw) return 0;
+    const levels: Record<string, number> = JSON.parse(raw);
+    let value = 0;
+    for (const node of SKILL_TREE) {
+      if (node.effect.type !== type) continue;
+      const level = levels[node.id] ?? 0;
+      if (level > 0) value += node.effect.value * level;
+    }
+    return value;
+  } catch { return 0; }
+}
+
+// World map passive bonus accessor (from localStorage)
+function getWorldMapBonus(): number {
+  try {
+    const raw = localStorage.getItem("slime-idle-worldmap");
+    if (!raw) return 1;
+    const discovered: string[] = JSON.parse(raw);
+    let mult = 1;
+    for (const loc of WORLD_MAP) {
+      if (discovered.includes(loc.id)) mult *= loc.passiveBonus;
+    }
+    return mult;
+  } catch { return 1; }
+}
+
+// Equipment bonus accessor (from localStorage)
+function getEquipmentBonus(type: string): number {
+  try {
+    const raw = localStorage.getItem("slime-idle-equipment");
+    if (!raw) return type === "cost_reduction" || type === "crit_chance" ? 0 : 1;
+    const data = JSON.parse(raw);
+    const equipped: Record<string, string | null> = data.equipped ?? {};
+    let value = type === "cost_reduction" || type === "crit_chance" ? 0 : 1;
+    for (const slot of Object.values(equipped)) {
+      if (!slot) continue;
+      const item = EQUIPMENT.find((e) => e.id === slot);
+      if (!item || item.effect.type !== type) continue;
+      if (type === "cost_reduction" || type === "crit_chance") value += item.effect.value;
+      else value *= 1 + item.effect.value;
+    }
+    return value;
+  } catch { return type === "cost_reduction" || type === "crit_chance" ? 0 : 1; }
+}
+
+// Research bonus accessor (from localStorage)
+function getResearchBonus(type: string): number {
+  try {
+    const raw = localStorage.getItem("slime-idle-research");
+    if (!raw) return 0;
+    const data = JSON.parse(raw);
+    const completed: string[] = data.completed ?? [];
+    let value = 0;
+    for (const r of RESEARCH_TREE) {
+      if (r.effect.type !== type || !completed.includes(r.id)) continue;
+      value += r.effect.value;
+    }
+    return value;
+  } catch { return 0; }
+}
+
 function computeItemCost(item: ShopItemDef, owned: number, costRed: number, challengeCost: number): number {
   const artCostRed = 1 - computeArtifactMult(getOwnedArtifacts(), "cost_reduction");
+  const stCostRed = 1 - getSkillTreeBonus("cost_reduction") / 100; // skill tree uses value: 5 meaning 5%
+  const eqCostRed = 1 - getEquipmentBonus("cost_reduction");
+  const resCostRed = 1 - getResearchBonus("cost_reduction");
   const base = Math.floor(item.baseCost * Math.pow(COST_SCALE, owned));
-  return Math.max(1, Math.floor(base * costRed * challengeCost * Math.max(0.1, artCostRed)));
+  return Math.max(1, Math.floor(base * costRed * challengeCost * Math.max(0.1, artCostRed) * Math.max(0.1, stCostRed) * Math.max(0.1, eqCostRed) * Math.max(0.1, resCostRed)));
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -265,7 +337,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     const artAll = computeArtifactMult(arts, "all_mult");
     const artClick = computeArtifactMult(arts, "click_mult");
     const ascAll = 1 + getAscensionBonus("all_mult");
-    return base * evoMult * prestigeAll * prestigeClick * achClick * achAll * challengeMult * activeMult * stormMult * synAll * synClick * artAll * artClick * ascAll;
+    // New systems bonuses
+    const stClick = 1 + getSkillTreeBonus("click_mult");
+    const stAll = 1 + getSkillTreeBonus("all_mult");
+    const worldMap = getWorldMapBonus();
+    const eqClick = getEquipmentBonus("click_mult");
+    const eqAll = getEquipmentBonus("all_mult");
+    const resClick = 1 + getResearchBonus("click_mult");
+    const resAll = 1 + getResearchBonus("all_mult");
+    return base * evoMult * prestigeAll * prestigeClick * achClick * achAll * challengeMult * activeMult * stormMult * synAll * synClick * artAll * artClick * ascAll * stClick * stAll * worldMap * eqClick * eqAll * resClick * resAll;
   },
 
   getPassivePower: () => {
@@ -286,7 +366,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     const artAll = computeArtifactMult(arts, "all_mult");
     const artPassive = computeArtifactMult(arts, "passive_mult");
     const ascAll = 1 + getAscensionBonus("all_mult");
-    return base * evoMult * prestigeAll * prestigePassive * achPassive * achAll * challengeMult * activeMult * stormMult * synAll * synPassive * artAll * artPassive * ascAll;
+    const stPassive = 1 + getSkillTreeBonus("passive_mult");
+    const stAll = 1 + getSkillTreeBonus("all_mult");
+    const worldMap = getWorldMapBonus();
+    const eqPassive = getEquipmentBonus("passive_mult");
+    const eqAll = getEquipmentBonus("all_mult");
+    const resPassive = 1 + getResearchBonus("passive_mult");
+    const resAll = 1 + getResearchBonus("all_mult");
+    return base * evoMult * prestigeAll * prestigePassive * achPassive * achAll * challengeMult * activeMult * stormMult * synAll * synPassive * artAll * artPassive * ascAll * stPassive * stAll * worldMap * eqPassive * eqAll * resPassive * resAll;
   },
 
   getEvolutionMultiplier: () => {
@@ -336,7 +423,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         mult *= 1 + u.effect.valuePerLevel * level;
       }
     }
-    return mult;
+    return mult * (1 + getResearchBonus("offline_mult"));
   },
 
   getComboMultiplier: () => {
@@ -349,13 +436,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   getCritChance: () => {
     const s = get();
     const artBonus = computeArtifactMult(getOwnedArtifacts(), "crit_chance");
-    return Math.min(0.75, 0.05 + s.prestigeCount * 0.02 + artBonus);
+    const stCrit = getSkillTreeBonus("crit_chance");
+    const eqCrit = getEquipmentBonus("crit_chance");
+    const resCrit = getResearchBonus("crit_chance");
+    return Math.min(0.75, 0.05 + s.prestigeCount * 0.02 + artBonus + stCrit + eqCrit + resCrit);
   },
 
   getCritMultiplier: () => {
     const s = get();
     const artMult = computeArtifactMult(getOwnedArtifacts(), "crit_mult");
-    return Math.min(20, (3 + s.prestigeCount * 0.5) * artMult);
+    const stCritMult = 1 + getSkillTreeBonus("crit_mult");
+    const eqCritMult = getEquipmentBonus("crit_mult");
+    return Math.min(20, (3 + s.prestigeCount * 0.5) * artMult * stCritMult * eqCritMult);
   },
 
   click: () => {

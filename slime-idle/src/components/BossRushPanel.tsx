@@ -40,12 +40,15 @@ const WAVE_DROPS: { wave: number; itemId: string; label: string }[] = [
 ];
 
 function tryAwardEquipment(itemId: string) {
-  const raw = localStorage.getItem(EQUIP_KEY);
-  const data = raw ? JSON.parse(raw) : { inventory: [], equipped: {} };
-  if (!data.inventory.includes(itemId)) {
-    data.inventory.push(itemId);
-    localStorage.setItem(EQUIP_KEY, JSON.stringify(data));
-  }
+  try {
+    const raw = localStorage.getItem(EQUIP_KEY);
+    const data = raw ? JSON.parse(raw) : { inventory: [], equipped: {} };
+    if (!Array.isArray(data.inventory)) data.inventory = [];
+    if (!data.inventory.includes(itemId)) {
+      data.inventory.push(itemId);
+      localStorage.setItem(EQUIP_KEY, JSON.stringify(data));
+    }
+  } catch { /* ignore corrupted data */ }
 }
 
 export function BossRushPanel() {

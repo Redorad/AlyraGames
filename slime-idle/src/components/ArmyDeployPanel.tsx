@@ -71,7 +71,7 @@ export function ArmyDeployPanel() {
   const completedDeployments = state.deployments.filter((d) => now >= d.endTime);
   const deployedLocationIds = state.deployments.map((d) => d.locationId);
 
-  const canDeploy = state.deployments.length < MAX_DEPLOYMENTS;
+  const canDeploy = activeDeployments.length < MAX_DEPLOYMENTS;
 
   const deploy = (locationId: string) => {
     const loc = WORLD_MAP.find((l) => l.id === locationId);

@@ -36,15 +36,18 @@ export function useSaveLoad() {
       useExtraStore.getState().saveExtra();
     };
 
+    const onVisChange = () => {
+      if (document.visibilityState === "hidden") doSave();
+    };
+
     window.addEventListener("beforeunload", doSave);
     window.addEventListener("pagehide", doSave);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") doSave();
-    });
+    document.addEventListener("visibilitychange", onVisChange);
 
     return () => {
       window.removeEventListener("beforeunload", doSave);
       window.removeEventListener("pagehide", doSave);
+      document.removeEventListener("visibilitychange", onVisChange);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

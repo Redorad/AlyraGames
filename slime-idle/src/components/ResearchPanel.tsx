@@ -122,6 +122,8 @@ export function ResearchPanel() {
     [research]
   );
 
+  const magicules = useGameStore((s) => s.magicules);
+
   // Check completion on open if needed
   useEffect(() => {
     if (research.active && Date.now() >= research.active.endTime) {
@@ -149,7 +151,6 @@ export function ResearchPanel() {
     );
   }
 
-  const magicules = useGameStore.getState().magicules;
   const tiers = [1, 2, 3, 4];
 
   return (
