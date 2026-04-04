@@ -12,11 +12,12 @@ export function useSaveLoad() {
   useEffect(() => {
     const result = load();
     if (result && result.offlineSeconds > 10) {
-      // Calculate offline earnings
-      const passivePower = useGameStore.getState().getPassivePower();
-      const earned = passivePower * result.offlineSeconds;
+      const state = useGameStore.getState();
+      const passivePower = state.getPassivePower();
+      const offlineMult = state.getOfflineMultiplier();
+      const earned = passivePower * result.offlineSeconds * offlineMult;
       if (earned > 0) {
-        tick(result.offlineSeconds);
+        tick(result.offlineSeconds * offlineMult);
         const msg = `Welcome back! You earned ${formatNumber(earned)} magicules while away (${formatTime(result.offlineSeconds)}).`;
         addEvent(msg);
         setOfflineMessage(msg);
@@ -24,7 +25,6 @@ export function useSaveLoad() {
       }
     }
 
-    // Save on unload
     const handleUnload = () => save();
     window.addEventListener("beforeunload", handleUnload);
     return () => window.removeEventListener("beforeunload", handleUnload);

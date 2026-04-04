@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
-import { EVOLUTIONS } from "../data/evolutions";
+import { formatNumber } from "../utils/format";
 
 export function ResetButton() {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -8,25 +8,37 @@ export function ResetButton() {
   const reset = useGameStore((s) => s.reset);
   const prestige = useGameStore((s) => s.prestige);
   const evolutionIndex = useGameStore((s) => s.evolutionIndex);
+  const lifetimeMagicules = useGameStore((s) => s.lifetimeMagicules);
   const prestigeCount = useGameStore((s) => s.prestigeCount);
-  const canPrestige = evolutionIndex >= EVOLUTIONS.length - 1;
+  const canPrestige = evolutionIndex >= 7;
+
+  // Estimate prestige points
+  const pointsEarned = canPrestige
+    ? Math.floor(1 + Math.pow(evolutionIndex - 6, 1.5) + Math.log10(Math.max(1, lifetimeMagicules)) * 0.5)
+    : 0;
 
   return (
-    <div className="px-3 py-2 flex gap-2 justify-center">
+    <div className="flex gap-2 items-center">
       {canPrestige && (
         <>
           <button
             onClick={() => setShowPrestige(true)}
             className="text-xs px-3 py-1 rounded bg-yellow-600/20 text-yellow-400 border border-yellow-600/40 hover:bg-yellow-600/30 transition-colors"
           >
-            ✦ Reincarnate (Prestige)
+            ✦ Reincarnate
           </button>
           {showPrestige && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
               <div className="bg-navy-800 border border-accent/40 rounded-xl p-6 max-w-xs text-center">
                 <p className="text-white mb-2 font-semibold">Reincarnate?</p>
+                <p className="text-sm text-gray-400 mb-1">
+                  Reset progress but keep prestige upgrades, achievements & challenges.
+                </p>
+                <p className="text-sm text-yellow-400 mb-1">
+                  Earn <span className="font-bold">{pointsEarned}</span> prestige points
+                </p>
                 <p className="text-sm text-gray-400 mb-4">
-                  Reset all progress for a permanent ×{(1 + (prestigeCount + 1) * 0.5).toFixed(1)} multiplier.
+                  Base multiplier: ×{(1 + (prestigeCount + 1) * 0.5).toFixed(1)}
                 </p>
                 <div className="flex gap-3 justify-center">
                   <button
@@ -52,14 +64,14 @@ export function ResetButton() {
         onClick={() => setShowConfirm(true)}
         className="text-xs px-3 py-1 rounded bg-red-900/20 text-red-400 border border-red-800/40 hover:bg-red-900/30 transition-colors"
       >
-        Reset Game
+        Reset
       </button>
 
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
           <div className="bg-navy-800 border border-red-500/40 rounded-xl p-6 max-w-xs text-center">
-            <p className="text-white mb-2 font-semibold">Reset all progress?</p>
-            <p className="text-sm text-gray-400 mb-4">This cannot be undone.</p>
+            <p className="text-white mb-2 font-semibold">Reset ALL progress?</p>
+            <p className="text-sm text-gray-400 mb-4">This deletes everything including prestige. Cannot be undone.</p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => { reset(); setShowConfirm(false); }}
