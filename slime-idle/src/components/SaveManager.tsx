@@ -1,12 +1,58 @@
 import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
+import { useExtraStore } from "../store/extraStore";
+import { doGlobalSave } from "../hooks/useSaveLoad";
+
+const ALL_SAVE_KEYS = [
+  "slime-idle-save",
+  "slime-idle-extra",
+  "slime-idle-skilltree",
+  "slime-idle-worldmap",
+  "slime-idle-equipment",
+  "slime-idle-army",
+  "slime-idle-research",
+  "slime-idle-bossrush",
+];
+
+function exportFullSave(): string {
+  doGlobalSave();
+  const bundle: Record<string, string | null> = {};
+  for (const key of ALL_SAVE_KEYS) {
+    bundle[key] = localStorage.getItem(key);
+  }
+  return btoa(JSON.stringify(bundle));
+}
+
+function importFullSave(data: string): boolean {
+  try {
+    const json = atob(data.trim());
+    const bundle = JSON.parse(json);
+
+    // Support old single-key format (just gameStore data)
+    if (typeof bundle === "object" && !bundle["slime-idle-save"] && bundle.magicules !== undefined) {
+      localStorage.setItem("slime-idle-save", json);
+      useGameStore.getState().load();
+      return true;
+    }
+
+    // New full bundle format
+    for (const key of ALL_SAVE_KEYS) {
+      if (bundle[key] != null) {
+        localStorage.setItem(key, bundle[key]);
+      }
+    }
+    useGameStore.getState().load();
+    useExtraStore.getState().loadExtra();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function SaveManager() {
   const [open, setOpen] = useState(false);
   const [importText, setImportText] = useState("");
   const [message, setMessage] = useState("");
-  const exportSave = useGameStore((s) => s.exportSave);
-  const importSave = useGameStore((s) => s.importSave);
 
   if (!open) {
     return (
@@ -20,7 +66,7 @@ export function SaveManager() {
   }
 
   const handleExport = () => {
-    const data = exportSave();
+    const data = exportFullSave();
     navigator.clipboard.writeText(data).then(() => {
       setMessage("Copied to clipboard!");
       setTimeout(() => setMessage(""), 2000);
@@ -33,11 +79,11 @@ export function SaveManager() {
 
   const handleImport = () => {
     if (!importText.trim()) return;
-    const success = importSave(importText);
+    const success = importFullSave(importText);
     if (success) {
-      setMessage("Imported!");
+      setMessage("Imported! Reloading...");
       setImportText("");
-      setTimeout(() => { setMessage(""); setOpen(false); }, 1500);
+      setTimeout(() => window.location.reload(), 1000);
     } else {
       setMessage("Invalid save data");
       setTimeout(() => setMessage(""), 2000);
