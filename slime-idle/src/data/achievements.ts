@@ -39,11 +39,20 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "evo_max", name: "End of Time", emoji: "♾️", description: "Reach final evolution", reward: { type: "all_mult", value: 1.5 }, check: (s) => s.evolutionIndex >= 11 },
 
   // Ally milestones
-  { id: "ally_first", name: "First Subordinate", emoji: "🤝", description: "Recruit your first ally", reward: { type: "passive_mult", value: 1.1 }, check: (s) => ["gobta", "ranga", "shion", "benimaru", "shuna", "souei", "diablo", "veldora"].some((id) => (s.ownedItems[id] ?? 0) > 0) },
+  { id: "ally_first", name: "First Subordinate", emoji: "🤝", description: "Recruit any ally", reward: { type: "passive_mult", value: 1.1 }, check: (s) => ["gobta", "ranga", "shion", "benimaru", "shuna", "souei", "diablo", "veldora", "guy_crimson", "chloe", "velgrynd", "veldanava", "ivarage"].some((id) => (s.ownedItems[id] ?? 0) > 0) },
   { id: "ally_ranga", name: "Faithful Star Wolf", emoji: "🐺", description: "Recruit Ranga", reward: { type: "passive_mult", value: 1.1 }, check: (s) => (s.ownedItems["ranga"] ?? 0) > 0 },
   { id: "ally_diablo", name: "Primordial Servant", emoji: "🎩", description: "Recruit Diablo", reward: { type: "passive_mult", value: 1.15 }, check: (s) => (s.ownedItems["diablo"] ?? 0) > 0 },
   { id: "ally_veldora", name: "Storm Dragon Freed", emoji: "🐉", description: "Recruit Veldora", reward: { type: "passive_mult", value: 1.2 }, check: (s) => (s.ownedItems["veldora"] ?? 0) > 0 },
-  { id: "ally_army", name: "Monster Nation", emoji: "🏴", description: "Own 50 total allies", reward: { type: "passive_mult", value: 1.25 }, check: (s) => ["gobta", "ranga", "shion", "benimaru", "shuna", "souei", "diablo", "veldora", "guy_crimson", "chloe", "velgrynd"].reduce((sum, id) => sum + (s.ownedItems[id] ?? 0), 0) >= 50 },
+  { id: "ally_army", name: "Monster Nation", emoji: "🏴", description: "Own 50 total allies", reward: { type: "passive_mult", value: 1.25 }, check: (s) => ["gobta", "ranga", "shion", "benimaru", "shuna", "souei", "diablo", "veldora", "guy_crimson", "chloe", "velgrynd", "veldanava", "ivarage"].reduce((sum, id) => sum + (s.ownedItems[id] ?? 0), 0) >= 50 },
+
+  // Building milestones
+  { id: "build_first", name: "Founding Tempest", emoji: "🛖", description: "Build your first structure", reward: { type: "passive_mult", value: 1.05 }, check: (s) => ["goblin_hut", "forge", "trading_post", "research_lab", "colosseum", "castle", "holy_barrier", "labyrinth", "world_gate", "cardinal_tower", "tempest_capital", "celestial_palace"].some((id) => (s.ownedItems[id] ?? 0) > 0) },
+  { id: "build_castle", name: "Seat of Power", emoji: "🏰", description: "Build Rimuru's Castle", reward: { type: "all_mult", value: 1.15 }, check: (s) => (s.ownedItems["castle"] ?? 0) > 0 },
+  { id: "build_all", name: "Grand Architect", emoji: "🏛️", description: "Own every building type", reward: { type: "passive_mult", value: 1.3 }, check: (s) => ["goblin_hut", "forge", "trading_post", "research_lab", "colosseum", "castle", "holy_barrier", "labyrinth", "world_gate", "cardinal_tower", "tempest_capital", "celestial_palace"].every((id) => (s.ownedItems[id] ?? 0) > 0) },
+
+  // Skill milestones
+  { id: "skill_first", name: "Skill Acquired", emoji: "⚔️", description: "Learn your first skill", reward: { type: "click_mult", value: 1.05 }, check: (s) => ["predator", "great_sage", "absorb_dissolve", "ultraspeed_regen", "replication", "black_lightning", "void_god", "soul_harvest", "turn_null", "imaginary_space", "nihility_collapse", "multidim_barrier", "existence_erasure", "time_stop", "origin_magic", "end_of_world"].some((id) => (s.ownedItems[id] ?? 0) > 0) },
+  { id: "skill_sage", name: "Great Sage Online", emoji: "🧠", description: "Level Great Sage to 10", reward: { type: "passive_mult", value: 1.15 }, check: (s) => (s.ownedItems["great_sage"] ?? 0) >= 10 },
 
   // Prestige milestones
   { id: "prestige_1", name: "Reincarnation", emoji: "🔄", description: "Prestige for the first time", reward: { type: "all_mult", value: 1.1 }, check: (s) => s.prestigeCount >= 1 },

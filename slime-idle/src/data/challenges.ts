@@ -8,16 +8,17 @@ export interface Challenge {
     passiveMultiplier?: number;
     clickMultiplier?: number;
     costMultiplier?: number;
+    basePassive?: number; // free passive income to start with
   };
   reward: { type: "all_mult"; value: number };
-  goal: number; // lifetime magicules needed to complete
+  goal: number;
 }
 
 export const CHALLENGES: Challenge[] = [
   {
     id: "ch_no_click", name: "Meditation", emoji: "🧘",
-    description: "Clicking is disabled. Passive income ×3.",
-    modifier: { clickDisabled: true, passiveMultiplier: 3 },
+    description: "Clicking is disabled. Start with 5/s passive, ×3 passive multiplier.",
+    modifier: { clickDisabled: true, passiveMultiplier: 3, basePassive: 5 },
     reward: { type: "all_mult", value: 1.15 },
     goal: 1_000_000,
   },

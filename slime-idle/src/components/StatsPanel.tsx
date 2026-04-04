@@ -13,8 +13,11 @@ export function StatsPanel() {
   const prestigePoints = useGameStore((s) => s.prestigePoints);
   const unlockedAchievements = useGameStore((s) => s.unlockedAchievements);
   const completedChallenges = useGameStore((s) => s.completedChallenges);
+  const totalCriticals = useGameStore((s) => s.totalCriticals);
   const getChallengeMultiplier = useGameStore((s) => s.getChallengeMultiplier);
   const getAchievementMultiplier = useGameStore((s) => s.getAchievementMultiplier);
+  const getCritChance = useGameStore((s) => s.getCritChance);
+  const getCritMultiplier = useGameStore((s) => s.getCritMultiplier);
 
   if (!open) {
     return (
@@ -29,55 +32,42 @@ export function StatsPanel() {
 
   const timePlayed = (Date.now() - startTime) / 1000;
 
+  const rows: [string, string, string?][] = [
+    ["Total Clicks", formatNumber(totalClicks)],
+    ["Total Criticals", formatNumber(totalCriticals)],
+    ["Lifetime Magicules", formatNumber(lifetimeMagicules)],
+    ["Evolution", `${EVOLUTIONS[evolutionIndex].emoji} ${EVOLUTIONS[evolutionIndex].name}`],
+    ["Time Played", formatTime(timePlayed)],
+    ["Achievements", `${unlockedAchievements.length}`],
+    ["Achievement Bonus", `×${getAchievementMultiplier("all_mult").toFixed(2)}`, "text-yellow-400"],
+    ["Crit Chance", `${Math.round(getCritChance() * 100)}%`],
+    ["Crit Multiplier", `×${getCritMultiplier().toFixed(1)}`],
+  ];
+
+  if (prestigeCount > 0) {
+    rows.push(
+      ["---", ""],
+      ["Prestige Level", `★${prestigeCount}`, "text-yellow-400"],
+      ["Prestige Points", `${prestigePoints}`, "text-yellow-400"],
+      ["Challenges Done", `${completedChallenges.length}`],
+      ["Challenge Bonus", `×${getChallengeMultiplier().toFixed(2)}`, "text-green-400"],
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="bg-navy-800 border border-steel/30 rounded-xl p-5 max-w-xs w-full max-h-[80vh] overflow-y-auto">
         <h2 className="text-steel font-bold mb-3">📊 Statistics</h2>
         <div className="space-y-2 text-sm text-gray-300">
-          <div className="flex justify-between">
-            <span>Total Clicks</span>
-            <span className="text-white">{formatNumber(totalClicks)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Lifetime Magicules</span>
-            <span className="text-white">{formatNumber(lifetimeMagicules)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Evolution</span>
-            <span className="text-white">{EVOLUTIONS[evolutionIndex].emoji} {EVOLUTIONS[evolutionIndex].name}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Time Played</span>
-            <span className="text-white">{formatTime(timePlayed)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Achievements</span>
-            <span className="text-white">{unlockedAchievements.length}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Achievement Bonus</span>
-            <span className="text-yellow-400">×{getAchievementMultiplier("all_mult").toFixed(2)}</span>
-          </div>
-          {prestigeCount > 0 && (
-            <>
-              <hr className="border-navy-700" />
-              <div className="flex justify-between">
-                <span>Prestige Level</span>
-                <span className="text-yellow-400">★{prestigeCount}</span>
+          {rows.map(([label, value, color], i) =>
+            label === "---" ? (
+              <hr key={i} className="border-navy-700" />
+            ) : (
+              <div key={i} className="flex justify-between">
+                <span>{label}</span>
+                <span className={color ?? "text-white"}>{value}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Prestige Points</span>
-                <span className="text-yellow-400">{prestigePoints}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Challenges Done</span>
-                <span className="text-white">{completedChallenges.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Challenge Bonus</span>
-                <span className="text-green-400">×{getChallengeMultiplier().toFixed(2)}</span>
-              </div>
-            </>
+            )
           )}
         </div>
         <button

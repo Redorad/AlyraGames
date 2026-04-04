@@ -10,6 +10,8 @@ import { StatsPanel } from "./components/StatsPanel";
 import { AchievementsPanel } from "./components/AchievementsPanel";
 import { PrestigeShop } from "./components/PrestigeShop";
 import { ChallengesPanel } from "./components/ChallengesPanel";
+import { ToastNotifications } from "./components/ToastNotifications";
+import { SaveManager } from "./components/SaveManager";
 import { useGameLoop } from "./hooks/useGameLoop";
 import { useSaveLoad } from "./hooks/useSaveLoad";
 import { useGameStore } from "./store/gameStore";
@@ -56,6 +58,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-navy-900 text-white flex justify-center">
       <Particles />
+      <ToastNotifications />
       <div className="w-full max-w-md flex flex-col min-h-screen relative z-10">
         {/* Header */}
         <div className="text-center pt-3 pb-1">
@@ -94,10 +97,11 @@ export default function App() {
 
         {/* Footer controls */}
         <div className="flex items-center justify-between px-1 py-1 flex-wrap gap-1">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5 flex-wrap">
             <StatsPanel />
             <AchievementsPanel />
             <ChallengesPanel />
+            <SaveManager />
           </div>
           <div className="flex items-center gap-1">
             <PrestigeShop />
