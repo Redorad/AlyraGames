@@ -103,6 +103,7 @@ export default function App() {
   const close = () => setOpenPanel(null);
 
   return (
+    <>
     <div className="min-h-screen bg-navy-900 text-white flex justify-center relative overflow-hidden">
       {/* Aurora background */}
       <div
@@ -120,27 +121,6 @@ export default function App() {
       {offlineData && (
         <OfflineReportModal offlineSeconds={offlineData.seconds} earned={offlineData.earned} onClose={dismissOffline} />
       )}
-
-      {/* All modal panels — rendered at root level so fixed positioning works */}
-      {openPanel === "boss" && <BossPanel onClose={close} />}
-      {openPanel === "dungeon" && <DungeonPanel onClose={close} />}
-      {openPanel === "bossrush" && <BossRushPanel onClose={close} />}
-      {openPanel === "challenges" && <ChallengesPanel onClose={close} />}
-      {openPanel === "worldmap" && <WorldMapPanel onClose={close} />}
-      {openPanel === "army" && <ArmyDeployPanel onClose={close} />}
-      {openPanel === "research" && <ResearchPanel onClose={close} />}
-      {openPanel === "quests" && <QuestsPanel onClose={close} />}
-      {openPanel === "equipment" && <EquipmentPanel onClose={close} />}
-      {openPanel === "skilltree" && <SkillTreePanel onClose={close} />}
-      {openPanel === "artifacts" && <ArtifactsPanel onClose={close} />}
-      {openPanel === "fusion" && <ArtifactFusionPanel onClose={close} />}
-      {openPanel === "synergies" && <SynergiesPanel onClose={close} />}
-      {openPanel === "stats" && <StatsDashboard onClose={close} />}
-      {openPanel === "achievements" && <AchievementsPanel onClose={close} />}
-      {openPanel === "save" && <SaveManager onClose={close} />}
-      {openPanel === "prestige" && <PrestigeShop onClose={close} />}
-      {openPanel === "ascension" && <AscensionPanel onClose={close} />}
-      {openPanel === "reset" && <ResetButton onClose={close} />}
 
       <div className="w-full max-w-md flex flex-col min-h-screen relative z-10 pb-16">
         {/* Header */}
@@ -244,5 +224,27 @@ export default function App() {
         </div>
       </div>
     </div>
+
+    {/* All modal panels — rendered OUTSIDE the overflow-hidden container */}
+    {openPanel === "boss" && <BossPanel onClose={close} />}
+    {openPanel === "dungeon" && <DungeonPanel onClose={close} />}
+    {openPanel === "bossrush" && <BossRushPanel onClose={close} />}
+    {openPanel === "challenges" && <ChallengesPanel onClose={close} />}
+    {openPanel === "worldmap" && <WorldMapPanel onClose={close} />}
+    {openPanel === "army" && <ArmyDeployPanel onClose={close} />}
+    {openPanel === "research" && <ResearchPanel onClose={close} />}
+    {openPanel === "quests" && <QuestsPanel onClose={close} />}
+    {openPanel === "equipment" && <EquipmentPanel onClose={close} />}
+    {openPanel === "skilltree" && <SkillTreePanel onClose={close} />}
+    {openPanel === "artifacts" && <ArtifactsPanel onClose={close} />}
+    {openPanel === "fusion" && <ArtifactFusionPanel onClose={close} />}
+    {openPanel === "synergies" && <SynergiesPanel onClose={close} />}
+    {openPanel === "stats" && <StatsDashboard onClose={close} />}
+    {openPanel === "achievements" && <AchievementsPanel onClose={close} />}
+    {openPanel === "save" && <SaveManager onClose={close} />}
+    {openPanel === "prestige" && <PrestigeShop onClose={close} />}
+    {openPanel === "ascension" && <AscensionPanel onClose={close} />}
+    {openPanel === "reset" && <ResetButton onClose={close} />}
+    </>
   );
 }
