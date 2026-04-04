@@ -69,8 +69,8 @@ export function useGameLoop() {
         addEvent(RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)]);
       }
 
-      // Auto-save
-      if (nowMs - lastSaveRef.current > 10000) {
+      // Auto-save every 5s (more reliable on mobile)
+      if (nowMs - lastSaveRef.current > 5000) {
         lastSaveRef.current = nowMs;
         save();
         saveExtra();

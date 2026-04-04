@@ -11,7 +11,7 @@ export function useSaveLoad() {
   const loadExtra = useExtraStore((s) => s.loadExtra);
   const saveExtra = useExtraStore((s) => s.saveExtra);
   const checkDailyLogin = useExtraStore((s) => s.checkDailyLogin);
-  const [offlineMessage, setOfflineMessage] = useState<string | null>(null);
+  const [offlineData, setOfflineData] = useState<{ seconds: number; earned: number } | null>(null);
 
   useEffect(() => {
     const result = load();
@@ -25,17 +25,30 @@ export function useSaveLoad() {
       const earned = passivePower * result.offlineSeconds * offlineMult;
       if (earned > 0) {
         tick(result.offlineSeconds * offlineMult);
-        const msg = `Welcome back! You earned ${formatNumber(earned)} magicules while away (${formatTime(result.offlineSeconds)}).`;
-        addEvent(msg);
-        setOfflineMessage(msg);
-        setTimeout(() => setOfflineMessage(null), 5000);
+        addEvent(`Welcome back! Earned ${formatNumber(earned)} magicules while away (${formatTime(result.offlineSeconds)}).`);
+        setOfflineData({ seconds: result.offlineSeconds, earned });
       }
     }
 
-    const handleUnload = () => { save(); saveExtra(); };
-    window.addEventListener("beforeunload", handleUnload);
-    return () => window.removeEventListener("beforeunload", handleUnload);
+    // Save on all possible mobile-friendly events
+    const doSave = () => {
+      useGameStore.getState().save();
+      useExtraStore.getState().saveExtra();
+    };
+
+    window.addEventListener("beforeunload", doSave);
+    window.addEventListener("pagehide", doSave);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") doSave();
+    });
+
+    return () => {
+      window.removeEventListener("beforeunload", doSave);
+      window.removeEventListener("pagehide", doSave);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { offlineMessage };
+  const dismissOffline = () => setOfflineData(null);
+
+  return { offlineData, dismissOffline };
 }
