@@ -542,21 +542,35 @@ export const useGameStore = create<GameState>((set, get) => ({
   autoBuy: () => {
     const s = get();
     if (!s.autoBuyEnabled) return;
-    // Find cheapest affordable item across all categories
-    let cheapest: ShopItemDef | null = null;
-    let cheapestCost = Infinity;
     const challenge = getActiveChallenge(s.activeChallenge);
     const costRed = computeCostReduction(s.prestigeUpgrades);
     const challengeCost = challenge?.modifier.costMultiplier ?? 1;
-    for (const item of ALL_ITEMS) {
-      const cost = computeItemCost(item, s.ownedItems[item.id] ?? 0, costRed, challengeCost);
-      if (cost <= s.magicules && cost < cheapestCost) {
-        cheapestCost = cost;
-        cheapest = item;
+
+    // Buy all affordable items in rounds until nothing more can be bought
+    let budget = s.magicules;
+    const newOwned = { ...s.ownedItems };
+    let totalSpent = 0;
+    let totalBought = 0;
+    let bought = true;
+    while (bought) {
+      bought = false;
+      for (const item of ALL_ITEMS) {
+        const owned = newOwned[item.id] ?? 0;
+        const cost = computeItemCost(item, owned, costRed, challengeCost);
+        if (cost <= budget) {
+          newOwned[item.id] = owned + 1;
+          budget -= cost;
+          totalSpent += cost;
+          totalBought++;
+          bought = true;
+        }
       }
     }
-    if (cheapest) {
-      get().buyItem(cheapest);
+    if (totalBought > 0) {
+      set({ magicules: s.magicules - totalSpent, ownedItems: newOwned });
+      if (totalBought > 1) {
+        get().addEvent(`Auto-buy: purchased ${totalBought} upgrades.`);
+      }
     }
   },
 
