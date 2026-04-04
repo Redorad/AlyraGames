@@ -5,6 +5,7 @@ import { DUNGEONS, Dungeon } from "../data/dungeons";
 import { DAILY_QUESTS, MILESTONE_QUESTS, QuestCheckState } from "../data/quests";
 import { SYNERGIES } from "../data/synergies";
 import { getDailyReward } from "../data/dailyRewards";
+import { ASCENSION_UPGRADES } from "../data/ascension";
 import { useGameStore } from "./gameStore";
 
 const EXTRA_SAVE_KEY = "slime-idle-extra";
@@ -49,6 +50,11 @@ export interface ExtraState {
   // Sound
   soundEnabled: boolean;
 
+  // Ascension
+  ascensionCount: number;
+  ascensionPoints: number;
+  ascensionUpgrades: Record<string, number>;
+
   // Actions
   startBoss: (boss: Boss) => void;
   hitBoss: () => { damage: number; defeated: boolean };
@@ -60,6 +66,9 @@ export interface ExtraState {
   checkDailyLogin: () => void;
   getSynergyMultiplier: (type: "all_mult" | "passive_mult" | "click_mult") => number;
   getArtifactBonus: (type: string) => number;
+  getAscensionBonus: (type: string) => number;
+  buyAscensionUpgrade: (upgradeId: string) => void;
+  ascend: () => void;
   toggleSound: () => void;
   saveExtra: () => void;
   loadExtra: () => void;
@@ -85,6 +94,9 @@ function getInitialExtra() {
     lastLoginDay: "",
     pendingDailyReward: false,
     soundEnabled: true,
+    ascensionCount: 0,
+    ascensionPoints: 0,
+    ascensionUpgrades: {} as Record<string, number>,
   };
 }
 
@@ -325,6 +337,57 @@ export const useExtraStore = create<ExtraState>((set, get) => ({
     return value;
   },
 
+  getAscensionBonus: (type: string) => {
+    const s = get();
+    let value = 0;
+    for (const upgrade of ASCENSION_UPGRADES) {
+      if (upgrade.effect.type !== type) continue;
+      const level = s.ascensionUpgrades[upgrade.id] ?? 0;
+      if (level > 0) value += upgrade.effect.valuePerLevel * level;
+    }
+    return value;
+  },
+
+  buyAscensionUpgrade: (upgradeId: string) => {
+    const s = get();
+    const upgrade = ASCENSION_UPGRADES.find((u) => u.id === upgradeId);
+    if (!upgrade) return;
+    const level = s.ascensionUpgrades[upgradeId] ?? 0;
+    if (level >= upgrade.maxLevel) return;
+    const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costScale, level));
+    if (s.ascensionPoints < cost) return;
+    set({
+      ascensionPoints: s.ascensionPoints - cost,
+      ascensionUpgrades: { ...s.ascensionUpgrades, [upgradeId]: level + 1 },
+    });
+    useGameStore.getState().addEvent(`🌌 Ascension upgrade: ${upgrade.emoji} ${upgrade.name} → Lv.${level + 1}`);
+  },
+
+  ascend: () => {
+    const gs = useGameStore.getState();
+    const s = get();
+    if (gs.prestigeCount < 10) return;
+    const pointsEarned = Math.floor(1 + Math.pow(Math.max(0, gs.prestigeCount - 9), 1.3));
+    // Reset game store to initial state (full reset except achievements)
+    useGameStore.setState({
+      magicules: 0, lifetimeMagicules: 0, totalClicks: 0, evolutionIndex: 0,
+      ownedItems: {}, prestigeCount: 0, prestigePoints: 0, prestigeUpgrades: {},
+      completedChallenges: [], activeChallenge: null, challengeMagicules: 0,
+      autoBuyEnabled: false, stormActive: false, stormMultiplier: 1, stormEndTime: 0,
+      comboCount: 0, comboLastClick: 0, totalCriticals: 0,
+      eventLog: [`🌌 Ascended! Ascension ${s.ascensionCount + 1} — earned ${pointsEarned} AP!`],
+      startTime: Date.now(), lastSaveTime: Date.now(),
+    });
+    // Reset extra state but keep ascension upgrades
+    set({
+      bossesDefeated: [], activeBoss: null, bossCooldownEnd: 0,
+      ownedArtifacts: [], activeDungeon: null, dungeonsCompleted: 0,
+      completedQuests: [], dailyQuestClicks: 0,
+      ascensionCount: s.ascensionCount + 1,
+      ascensionPoints: s.ascensionPoints + pointsEarned,
+    });
+  },
+
   toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
 
   saveExtra: () => {
@@ -341,6 +404,9 @@ export const useExtraStore = create<ExtraState>((set, get) => ({
       loginStreak: s.loginStreak,
       lastLoginDay: s.lastLoginDay,
       soundEnabled: s.soundEnabled,
+      ascensionCount: s.ascensionCount,
+      ascensionPoints: s.ascensionPoints,
+      ascensionUpgrades: s.ascensionUpgrades,
     };
     localStorage.setItem(EXTRA_SAVE_KEY, JSON.stringify(data));
   },
@@ -362,6 +428,9 @@ export const useExtraStore = create<ExtraState>((set, get) => ({
         loginStreak: d.loginStreak ?? 0,
         lastLoginDay: d.lastLoginDay ?? "",
         soundEnabled: d.soundEnabled ?? true,
+        ascensionCount: d.ascensionCount ?? 0,
+        ascensionPoints: d.ascensionPoints ?? 0,
+        ascensionUpgrades: d.ascensionUpgrades ?? {},
       });
     } catch {}
   },

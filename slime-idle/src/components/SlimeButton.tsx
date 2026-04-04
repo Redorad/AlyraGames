@@ -155,15 +155,37 @@ export function SlimeButton() {
             className="absolute"
             style={{ top: 30, right: 35, width: 15, height: 10, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(255,255,255,0.5), transparent)", filter: "blur(2px)" }}
           />
-          {/* Eyes */}
-          <div className="absolute flex gap-5" style={{ top: 50 }}>
-            <div className="w-3 h-4 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }} />
-            <div className="w-3 h-4 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }} />
+          {/* Eyes — animated by state */}
+          <div className="absolute flex gap-5 transition-all duration-200" style={{ top: 50 }}>
+            {stormActive ? (
+              /* Angry/intense eyes during storm */
+              <>
+                <div className="w-3.5 h-2.5 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)", transform: "skewY(-8deg)" }} />
+                <div className="w-3.5 h-2.5 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)", transform: "skewY(8deg)" }} />
+              </>
+            ) : bouncing ? (
+              /* Happy squint on click */
+              <>
+                <div className="w-3 h-1.5 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }} />
+                <div className="w-3 h-1.5 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }} />
+              </>
+            ) : (
+              /* Normal eyes */
+              <>
+                <div className="w-3 h-4 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }} />
+                <div className="w-3 h-4 rounded-full bg-navy-900" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }} />
+              </>
+            )}
           </div>
-          {/* Mouth */}
+          {/* Mouth — animated by state */}
           <div
-            className="absolute"
-            style={{ top: 75, width: 20, height: 8, borderRadius: "0 0 50% 50%", border: "2px solid rgba(10,14,39,0.5)", borderTop: "none" }}
+            className="absolute transition-all duration-200"
+            style={stormActive
+              ? { top: 75, width: 14, height: 6, borderRadius: "50%", background: "rgba(10,14,39,0.5)" }
+              : bouncing
+              ? { top: 73, width: 24, height: 12, borderRadius: "0 0 50% 50%", border: "2px solid rgba(10,14,39,0.5)", borderTop: "none" }
+              : { top: 75, width: 20, height: 8, borderRadius: "0 0 50% 50%", border: "2px solid rgba(10,14,39,0.5)", borderTop: "none" }
+            }
           />
           {/* Evolution badge */}
           <div className="absolute -bottom-1 text-2xl" style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))" }}>

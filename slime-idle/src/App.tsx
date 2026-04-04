@@ -12,6 +12,7 @@ import { PrestigeShop } from "./components/PrestigeShop";
 import { ChallengesPanel } from "./components/ChallengesPanel";
 import { ToastNotifications } from "./components/ToastNotifications";
 import { SaveManager } from "./components/SaveManager";
+import { AscensionPanel } from "./components/AscensionPanel";
 import { BossPanel } from "./components/BossPanel";
 import { DungeonPanel } from "./components/DungeonPanel";
 import { QuestsPanel } from "./components/QuestsPanel";
@@ -118,9 +119,10 @@ export default function App() {
           <ChallengesPanel />
           <SaveManager />
         </div>
-        {/* Footer — row 2: prestige + reset */}
+        {/* Footer — row 2: prestige + ascension + reset */}
         <div className="flex items-center justify-center gap-1 px-1 py-1 flex-wrap">
           <PrestigeShop />
+          <AscensionPanel />
           <ResetButton />
         </div>
       </div>

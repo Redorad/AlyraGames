@@ -8,6 +8,7 @@ import { PRESTIGE_UPGRADES, PrestigeUpgrade } from "../data/prestigeUpgrades";
 import { CHALLENGES, Challenge } from "../data/challenges";
 import { SYNERGIES } from "../data/synergies";
 import { ARTIFACTS } from "../data/artifacts";
+import { ASCENSION_UPGRADES } from "../data/ascension";
 
 const SAVE_KEY = "slime-idle-save";
 const COST_SCALE = 1.15;
@@ -219,6 +220,23 @@ function getOwnedArtifacts(): string[] {
   } catch { return []; }
 }
 
+// Ascension bonus accessor (lazy loaded from localStorage)
+function getAscensionBonus(type: string): number {
+  try {
+    const raw = localStorage.getItem("slime-idle-extra");
+    if (!raw) return 0;
+    const data = JSON.parse(raw);
+    const upgrades: Record<string, number> = data.ascensionUpgrades ?? {};
+    let value = 0;
+    for (const u of ASCENSION_UPGRADES) {
+      if (u.effect.type !== type) continue;
+      const level = upgrades[u.id] ?? 0;
+      if (level > 0) value += u.effect.valuePerLevel * level;
+    }
+    return value;
+  } catch { return 0; }
+}
+
 function computeItemCost(item: ShopItemDef, owned: number, costRed: number, challengeCost: number): number {
   const artCostRed = 1 - computeArtifactMult(getOwnedArtifacts(), "cost_reduction");
   const base = Math.floor(item.baseCost * Math.pow(COST_SCALE, owned));
@@ -246,7 +264,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const arts = getOwnedArtifacts();
     const artAll = computeArtifactMult(arts, "all_mult");
     const artClick = computeArtifactMult(arts, "click_mult");
-    return base * evoMult * prestigeAll * prestigeClick * achClick * achAll * challengeMult * activeMult * stormMult * synAll * synClick * artAll * artClick;
+    const ascAll = 1 + getAscensionBonus("all_mult");
+    return base * evoMult * prestigeAll * prestigeClick * achClick * achAll * challengeMult * activeMult * stormMult * synAll * synClick * artAll * artClick * ascAll;
   },
 
   getPassivePower: () => {
@@ -266,7 +285,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const arts = getOwnedArtifacts();
     const artAll = computeArtifactMult(arts, "all_mult");
     const artPassive = computeArtifactMult(arts, "passive_mult");
-    return base * evoMult * prestigeAll * prestigePassive * achPassive * achAll * challengeMult * activeMult * stormMult * synAll * synPassive * artAll * artPassive;
+    const ascAll = 1 + getAscensionBonus("all_mult");
+    return base * evoMult * prestigeAll * prestigePassive * achPassive * achAll * challengeMult * activeMult * stormMult * synAll * synPassive * artAll * artPassive * ascAll;
   },
 
   getEvolutionMultiplier: () => {

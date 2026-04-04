@@ -1,5 +1,6 @@
 import { useGameStore } from "../store/gameStore";
 import { formatNumber } from "../utils/format";
+import { AnimatedNumber } from "./AnimatedNumber";
 
 export function MagiculeDisplay() {
   const magicules = useGameStore((s) => s.magicules);
@@ -14,11 +15,11 @@ export function MagiculeDisplay() {
   return (
     <div className="text-center py-2">
       <div className={`text-3xl font-bold ${stormActive ? "text-yellow-300" : "text-steel"}`}>
-        🫧 {formatNumber(magicules)}
+        <AnimatedNumber value={magicules} prefix="🫧 " />
       </div>
       <div className="text-sm text-gray-400 mt-1 flex justify-center gap-4">
-        <span>{formatNumber(clickPower)}/click</span>
-        <span>{formatNumber(passivePower)}/s</span>
+        <AnimatedNumber value={clickPower} className="text-gray-400" prefix="" /><span>/click</span>
+        <AnimatedNumber value={passivePower} className="text-gray-400" prefix="" /><span>/s</span>
       </div>
       {stormActive && (
         <div className="text-xs text-yellow-400 mt-0.5 animate-pulse">

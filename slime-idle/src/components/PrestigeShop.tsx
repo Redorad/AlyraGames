@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useGameStore } from "../store/gameStore";
-import { PRESTIGE_UPGRADES } from "../data/prestigeUpgrades";
+import { PRESTIGE_UPGRADES, PrestigeUpgrade } from "../data/prestigeUpgrades";
 
 export function PrestigeShop() {
   const [open, setOpen] = useState(false);
@@ -9,6 +9,19 @@ export function PrestigeShop() {
   const buyPrestigeUpgrade = useGameStore((s) => s.buyPrestigeUpgrade);
   const getPrestigeUpgradeCost = useGameStore((s) => s.getPrestigeUpgradeCost);
   const prestigeCount = useGameStore((s) => s.prestigeCount);
+
+  const buyMax = useCallback((upgrade: PrestigeUpgrade) => {
+    let bought = 0;
+    while (true) {
+      const level = useGameStore.getState().prestigeUpgrades[upgrade.id] ?? 0;
+      if (level >= upgrade.maxLevel) break;
+      const cost = useGameStore.getState().getPrestigeUpgradeCost(upgrade);
+      if (useGameStore.getState().prestigePoints < cost) break;
+      buyPrestigeUpgrade(upgrade);
+      bought++;
+      if (bought > 100) break; // safety limit
+    }
+  }, [buyPrestigeUpgrade]);
 
   if (prestigeCount === 0) return null;
 
@@ -72,10 +85,18 @@ export function PrestigeShop() {
                   <div className="text-xs text-gray-400">{desc}</div>
                 </div>
                 {!maxed && (
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                     <div className={`text-sm font-bold ${canAfford ? "text-yellow-400" : "text-gray-500"}`}>
                       {cost} pts
                     </div>
+                    {canAfford && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); buyMax(upgrade); }}
+                        className="text-[10px] px-2 py-0.5 rounded bg-yellow-600/30 text-yellow-300 hover:bg-yellow-600/50 border border-yellow-600/40"
+                      >
+                        Buy Max
+                      </button>
+                    )}
                   </div>
                 )}
               </button>
