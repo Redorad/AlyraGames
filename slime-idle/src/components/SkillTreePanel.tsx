@@ -34,7 +34,7 @@ function nodeCenter(node: SkillNode): { cx: number; cy: number } {
   };
 }
 
-export function SkillTreePanel() {
+export function SkillTreePanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [levels, setLevels] = useState<Record<string, number>>(loadLevels);
   const prestigePoints = useGameStore((s) => s.prestigePoints);
@@ -67,7 +67,7 @@ export function SkillTreePanel() {
 
   if (prestigeCount === 0) return null;
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -218,7 +218,7 @@ export function SkillTreePanel() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

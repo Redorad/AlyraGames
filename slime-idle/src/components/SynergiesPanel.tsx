@@ -2,13 +2,13 @@ import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
 import { SYNERGIES } from "../data/synergies";
 
-export function SynergiesPanel() {
+export function SynergiesPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const ownedItems = useGameStore((s) => s.ownedItems);
 
   const activeSynergies = SYNERGIES.filter((s) => s.requires.every((id) => (ownedItems[id] ?? 0) > 0));
 
-  if (!open) {
+  if (!onClose && !open) {
     if (activeSynergies.length === 0) return null;
     return (
       <button onClick={() => setOpen(true)} className="text-xs text-green-500 hover:text-green-300 px-3 py-1">
@@ -39,7 +39,7 @@ export function SynergiesPanel() {
             );
           })}
         </div>
-        <button onClick={() => setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
+        <button onClick={() => onClose ? onClose() : setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
       </div>
     </div>
   );

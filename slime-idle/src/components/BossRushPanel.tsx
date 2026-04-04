@@ -51,7 +51,7 @@ function tryAwardEquipment(itemId: string) {
   } catch { /* ignore corrupted data */ }
 }
 
-export function BossRushPanel() {
+export function BossRushPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [rush, setRush] = useState<RushState>(loadRushState);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
@@ -255,7 +255,7 @@ export function BossRushPanel() {
     );
   }
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button onClick={() => setOpen(true)} className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1">
         ⚡ Boss Rush
@@ -298,7 +298,7 @@ export function BossRushPanel() {
         </button>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20"
         >
           Close

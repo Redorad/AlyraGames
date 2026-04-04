@@ -42,7 +42,7 @@ function getDiscoveredIds(): string[] {
   return [];
 }
 
-export function ArmyDeployPanel() {
+export function ArmyDeployPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<ArmyState>(loadState);
   const [now, setNow] = useState(Date.now());
@@ -102,7 +102,7 @@ export function ArmyDeployPanel() {
     }));
   };
 
-  if (!open) {
+  if (!onClose && !open) {
     const hasComplete = completedDeployments.length > 0;
     return (
       <button
@@ -234,7 +234,7 @@ export function ArmyDeployPanel() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20"
         >
           Close

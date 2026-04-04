@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useGameStore } from "../store/gameStore";
 import { PRESTIGE_UPGRADES, PrestigeUpgrade } from "../data/prestigeUpgrades";
 
-export function PrestigeShop() {
+export function PrestigeShop({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const prestigePoints = useGameStore((s) => s.prestigePoints);
   const prestigeUpgrades = useGameStore((s) => s.prestigeUpgrades);
@@ -25,7 +25,7 @@ export function PrestigeShop() {
 
   if (prestigeCount === 0) return null;
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -104,7 +104,7 @@ export function PrestigeShop() {
           })}
         </div>
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

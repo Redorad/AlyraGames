@@ -5,7 +5,7 @@ import { BOSSES } from "../data/bosses";
 import { formatNumber } from "../utils/format";
 import { playBossHit, playBossVictory, playBossDefeat } from "../utils/sounds";
 
-export function BossPanel() {
+export function BossPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const activeBoss = useExtraStore((s) => s.activeBoss);
   const bossesDefeated = useExtraStore((s) => s.bossesDefeated);
@@ -76,7 +76,7 @@ export function BossPanel() {
     );
   }
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button onClick={() => setOpen(true)} className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1">
         ⚔️ Bosses
@@ -119,7 +119,7 @@ export function BossPanel() {
             <p className="text-xs text-gray-500 text-center py-4">Prestige to unlock boss fights!</p>
           )}
         </div>
-        <button onClick={() => setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
+        <button onClick={() => onClose ? onClose() : setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
       </div>
     </div>
   );

@@ -9,11 +9,11 @@ const RARITY_COLORS = {
   legendary: "text-yellow-300 border-yellow-500/30",
 };
 
-export function ArtifactsPanel() {
+export function ArtifactsPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const ownedArtifacts = useExtraStore((s) => s.ownedArtifacts);
 
-  if (!open) {
+  if (!onClose && !open) {
     if (ownedArtifacts.length === 0) return null;
     return (
       <button onClick={() => setOpen(true)} className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1">
@@ -42,7 +42,7 @@ export function ArtifactsPanel() {
             );
           })}
         </div>
-        <button onClick={() => setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
+        <button onClick={() => onClose ? onClose() : setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
       </div>
     </div>
   );

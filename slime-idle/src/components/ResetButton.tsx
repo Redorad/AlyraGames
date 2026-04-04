@@ -3,7 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { useExtraStore } from "../store/extraStore";
 import { formatNumber } from "../utils/format";
 
-export function ResetButton() {
+export function ResetButton({ onClose }: { onClose?: () => void }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPrestige, setShowPrestige] = useState(false);
   const reset = useGameStore((s) => s.reset);

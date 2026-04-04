@@ -47,7 +47,7 @@ function formatEffect(item: EquipItem): string {
   return `${EFFECT_LABELS[item.effect.type] ?? item.effect.type}: ${val}`;
 }
 
-export function EquipmentPanel() {
+export function EquipmentPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<EquipmentState>(loadState);
 
@@ -97,7 +97,7 @@ export function EquipmentPanel() {
     .map((id) => getItem(id))
     .filter((item): item is EquipItem => item !== undefined);
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -205,7 +205,7 @@ export function EquipmentPanel() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20"
         >
           Close

@@ -4,7 +4,7 @@ import { useGameStore } from "../store/gameStore";
 import { DUNGEONS } from "../data/dungeons";
 import { formatTime } from "../utils/format";
 
-export function DungeonPanel() {
+export function DungeonPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const activeDungeon = useExtraStore((s) => s.activeDungeon);
   const dungeonsCompleted = useExtraStore((s) => s.dungeonsCompleted);
@@ -15,7 +15,7 @@ export function DungeonPanel() {
   const allyIds = ["gobta", "ranga", "shion", "benimaru", "shuna", "souei", "diablo", "veldora", "guy_crimson", "chloe", "velgrynd", "veldanava", "ivarage"];
   const totalAllies = allyIds.reduce((sum, id) => sum + (ownedItems[id] ?? 0), 0);
 
-  if (!open) {
+  if (!onClose && !open) {
     const hasActive = !!activeDungeon;
     const timeLeft = activeDungeon ? Math.max(0, (activeDungeon.endTime - Date.now()) / 1000) : 0;
     const done = activeDungeon && Date.now() >= activeDungeon.endTime;
@@ -80,7 +80,7 @@ export function DungeonPanel() {
             );
           })}
         </div>
-        <button onClick={() => setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
+        <button onClick={() => onClose ? onClose() : setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
       </div>
     </div>
   );

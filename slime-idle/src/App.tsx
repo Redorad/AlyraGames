@@ -66,95 +66,26 @@ const TABS: { id: TabId; icon: string; label: string }[] = [
   { id: "menu", icon: "☰", label: "More" },
 ];
 
-function TabContent({ tab }: { tab: TabId }) {
-  const soundEnabled = useExtraStore((s) => s.soundEnabled);
-  const toggleSound = useExtraStore((s) => s.toggleSound);
-
-  if (tab === "home") {
-    return (
-      <>
-        <ShopTabs />
-        <EventLog />
-      </>
-    );
-  }
-
-  if (tab === "battle") {
-    return (
-      <div className="px-3 py-2 space-y-1.5">
-        <p className="text-xs text-gray-500 mb-1">Combat & Challenges</p>
-        <div className="grid grid-cols-2 gap-2">
-          <TabButton><BossPanel /></TabButton>
-          <TabButton><DungeonPanel /></TabButton>
-          <TabButton><BossRushPanel /></TabButton>
-          <TabButton><ChallengesPanel /></TabButton>
-        </div>
-      </div>
-    );
-  }
-
-  if (tab === "explore") {
-    return (
-      <div className="px-3 py-2 space-y-1.5">
-        <p className="text-xs text-gray-500 mb-1">World & Research</p>
-        <div className="grid grid-cols-2 gap-2">
-          <TabButton><WorldMapPanel /></TabButton>
-          <TabButton><ArmyDeployPanel /></TabButton>
-          <TabButton><ResearchPanel /></TabButton>
-          <TabButton><QuestsPanel /></TabButton>
-        </div>
-      </div>
-    );
-  }
-
-  if (tab === "collection") {
-    return (
-      <div className="px-3 py-2 space-y-1.5">
-        <p className="text-xs text-gray-500 mb-1">Gear & Abilities</p>
-        <div className="grid grid-cols-2 gap-2">
-          <TabButton><EquipmentPanel /></TabButton>
-          <TabButton><SkillTreePanel /></TabButton>
-          <TabButton><ArtifactsPanel /></TabButton>
-          <TabButton><ArtifactFusionPanel /></TabButton>
-          <TabButton><SynergiesPanel /></TabButton>
-        </div>
-      </div>
-    );
-  }
-
-  // menu
-  return (
-    <div className="px-3 py-2 space-y-1.5">
-      <p className="text-xs text-gray-500 mb-1">Stats & Settings</p>
-      <div className="grid grid-cols-2 gap-2">
-        <TabButton><StatsDashboard /></TabButton>
-        <TabButton><AchievementsPanel /></TabButton>
-        <TabButton><SaveManager /></TabButton>
-        <TabButton>
-          <button
-            onClick={() => { toggleSound(); setSoundEnabled(!soundEnabled); }}
-            className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1 w-full text-left"
-          >
-            {soundEnabled ? "🔊 Sound On" : "🔇 Sound Off"}
-          </button>
-        </TabButton>
-      </div>
-      <div className="border-t border-steel/10 pt-2 mt-2">
-        <p className="text-xs text-gray-500 mb-1">Progression</p>
-        <div className="grid grid-cols-3 gap-2">
-          <TabButton><PrestigeShop /></TabButton>
-          <TabButton><AscensionPanel /></TabButton>
-          <TabButton><ResetButton /></TabButton>
-        </div>
-      </div>
-    </div>
-  );
+interface MenuButton {
+  icon: string;
+  label: string;
+  color: string;
+  onClick: () => void;
 }
 
-function TabButton({ children }: { children: React.ReactNode }) {
+function MenuGrid({ buttons }: { buttons: MenuButton[] }) {
   return (
-    <div className="glass-dark rounded-lg border border-steel/10 flex items-center justify-center min-h-[40px]">
-      {children}
+    <div className="grid grid-cols-2 gap-2">
+      {buttons.map((btn) => (
+        <button
+          key={btn.label}
+          onClick={btn.onClick}
+          className={`glass-dark rounded-lg border border-steel/10 min-h-[44px] px-3 py-2.5 text-left transition-colors hover:border-steel/30 active:scale-[0.97]`}
+        >
+          <span className="text-sm">{btn.icon}</span>{" "}
+          <span className={`text-xs font-medium ${btn.color}`}>{btn.label}</span>
+        </button>
+      ))}
     </div>
   );
 }
@@ -163,9 +94,13 @@ export default function App() {
   const { offlineData, dismissOffline } = useSaveLoad();
   useGameLoop();
   const [activeTab, setActiveTab] = useState<TabId>("home");
+  const [openPanel, setOpenPanel] = useState<string | null>(null);
 
   const soundEnabled = useExtraStore((s) => s.soundEnabled);
+  const toggleSound = useExtraStore((s) => s.toggleSound);
   useEffect(() => { setSoundEnabled(soundEnabled); }, [soundEnabled]);
+
+  const close = () => setOpenPanel(null);
 
   return (
     <div className="min-h-screen bg-navy-900 text-white flex justify-center relative overflow-hidden">
@@ -185,6 +120,28 @@ export default function App() {
       {offlineData && (
         <OfflineReportModal offlineSeconds={offlineData.seconds} earned={offlineData.earned} onClose={dismissOffline} />
       )}
+
+      {/* All modal panels — rendered at root level so fixed positioning works */}
+      {openPanel === "boss" && <BossPanel onClose={close} />}
+      {openPanel === "dungeon" && <DungeonPanel onClose={close} />}
+      {openPanel === "bossrush" && <BossRushPanel onClose={close} />}
+      {openPanel === "challenges" && <ChallengesPanel onClose={close} />}
+      {openPanel === "worldmap" && <WorldMapPanel onClose={close} />}
+      {openPanel === "army" && <ArmyDeployPanel onClose={close} />}
+      {openPanel === "research" && <ResearchPanel onClose={close} />}
+      {openPanel === "quests" && <QuestsPanel onClose={close} />}
+      {openPanel === "equipment" && <EquipmentPanel onClose={close} />}
+      {openPanel === "skilltree" && <SkillTreePanel onClose={close} />}
+      {openPanel === "artifacts" && <ArtifactsPanel onClose={close} />}
+      {openPanel === "fusion" && <ArtifactFusionPanel onClose={close} />}
+      {openPanel === "synergies" && <SynergiesPanel onClose={close} />}
+      {openPanel === "stats" && <StatsDashboard onClose={close} />}
+      {openPanel === "achievements" && <AchievementsPanel onClose={close} />}
+      {openPanel === "save" && <SaveManager onClose={close} />}
+      {openPanel === "prestige" && <PrestigeShop onClose={close} />}
+      {openPanel === "ascension" && <AscensionPanel onClose={close} />}
+      {openPanel === "reset" && <ResetButton onClose={close} />}
+
       <div className="w-full max-w-md flex flex-col min-h-screen relative z-10 pb-16">
         {/* Header */}
         <div className="text-center pt-3 pb-1 px-3">
@@ -198,7 +155,71 @@ export default function App() {
         <SlimeButton />
 
         {/* Tab content */}
-        <TabContent tab={activeTab} />
+        {activeTab === "home" && (
+          <>
+            <ShopTabs />
+            <EventLog />
+          </>
+        )}
+
+        {activeTab === "battle" && (
+          <div className="px-3 py-3">
+            <p className="text-xs text-gray-500 mb-2">Combat & Challenges</p>
+            <MenuGrid buttons={[
+              { icon: "👹", label: "Boss Fight", color: "text-red-400", onClick: () => setOpenPanel("boss") },
+              { icon: "🏰", label: "Dungeon", color: "text-purple-400", onClick: () => setOpenPanel("dungeon") },
+              { icon: "⚡", label: "Boss Rush", color: "text-orange-400", onClick: () => setOpenPanel("bossrush") },
+              { icon: "🏆", label: "Challenges", color: "text-yellow-400", onClick: () => setOpenPanel("challenges") },
+            ]} />
+          </div>
+        )}
+
+        {activeTab === "explore" && (
+          <div className="px-3 py-3">
+            <p className="text-xs text-gray-500 mb-2">World & Research</p>
+            <MenuGrid buttons={[
+              { icon: "🗺️", label: "World Map", color: "text-green-400", onClick: () => setOpenPanel("worldmap") },
+              { icon: "🎖️", label: "Army Deploy", color: "text-steel", onClick: () => setOpenPanel("army") },
+              { icon: "🔬", label: "Research", color: "text-cyan-400", onClick: () => setOpenPanel("research") },
+              { icon: "📜", label: "Quests", color: "text-amber-400", onClick: () => setOpenPanel("quests") },
+            ]} />
+          </div>
+        )}
+
+        {activeTab === "collection" && (
+          <div className="px-3 py-3">
+            <p className="text-xs text-gray-500 mb-2">Gear & Abilities</p>
+            <MenuGrid buttons={[
+              { icon: "⚔️", label: "Equipment", color: "text-blue-400", onClick: () => setOpenPanel("equipment") },
+              { icon: "🌟", label: "Skill Tree", color: "text-yellow-400", onClick: () => setOpenPanel("skilltree") },
+              { icon: "💎", label: "Artifacts", color: "text-purple-400", onClick: () => setOpenPanel("artifacts") },
+              { icon: "🔮", label: "Fusion", color: "text-pink-400", onClick: () => setOpenPanel("fusion") },
+              { icon: "🔗", label: "Synergies", color: "text-cyan-400", onClick: () => setOpenPanel("synergies") },
+            ]} />
+          </div>
+        )}
+
+        {activeTab === "menu" && (
+          <div className="px-3 py-3 space-y-3">
+            <div>
+              <p className="text-xs text-gray-500 mb-2">Stats & Settings</p>
+              <MenuGrid buttons={[
+                { icon: "📊", label: "Stats", color: "text-cyan-400", onClick: () => setOpenPanel("stats") },
+                { icon: "🏅", label: "Achievements", color: "text-yellow-400", onClick: () => setOpenPanel("achievements") },
+                { icon: "💾", label: "Save Manager", color: "text-steel", onClick: () => setOpenPanel("save") },
+                { icon: soundEnabled ? "🔊" : "🔇", label: soundEnabled ? "Sound On" : "Sound Off", color: "text-gray-400", onClick: () => { toggleSound(); setSoundEnabled(!soundEnabled); } },
+              ]} />
+            </div>
+            <div className="border-t border-steel/10 pt-3">
+              <p className="text-xs text-gray-500 mb-2">Progression</p>
+              <MenuGrid buttons={[
+                { icon: "✦", label: "Prestige", color: "text-purple-400", onClick: () => setOpenPanel("prestige") },
+                { icon: "🌌", label: "Ascension", color: "text-cyan-400", onClick: () => setOpenPanel("ascension") },
+                { icon: "🔄", label: "Reset", color: "text-red-400", onClick: () => setOpenPanel("reset") },
+              ]} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Tab Bar */}

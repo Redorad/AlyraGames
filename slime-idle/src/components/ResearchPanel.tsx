@@ -29,7 +29,7 @@ const TIER_LABELS: Record<number, { name: string; color: string }> = {
   4: { name: "Tier 4 — Ultimate", color: "text-yellow-400" },
 };
 
-export function ResearchPanel() {
+export function ResearchPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [research, setResearch] = useState<ResearchState>(loadResearchState);
   const [now, setNow] = useState(Date.now());
@@ -131,7 +131,7 @@ export function ResearchPanel() {
     }
   }, [open, research.active, completeResearch]);
 
-  if (!open) {
+  if (!onClose && !open) {
     const hasActive = !!research.active;
     const activeTimeLeft = research.active
       ? Math.max(0, (research.active.endTime - Date.now()) / 1000)
@@ -287,7 +287,7 @@ export function ResearchPanel() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20"
         >
           Close

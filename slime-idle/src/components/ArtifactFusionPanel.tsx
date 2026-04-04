@@ -24,7 +24,7 @@ function getNextRarity(rarity: Artifact["rarity"]): Artifact["rarity"] | null {
   return RARITY_ORDER[idx + 1];
 }
 
-export function ArtifactFusionPanel() {
+export function ArtifactFusionPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const ownedArtifacts = useExtraStore((s) => s.ownedArtifacts);
 
@@ -74,7 +74,7 @@ export function ArtifactFusionPanel() {
     });
   }
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -143,7 +143,7 @@ export function ArtifactFusionPanel() {
         )}
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-4 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

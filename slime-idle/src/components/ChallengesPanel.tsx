@@ -3,7 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { CHALLENGES } from "../data/challenges";
 import { formatNumber } from "../utils/format";
 
-export function ChallengesPanel() {
+export function ChallengesPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const completedChallenges = useGameStore((s) => s.completedChallenges);
   const activeChallenge = useGameStore((s) => s.activeChallenge);
@@ -14,7 +14,7 @@ export function ChallengesPanel() {
 
   if (prestigeCount === 0) return null;
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -102,7 +102,7 @@ export function ChallengesPanel() {
           })}
         </div>
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

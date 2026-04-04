@@ -3,7 +3,7 @@ import { useGameStore } from "../store/gameStore";
 import { useExtraStore } from "../store/extraStore";
 import { ASCENSION_UPGRADES } from "../data/ascension";
 
-export function AscensionPanel() {
+export function AscensionPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const prestigeCount = useGameStore((s) => s.prestigeCount);
@@ -18,7 +18,7 @@ export function AscensionPanel() {
 
   const pointsOnAscend = Math.floor(1 + Math.pow(Math.max(0, prestigeCount - 9), 1.3));
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -97,7 +97,7 @@ export function AscensionPanel() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

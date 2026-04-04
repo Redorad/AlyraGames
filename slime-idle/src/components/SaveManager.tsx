@@ -64,14 +64,14 @@ function importFullSave(data: string): boolean {
   }
 }
 
-export function SaveManager() {
+export function SaveManager({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
   const [message, setMessage] = useState("");
   const [mode, setMode] = useState<"menu" | "export" | "import">("menu");
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -122,7 +122,11 @@ export function SaveManager() {
   };
 
   const handleClose = () => {
-    setOpen(false);
+    if (onClose) {
+      onClose();
+    } else {
+      setOpen(false);
+    }
     setExportText("");
     setImportText("");
     setMessage("");

@@ -17,7 +17,7 @@ function saveDiscovered(ids: string[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
 }
 
-export function WorldMapPanel() {
+export function WorldMapPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const [discovered, setDiscovered] = useState<string[]>(loadDiscovered);
   const evolutionIndex = useGameStore((s) => s.evolutionIndex);
@@ -56,7 +56,7 @@ export function WorldMapPanel() {
     }
   }
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -237,7 +237,7 @@ export function WorldMapPanel() {
         </div>
 
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

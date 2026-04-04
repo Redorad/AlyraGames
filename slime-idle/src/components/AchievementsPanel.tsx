@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
 import { ACHIEVEMENTS } from "../data/achievements";
 
-export function AchievementsPanel() {
+export function AchievementsPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const unlocked = useGameStore((s) => s.unlockedAchievements);
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
@@ -51,7 +51,7 @@ export function AchievementsPanel() {
           })}
         </div>
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => onClose ? onClose() : setOpen(false)}
           className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
           Close

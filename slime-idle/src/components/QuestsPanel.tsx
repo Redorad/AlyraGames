@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useExtraStore } from "../store/extraStore";
 import { DAILY_QUESTS, MILESTONE_QUESTS } from "../data/quests";
 
-export function QuestsPanel() {
+export function QuestsPanel({ onClose }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
   const completedQuests = useExtraStore((s) => s.completedQuests);
   const dailyClicks = useExtraStore((s) => s.dailyQuestClicks);
@@ -10,7 +10,7 @@ export function QuestsPanel() {
   const totalDone = completedQuests.length;
   const totalQuests = DAILY_QUESTS.length + MILESTONE_QUESTS.length;
 
-  if (!open) {
+  if (!onClose && !open) {
     return (
       <button onClick={() => setOpen(true)} className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1">
         📋 Quests
@@ -53,7 +53,7 @@ export function QuestsPanel() {
             );
           })}
         </div>
-        <button onClick={() => setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
+        <button onClick={() => onClose ? onClose() : setOpen(false)} className="mt-3 w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm border border-steel/20">Close</button>
       </div>
     </div>
   );
