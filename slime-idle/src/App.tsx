@@ -12,11 +12,19 @@ import { PrestigeShop } from "./components/PrestigeShop";
 import { ChallengesPanel } from "./components/ChallengesPanel";
 import { ToastNotifications } from "./components/ToastNotifications";
 import { SaveManager } from "./components/SaveManager";
+import { BossPanel } from "./components/BossPanel";
+import { DungeonPanel } from "./components/DungeonPanel";
+import { QuestsPanel } from "./components/QuestsPanel";
+import { ArtifactsPanel } from "./components/ArtifactsPanel";
+import { SynergiesPanel } from "./components/SynergiesPanel";
+import { DailyRewardModal } from "./components/DailyRewardModal";
 import { useGameLoop } from "./hooks/useGameLoop";
 import { useSaveLoad } from "./hooks/useSaveLoad";
 import { useGameStore } from "./store/gameStore";
+import { useExtraStore } from "./store/extraStore";
 import { CHALLENGES } from "./data/challenges";
 import { formatNumber } from "./utils/format";
+import { setSoundEnabled } from "./utils/sounds";
 
 function ActiveChallengeBanner() {
   const activeChallenge = useGameStore((s) => s.activeChallenge);
@@ -32,12 +40,22 @@ function ActiveChallengeBanner() {
         <span className="text-gray-400">{formatNumber(challengeMagicules)}/{formatNumber(ch.goal)}</span>
       </div>
       <div className="w-full h-1.5 bg-navy-700 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-yellow-500 rounded-full transition-all"
-          style={{ width: `${progress * 100}%` }}
-        />
+        <div className="h-full bg-yellow-500 rounded-full transition-all" style={{ width: `${progress * 100}%` }} />
       </div>
     </div>
+  );
+}
+
+function SoundToggle() {
+  const soundEnabled = useExtraStore((s) => s.soundEnabled);
+  const toggleSound = useExtraStore((s) => s.toggleSound);
+  return (
+    <button
+      onClick={() => { toggleSound(); setSoundEnabled(!soundEnabled); }}
+      className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1"
+    >
+      {soundEnabled ? "🔊" : "🔇"}
+    </button>
   );
 }
 
@@ -45,8 +63,11 @@ export default function App() {
   const { offlineMessage } = useSaveLoad();
   useGameLoop();
 
-  const [showWelcome, setShowWelcome] = useState(false);
+  // Sync sound state on load
+  const soundEnabled = useExtraStore((s) => s.soundEnabled);
+  useEffect(() => { setSoundEnabled(soundEnabled); }, [soundEnabled]);
 
+  const [showWelcome, setShowWelcome] = useState(false);
   useEffect(() => {
     if (offlineMessage) {
       setShowWelcome(true);
@@ -59,54 +80,48 @@ export default function App() {
     <div className="min-h-screen bg-navy-900 text-white flex justify-center">
       <Particles />
       <ToastNotifications />
+      <DailyRewardModal />
       <div className="w-full max-w-md flex flex-col min-h-screen relative z-10">
         {/* Header */}
-        <div className="text-center pt-3 pb-1">
-          <h1 className="text-lg font-bold text-steel tracking-wide">
-            Slime Idle
-          </h1>
-          <p className="text-[10px] text-gray-500">
-            That Time I Got Reincarnated as an Idle Game
-          </p>
+        <div className="flex items-center justify-between pt-3 pb-1 px-3">
+          <SoundToggle />
+          <div className="text-center flex-1">
+            <h1 className="text-lg font-bold text-steel tracking-wide">Slime Idle</h1>
+            <p className="text-[10px] text-gray-500">That Time I Got Reincarnated as an Idle Game</p>
+          </div>
+          <div className="w-8" /> {/* spacer */}
         </div>
 
-        {/* Offline earnings banner */}
+        {/* Banners */}
         {showWelcome && offlineMessage && (
           <div className="mx-3 mb-2 p-2 bg-accent/20 border border-accent/40 rounded-lg text-xs text-center text-accent animate-pulse">
             {offlineMessage}
           </div>
         )}
-
-        {/* Active challenge banner */}
         <ActiveChallengeBanner />
 
-        {/* Magicule display */}
         <MagiculeDisplay />
-
-        {/* Evolution bar */}
         <EvolutionBar />
-
-        {/* Slime button */}
         <SlimeButton />
-
-        {/* Shop */}
         <ShopTabs />
-
-        {/* Event log */}
         <EventLog />
 
-        {/* Footer controls */}
-        <div className="flex items-center justify-between px-1 py-1 flex-wrap gap-1">
-          <div className="flex items-center gap-0.5 flex-wrap">
-            <StatsPanel />
-            <AchievementsPanel />
-            <ChallengesPanel />
-            <SaveManager />
-          </div>
-          <div className="flex items-center gap-1">
-            <PrestigeShop />
-            <ResetButton />
-          </div>
+        {/* Footer — row 1: info panels */}
+        <div className="flex items-center justify-center gap-0.5 px-1 flex-wrap">
+          <StatsPanel />
+          <AchievementsPanel />
+          <QuestsPanel />
+          <BossPanel />
+          <DungeonPanel />
+          <ArtifactsPanel />
+          <SynergiesPanel />
+          <ChallengesPanel />
+          <SaveManager />
+        </div>
+        {/* Footer — row 2: prestige + reset */}
+        <div className="flex items-center justify-center gap-1 px-1 py-1 flex-wrap">
+          <PrestigeShop />
+          <ResetButton />
         </div>
       </div>
     </div>

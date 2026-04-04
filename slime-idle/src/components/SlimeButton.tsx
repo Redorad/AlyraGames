@@ -1,7 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useGameStore } from "../store/gameStore";
+import { useExtraStore } from "../store/extraStore";
 import { formatNumber } from "../utils/format";
 import { EVOLUTIONS } from "../data/evolutions";
+import { playClick, playCrit } from "../utils/sounds";
 
 interface FloatingText {
   id: number;
@@ -18,6 +20,7 @@ export function SlimeButton() {
   const evolutionIndex = useGameStore((s) => s.evolutionIndex);
   const comboCount = useGameStore((s) => s.comboCount);
   const stormActive = useGameStore((s) => s.stormActive);
+  const soundEnabled = useExtraStore((s) => s.soundEnabled);
   const [bouncing, setBouncing] = useState(false);
   const [floats, setFloats] = useState<FloatingText[]>([]);
   const nextId = useRef(0);
@@ -31,6 +34,7 @@ export function SlimeButton() {
     (clientX?: number, clientY?: number) => {
       if (clickDisabled) return;
       const result = click();
+      if (soundEnabled) { result.crit ? playCrit() : playClick(); }
       setBouncing(true);
       setTimeout(() => setBouncing(false), 120);
 

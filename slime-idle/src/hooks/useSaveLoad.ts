@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "../store/gameStore";
+import { useExtraStore } from "../store/extraStore";
 import { formatNumber, formatTime } from "../utils/format";
 
 export function useSaveLoad() {
@@ -7,10 +8,16 @@ export function useSaveLoad() {
   const save = useGameStore((s) => s.save);
   const tick = useGameStore((s) => s.tick);
   const addEvent = useGameStore((s) => s.addEvent);
+  const loadExtra = useExtraStore((s) => s.loadExtra);
+  const saveExtra = useExtraStore((s) => s.saveExtra);
+  const checkDailyLogin = useExtraStore((s) => s.checkDailyLogin);
   const [offlineMessage, setOfflineMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const result = load();
+    loadExtra();
+    checkDailyLogin();
+
     if (result && result.offlineSeconds > 10) {
       const state = useGameStore.getState();
       const passivePower = state.getPassivePower();
@@ -25,7 +32,7 @@ export function useSaveLoad() {
       }
     }
 
-    const handleUnload = () => save();
+    const handleUnload = () => { save(); saveExtra(); };
     window.addEventListener("beforeunload", handleUnload);
     return () => window.removeEventListener("beforeunload", handleUnload);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

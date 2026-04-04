@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useGameStore } from "../store/gameStore";
+import { useExtraStore } from "../store/extraStore";
 import { formatNumber } from "../utils/format";
 
 export function ResetButton() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPrestige, setShowPrestige] = useState(false);
   const reset = useGameStore((s) => s.reset);
+  const resetExtra = useExtraStore((s) => s.resetExtra);
   const prestige = useGameStore((s) => s.prestige);
   const evolutionIndex = useGameStore((s) => s.evolutionIndex);
   const lifetimeMagicules = useGameStore((s) => s.lifetimeMagicules);
@@ -74,7 +76,7 @@ export function ResetButton() {
             <p className="text-sm text-gray-400 mb-4">This deletes everything including prestige. Cannot be undone.</p>
             <div className="flex gap-3 justify-center">
               <button
-                onClick={() => { reset(); setShowConfirm(false); }}
+                onClick={() => { reset(); resetExtra(); setShowConfirm(false); }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-500"
               >
                 Reset

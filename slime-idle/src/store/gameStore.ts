@@ -6,6 +6,8 @@ import { BUILDINGS } from "../data/buildings";
 import { ACHIEVEMENTS } from "../data/achievements";
 import { PRESTIGE_UPGRADES, PrestigeUpgrade } from "../data/prestigeUpgrades";
 import { CHALLENGES, Challenge } from "../data/challenges";
+import { SYNERGIES } from "../data/synergies";
+import { ARTIFACTS } from "../data/artifacts";
 
 const SAVE_KEY = "slime-idle-save";
 const COST_SCALE = 1.15;
@@ -188,9 +190,39 @@ function getStartMagicules(prestigeUpgrades: Record<string, number>): number {
   return startMag;
 }
 
+function computeSynergyMult(ownedItems: Record<string, number>, type: "all_mult" | "passive_mult" | "click_mult"): number {
+  let mult = 1;
+  for (const syn of SYNERGIES) {
+    if (syn.effect.type !== type) continue;
+    if (syn.requires.every((id) => (ownedItems[id] ?? 0) > 0)) mult *= syn.effect.value;
+  }
+  return mult;
+}
+
+function computeArtifactMult(ownedArtifacts: string[], type: string): number {
+  let value = type === "crit_chance" || type === "cost_reduction" ? 0 : 1;
+  for (const artId of ownedArtifacts) {
+    const art = ARTIFACTS.find((a) => a.id === artId);
+    if (!art || art.effect.type !== type) continue;
+    if (type === "crit_chance" || type === "cost_reduction") value += art.effect.value;
+    else value *= art.effect.value;
+  }
+  return value;
+}
+
+// Extra store artifact list accessor (lazy loaded from localStorage)
+function getOwnedArtifacts(): string[] {
+  try {
+    const raw = localStorage.getItem("slime-idle-extra");
+    if (!raw) return [];
+    return JSON.parse(raw).ownedArtifacts ?? [];
+  } catch { return []; }
+}
+
 function computeItemCost(item: ShopItemDef, owned: number, costRed: number, challengeCost: number): number {
+  const artCostRed = 1 - computeArtifactMult(getOwnedArtifacts(), "cost_reduction");
   const base = Math.floor(item.baseCost * Math.pow(COST_SCALE, owned));
-  return Math.max(1, Math.floor(base * costRed * challengeCost));
+  return Math.max(1, Math.floor(base * costRed * challengeCost * Math.max(0.1, artCostRed)));
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -209,7 +241,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const challengeMult = computeChallengeMult(s.completedChallenges);
     const activeMult = challenge?.modifier.clickMultiplier ?? 1;
     const stormMult = s.stormActive ? s.stormMultiplier : 1;
-    return base * evoMult * prestigeAll * prestigeClick * achClick * achAll * challengeMult * activeMult * stormMult;
+    const synAll = computeSynergyMult(s.ownedItems, "all_mult");
+    const synClick = computeSynergyMult(s.ownedItems, "click_mult");
+    const arts = getOwnedArtifacts();
+    const artAll = computeArtifactMult(arts, "all_mult");
+    const artClick = computeArtifactMult(arts, "click_mult");
+    return base * evoMult * prestigeAll * prestigeClick * achClick * achAll * challengeMult * activeMult * stormMult * synAll * synClick * artAll * artClick;
   },
 
   getPassivePower: () => {
@@ -224,7 +261,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const challengeMult = computeChallengeMult(s.completedChallenges);
     const activeMult = challenge?.modifier.passiveMultiplier ?? 1;
     const stormMult = s.stormActive ? s.stormMultiplier : 1;
-    return base * evoMult * prestigeAll * prestigePassive * achPassive * achAll * challengeMult * activeMult * stormMult;
+    const synAll = computeSynergyMult(s.ownedItems, "all_mult");
+    const synPassive = computeSynergyMult(s.ownedItems, "passive_mult");
+    const arts = getOwnedArtifacts();
+    const artAll = computeArtifactMult(arts, "all_mult");
+    const artPassive = computeArtifactMult(arts, "passive_mult");
+    return base * evoMult * prestigeAll * prestigePassive * achPassive * achAll * challengeMult * activeMult * stormMult * synAll * synPassive * artAll * artPassive;
   },
 
   getEvolutionMultiplier: () => {
@@ -286,14 +328,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   getCritChance: () => {
     const s = get();
-    // Base 5% + 2% per prestige, max 50%
-    return Math.min(0.5, 0.05 + s.prestigeCount * 0.02);
+    const artBonus = computeArtifactMult(getOwnedArtifacts(), "crit_chance");
+    return Math.min(0.75, 0.05 + s.prestigeCount * 0.02 + artBonus);
   },
 
   getCritMultiplier: () => {
     const s = get();
-    // Base 3x + 0.5x per prestige, max 10x
-    return Math.min(10, 3 + s.prestigeCount * 0.5);
+    const artMult = computeArtifactMult(getOwnedArtifacts(), "crit_mult");
+    return Math.min(20, (3 + s.prestigeCount * 0.5) * artMult);
   },
 
   click: () => {

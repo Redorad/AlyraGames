@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useGameStore } from "../store/gameStore";
+import { useExtraStore } from "../store/extraStore";
 import { RANDOM_EVENTS } from "../data/events";
 
 export function useGameLoop() {
@@ -11,11 +12,15 @@ export function useGameLoop() {
   const startStorm = useGameStore((s) => s.startStorm);
   const addEvent = useGameStore((s) => s.addEvent);
   const save = useGameStore((s) => s.save);
+  const tickBoss = useExtraStore((s) => s.tickBoss);
+  const checkDungeon = useExtraStore((s) => s.checkDungeon);
+  const checkQuests = useExtraStore((s) => s.checkQuests);
+  const saveExtra = useExtraStore((s) => s.saveExtra);
 
   const lastTickRef = useRef(performance.now());
   const lastEventRef = useRef(Date.now());
   const lastSaveRef = useRef(Date.now());
-  const lastAchCheckRef = useRef(Date.now());
+  const lastSlowRef = useRef(Date.now());
   const lastAutoBuyRef = useRef(Date.now());
   const nextStormRef = useRef(Date.now() + 60_000 + Math.random() * 120_000);
 
@@ -29,14 +34,21 @@ export function useGameLoop() {
 
       tick(dt);
       checkEvolution();
+      tickBoss(dt);
 
       const nowMs = Date.now();
 
-      // Check achievements every 2 seconds
-      if (nowMs - lastAchCheckRef.current > 2000) {
-        lastAchCheckRef.current = nowMs;
+      // Slow checks every 2s
+      if (nowMs - lastSlowRef.current > 2000) {
+        lastSlowRef.current = nowMs;
         checkAchievements();
         checkChallengeCompletion();
+        checkDungeon();
+        checkQuests();
+
+        // Track daily clicks
+        const clicks = useGameStore.getState().totalClicks;
+        useExtraStore.setState((s) => ({ dailyQuestClicks: clicks }));
       }
 
       // Auto-buy every second
@@ -45,26 +57,23 @@ export function useGameLoop() {
         autoBuy();
       }
 
-      // Random magicule storm every 1-3 minutes
+      // Random magicule storm
       if (nowMs > nextStormRef.current) {
-        const stormActive = useGameStore.getState().stormActive;
-        if (!stormActive) {
-          startStorm();
-        }
+        if (!useGameStore.getState().stormActive) startStorm();
         nextStormRef.current = nowMs + 60_000 + Math.random() * 120_000;
       }
 
-      // Random event every 5-10 seconds
+      // Random event
       if (nowMs - lastEventRef.current > 5000 + Math.random() * 5000) {
         lastEventRef.current = nowMs;
-        const msg = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
-        addEvent(msg);
+        addEvent(RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)]);
       }
 
-      // Auto-save every 10 seconds
+      // Auto-save
       if (nowMs - lastSaveRef.current > 10000) {
         lastSaveRef.current = nowMs;
         save();
+        saveExtra();
       }
 
       animId = requestAnimationFrame(loop);
@@ -72,5 +81,5 @@ export function useGameLoop() {
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, [tick, checkEvolution, checkAchievements, checkChallengeCompletion, autoBuy, startStorm, addEvent, save]);
+  }, [tick, checkEvolution, checkAchievements, checkChallengeCompletion, autoBuy, startStorm, addEvent, save, tickBoss, checkDungeon, checkQuests, saveExtra]);
 }
