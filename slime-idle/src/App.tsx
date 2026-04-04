@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MagiculeDisplay } from "./components/MagiculeDisplay";
 import { SlimeButton } from "./components/SlimeButton";
 import { EvolutionBar } from "./components/EvolutionBar";
@@ -56,22 +56,113 @@ function ActiveChallengeBanner() {
   );
 }
 
-function SoundToggle() {
+type TabId = "home" | "battle" | "explore" | "collection" | "menu";
+
+const TABS: { id: TabId; icon: string; label: string }[] = [
+  { id: "home", icon: "🏠", label: "Home" },
+  { id: "battle", icon: "⚔️", label: "Battle" },
+  { id: "explore", icon: "🗺️", label: "Explore" },
+  { id: "collection", icon: "📦", label: "Items" },
+  { id: "menu", icon: "☰", label: "More" },
+];
+
+function TabContent({ tab }: { tab: TabId }) {
   const soundEnabled = useExtraStore((s) => s.soundEnabled);
   const toggleSound = useExtraStore((s) => s.toggleSound);
+
+  if (tab === "home") {
+    return (
+      <>
+        <ShopTabs />
+        <EventLog />
+      </>
+    );
+  }
+
+  if (tab === "battle") {
+    return (
+      <div className="px-3 py-2 space-y-1.5">
+        <p className="text-xs text-gray-500 mb-1">Combat & Challenges</p>
+        <div className="grid grid-cols-2 gap-2">
+          <TabButton><BossPanel /></TabButton>
+          <TabButton><DungeonPanel /></TabButton>
+          <TabButton><BossRushPanel /></TabButton>
+          <TabButton><ChallengesPanel /></TabButton>
+        </div>
+      </div>
+    );
+  }
+
+  if (tab === "explore") {
+    return (
+      <div className="px-3 py-2 space-y-1.5">
+        <p className="text-xs text-gray-500 mb-1">World & Research</p>
+        <div className="grid grid-cols-2 gap-2">
+          <TabButton><WorldMapPanel /></TabButton>
+          <TabButton><ArmyDeployPanel /></TabButton>
+          <TabButton><ResearchPanel /></TabButton>
+          <TabButton><QuestsPanel /></TabButton>
+        </div>
+      </div>
+    );
+  }
+
+  if (tab === "collection") {
+    return (
+      <div className="px-3 py-2 space-y-1.5">
+        <p className="text-xs text-gray-500 mb-1">Gear & Abilities</p>
+        <div className="grid grid-cols-2 gap-2">
+          <TabButton><EquipmentPanel /></TabButton>
+          <TabButton><SkillTreePanel /></TabButton>
+          <TabButton><ArtifactsPanel /></TabButton>
+          <TabButton><ArtifactFusionPanel /></TabButton>
+          <TabButton><SynergiesPanel /></TabButton>
+        </div>
+      </div>
+    );
+  }
+
+  // menu
   return (
-    <button
-      onClick={() => { toggleSound(); setSoundEnabled(!soundEnabled); }}
-      className="text-xs text-gray-500 hover:text-gray-300 px-2 py-1"
-    >
-      {soundEnabled ? "🔊" : "🔇"}
-    </button>
+    <div className="px-3 py-2 space-y-1.5">
+      <p className="text-xs text-gray-500 mb-1">Stats & Settings</p>
+      <div className="grid grid-cols-2 gap-2">
+        <TabButton><StatsDashboard /></TabButton>
+        <TabButton><AchievementsPanel /></TabButton>
+        <TabButton><SaveManager /></TabButton>
+        <TabButton>
+          <button
+            onClick={() => { toggleSound(); setSoundEnabled(!soundEnabled); }}
+            className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1 w-full text-left"
+          >
+            {soundEnabled ? "🔊 Sound On" : "🔇 Sound Off"}
+          </button>
+        </TabButton>
+      </div>
+      <div className="border-t border-steel/10 pt-2 mt-2">
+        <p className="text-xs text-gray-500 mb-1">Progression</p>
+        <div className="grid grid-cols-3 gap-2">
+          <TabButton><PrestigeShop /></TabButton>
+          <TabButton><AscensionPanel /></TabButton>
+          <TabButton><ResetButton /></TabButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabButton({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="glass-dark rounded-lg border border-steel/10 flex items-center justify-center min-h-[40px]">
+      {children}
+    </div>
   );
 }
 
 export default function App() {
   const { offlineData, dismissOffline } = useSaveLoad();
   useGameLoop();
+  const [activeTab, setActiveTab] = useState<TabId>("home");
 
   const soundEnabled = useExtraStore((s) => s.soundEnabled);
   useEffect(() => { setSoundEnabled(soundEnabled); }, [soundEnabled]);
@@ -94,51 +185,41 @@ export default function App() {
       {offlineData && (
         <OfflineReportModal offlineSeconds={offlineData.seconds} earned={offlineData.earned} onClose={dismissOffline} />
       )}
-      <div className="w-full max-w-md flex flex-col min-h-screen relative z-10">
+      <div className="w-full max-w-md flex flex-col min-h-screen relative z-10 pb-16">
         {/* Header */}
-        <div className="flex items-center justify-between pt-3 pb-1 px-3">
-          <SoundToggle />
-          <div className="text-center flex-1">
-            <h1 className="text-lg font-bold gradient-text tracking-wide">Slime Idle</h1>
-            <p className="text-[10px] text-gray-500">That Time I Got Reincarnated as an Idle Game</p>
-          </div>
-          <div className="w-8" />
+        <div className="text-center pt-3 pb-1 px-3">
+          <h1 className="text-lg font-bold gradient-text tracking-wide">Slime Idle</h1>
+          <p className="text-[10px] text-gray-500">That Time I Got Reincarnated as an Idle Game</p>
         </div>
 
         <ActiveChallengeBanner />
         <MagiculeDisplay />
         <EvolutionBar />
         <SlimeButton />
-        <ShopTabs />
-        <EventLog />
 
-        {/* Footer — row 1: core panels */}
-        <div className="flex items-center justify-center gap-0.5 px-1 flex-wrap">
-          <StatsDashboard />
-          <AchievementsPanel />
-          <QuestsPanel />
-          <BossPanel />
-          <DungeonPanel />
-          <ArtifactsPanel />
-          <SynergiesPanel />
-          <ChallengesPanel />
-          <SaveManager />
-        </div>
-        {/* Footer — row 2: new systems */}
-        <div className="flex items-center justify-center gap-0.5 px-1 py-0.5 flex-wrap">
-          <SkillTreePanel />
-          <WorldMapPanel />
-          <EquipmentPanel />
-          <ArmyDeployPanel />
-          <ArtifactFusionPanel />
-          <BossRushPanel />
-          <ResearchPanel />
-        </div>
-        {/* Footer — row 3: prestige + ascension + reset */}
-        <div className="flex items-center justify-center gap-1 px-1 py-1 flex-wrap">
-          <PrestigeShop />
-          <AscensionPanel />
-          <ResetButton />
+        {/* Tab content */}
+        <TabContent tab={activeTab} />
+      </div>
+
+      {/* Bottom Tab Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40">
+        <div className="max-w-md mx-auto">
+          <div className="glass border-t border-steel/20 flex items-stretch">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 flex flex-col items-center justify-center py-2 transition-colors ${
+                  activeTab === tab.id
+                    ? "text-cyan-400"
+                    : "text-gray-500 hover:text-gray-300"
+                }`}
+              >
+                <span className="text-base leading-none">{tab.icon}</span>
+                <span className="text-[10px] mt-0.5 font-medium">{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
