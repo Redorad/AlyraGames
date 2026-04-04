@@ -51,8 +51,10 @@ function importFullSave(data: string): boolean {
 
 export function SaveManager() {
   const [open, setOpen] = useState(false);
+  const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
   const [message, setMessage] = useState("");
+  const [mode, setMode] = useState<"menu" | "export" | "import">("menu");
 
   if (!open) {
     return (
@@ -67,14 +69,23 @@ export function SaveManager() {
 
   const handleExport = () => {
     const data = exportFullSave();
-    navigator.clipboard.writeText(data).then(() => {
-      setMessage("Copied to clipboard!");
-      setTimeout(() => setMessage(""), 2000);
-    }).catch(() => {
-      setImportText(data);
-      setMessage("Copy the text above manually");
-      setTimeout(() => setMessage(""), 3000);
-    });
+    setExportText(data);
+    setMode("export");
+    // Try clipboard but don't rely on it
+    try {
+      navigator.clipboard.writeText(data).then(() => {
+        setMessage("Copied to clipboard! You can also select & copy the text below.");
+        setTimeout(() => setMessage(""), 3000);
+      }).catch(() => {});
+    } catch {}
+  };
+
+  const handleSelectAll = () => {
+    const el = document.getElementById("export-textarea") as HTMLTextAreaElement | null;
+    if (el) {
+      el.select();
+      el.setSelectionRange(0, el.value.length);
+    }
   };
 
   const handleImport = () => {
@@ -90,44 +101,85 @@ export function SaveManager() {
     }
   };
 
+  const handleClose = () => {
+    setOpen(false);
+    setExportText("");
+    setImportText("");
+    setMessage("");
+    setMode("menu");
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="bg-navy-800 border border-steel/30 rounded-xl p-4 max-w-sm w-full">
         <h2 className="text-steel font-bold mb-3">💾 Save Manager</h2>
 
-        <button
-          onClick={handleExport}
-          className="w-full mb-3 py-2 bg-steel/20 text-steel rounded-lg text-sm border border-steel/30 hover:bg-steel/30"
-        >
-          Export Save to Clipboard
-        </button>
+        {mode === "menu" && (
+          <>
+            <button
+              onClick={handleExport}
+              className="w-full mb-2 py-2 bg-steel/20 text-steel rounded-lg text-sm border border-steel/30 hover:bg-steel/30"
+            >
+              Export Save (Phone → PC)
+            </button>
+            <button
+              onClick={() => setMode("import")}
+              className="w-full mb-3 py-2 bg-accent/20 text-accent rounded-lg text-sm border border-accent/30 hover:bg-accent/30"
+            >
+              Import Save (Paste data)
+            </button>
+          </>
+        )}
 
-        <div className="mb-3">
-          <label className="text-xs text-gray-400 mb-1 block">Import Save:</label>
-          <textarea
-            value={importText}
-            onChange={(e) => setImportText(e.target.value)}
-            placeholder="Paste save data here..."
-            className="w-full h-20 bg-navy-900 border border-navy-700 rounded-lg p-2 text-xs text-white resize-none focus:outline-none focus:border-steel/50"
-          />
-          <button
-            onClick={handleImport}
-            disabled={!importText.trim()}
-            className="mt-1 w-full py-2 bg-accent/20 text-accent rounded-lg text-sm border border-accent/30 hover:bg-accent/30 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Import
-          </button>
-        </div>
+        {mode === "export" && (
+          <div className="mb-3">
+            <p className="text-xs text-gray-400 mb-2">
+              Copy this text and paste it on your other device:
+            </p>
+            <textarea
+              id="export-textarea"
+              value={exportText}
+              readOnly
+              onFocus={handleSelectAll}
+              className="w-full h-28 bg-navy-900 border border-steel/40 rounded-lg p-2 text-xs text-cyan-300 resize-none focus:outline-none focus:border-steel/60 font-mono break-all"
+            />
+            <button
+              onClick={handleSelectAll}
+              className="mt-1 w-full py-2 bg-steel/20 text-steel rounded-lg text-sm border border-steel/30 hover:bg-steel/30"
+            >
+              Select All Text
+            </button>
+          </div>
+        )}
+
+        {mode === "import" && (
+          <div className="mb-3">
+            <label className="text-xs text-gray-400 mb-1 block">Paste save data:</label>
+            <textarea
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder="Paste save data here..."
+              className="w-full h-28 bg-navy-900 border border-navy-700 rounded-lg p-2 text-xs text-white resize-none focus:outline-none focus:border-steel/50"
+            />
+            <button
+              onClick={handleImport}
+              disabled={!importText.trim()}
+              className="mt-1 w-full py-2 bg-accent/20 text-accent rounded-lg text-sm border border-accent/30 hover:bg-accent/30 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Import
+            </button>
+          </div>
+        )}
 
         {message && (
           <div className="text-center text-xs text-yellow-400 mb-2">{message}</div>
         )}
 
         <button
-          onClick={() => { setOpen(false); setImportText(""); setMessage(""); }}
+          onClick={handleClose}
           className="w-full py-2 bg-navy-700 text-gray-300 rounded-lg text-sm hover:bg-navy-800 border border-steel/20"
         >
-          Close
+          {mode === "menu" ? "Close" : "Back"}
         </button>
       </div>
     </div>
