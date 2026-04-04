@@ -34,6 +34,7 @@ export interface GameState {
   activeChallenge: string | null;
   challengeMagicules: number;
   autoBuyEnabled: boolean;
+  autoPrestigeEnabled: boolean;
   stormActive: boolean;
   stormMultiplier: number;
   stormEndTime: number;
@@ -70,6 +71,8 @@ export interface GameState {
   checkChallengeCompletion: () => void;
   startStorm: () => void;
   toggleAutoBuy: () => void;
+  toggleAutoPrestige: () => void;
+  autoPrestige: () => void;
   save: () => void;
   load: () => { offlineSeconds: number } | null;
   exportSave: () => string;
@@ -96,6 +99,7 @@ function getInitialState() {
     activeChallenge: null as string | null,
     challengeMagicules: 0,
     autoBuyEnabled: false,
+    autoPrestigeEnabled: false,
     stormActive: false,
     stormMultiplier: 1,
     stormEndTime: 0,
@@ -689,6 +693,17 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((s) => ({ autoBuyEnabled: !s.autoBuyEnabled }));
   },
 
+  toggleAutoPrestige: () => {
+    set((s) => ({ autoPrestigeEnabled: !s.autoPrestigeEnabled }));
+  },
+
+  autoPrestige: () => {
+    const s = get();
+    if (!s.autoPrestigeEnabled) return;
+    if (s.evolutionIndex < 7) return;
+    get().prestige();
+  },
+
   save: () => {
     const s = get();
     const data = {
@@ -772,6 +787,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       stormActive: false, stormMultiplier: 1, stormEndTime: 0,
       comboCount: 0, comboLastClick: 0,
       autoBuyEnabled: s.autoBuyEnabled,
+      autoPrestigeEnabled: s.autoPrestigeEnabled,
       eventLog: [
         `✦ Reincarnated! Prestige ${newPrestige} — earned ${pointsEarned} prestige points!`,
         `Base multiplier: ×${(1 + newPrestige * 0.5).toFixed(1)}`,

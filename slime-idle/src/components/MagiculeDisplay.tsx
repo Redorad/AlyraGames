@@ -10,6 +10,8 @@ export function MagiculeDisplay() {
   const stormMultiplier = useGameStore((s) => s.stormMultiplier);
   const autoBuyEnabled = useGameStore((s) => s.autoBuyEnabled);
   const toggleAutoBuy = useGameStore((s) => s.toggleAutoBuy);
+  const autoPrestigeEnabled = useGameStore((s) => s.autoPrestigeEnabled);
+  const toggleAutoPrestige = useGameStore((s) => s.toggleAutoPrestige);
   const critChance = useGameStore((s) => s.getCritChance());
 
   return (
@@ -39,6 +41,16 @@ export function MagiculeDisplay() {
             }`}
         >
           {autoBuyEnabled ? "🤖 Auto-buy ON" : "🤖 Auto-buy"}
+        </button>
+        <button
+          onClick={toggleAutoPrestige}
+          className={`text-[10px] px-2 py-0.5 rounded transition-colors
+            ${autoPrestigeEnabled
+              ? "bg-purple-900/30 text-purple-400 border border-purple-600/40"
+              : "text-gray-600 border border-gray-700/40 hover:text-gray-400"
+            }`}
+        >
+          {autoPrestigeEnabled ? "✦ Auto-prestige ON" : "✦ Auto-prestige"}
         </button>
       </div>
     </div>

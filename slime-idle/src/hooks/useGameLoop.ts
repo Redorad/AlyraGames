@@ -9,6 +9,7 @@ export function useGameLoop() {
   const checkAchievements = useGameStore((s) => s.checkAchievements);
   const checkChallengeCompletion = useGameStore((s) => s.checkChallengeCompletion);
   const autoBuy = useGameStore((s) => s.autoBuy);
+  const autoPrestige = useGameStore((s) => s.autoPrestige);
   const startStorm = useGameStore((s) => s.startStorm);
   const addEvent = useGameStore((s) => s.addEvent);
   const save = useGameStore((s) => s.save);
@@ -51,10 +52,11 @@ export function useGameLoop() {
         useExtraStore.setState((s) => ({ dailyQuestClicks: clicks }));
       }
 
-      // Auto-buy every second
-      if (nowMs - lastAutoBuyRef.current > 1000) {
+      // Auto-buy every 250ms
+      if (nowMs - lastAutoBuyRef.current > 250) {
         lastAutoBuyRef.current = nowMs;
         autoBuy();
+        autoPrestige();
       }
 
       // Random magicule storm
@@ -81,5 +83,5 @@ export function useGameLoop() {
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, [tick, checkEvolution, checkAchievements, checkChallengeCompletion, autoBuy, startStorm, addEvent, save, tickBoss, checkDungeon, checkQuests, saveExtra]);
+  }, [tick, checkEvolution, checkAchievements, checkChallengeCompletion, autoBuy, autoPrestige, startStorm, addEvent, save, tickBoss, checkDungeon, checkQuests, saveExtra]);
 }
