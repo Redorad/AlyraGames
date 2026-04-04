@@ -31,11 +31,21 @@ export function EvolutionBar() {
           <span className="text-yellow-400 text-xs">MAX EVOLUTION</span>
         )}
       </div>
-      <div className="w-full h-3 bg-navy-700 rounded-full overflow-hidden border border-navy-700">
+      <div className="w-full h-3 bg-navy-700 rounded-full overflow-hidden border border-navy-700 relative">
         <div
-          className="h-full bg-gradient-to-r from-steel to-accent rounded-full transition-all duration-300"
+          className="h-full bg-gradient-to-r from-steel to-accent rounded-full transition-all duration-300 animate-bar-glow"
           style={{ width: `${progress * 100}%` }}
         />
+        {/* Glow intensifies near completion */}
+        {progress > 0.7 && (
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: `linear-gradient(90deg, transparent ${(progress - 0.15) * 100}%, rgba(167,139,250,${0.3 + (progress - 0.7) * 1.5}) 100%)`,
+              animation: "pulseGlow 1.2s ease-in-out infinite",
+            }}
+          />
+        )}
       </div>
     </div>
   );

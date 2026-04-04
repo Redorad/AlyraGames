@@ -11,6 +11,7 @@ interface Props {
 
 export function ShopItem({ item, buyQuantity }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const [justBought, setJustBought] = useState(false);
   const magicules = useGameStore((s) => s.magicules);
   const owned = useGameStore((s) => s.ownedItems[item.id] ?? 0);
   const buyItem = useGameStore((s) => s.buyItem);
@@ -33,6 +34,8 @@ export function ShopItem({ item, buyQuantity }: Props) {
     } else {
       buyItemMultiple(item, qty);
     }
+    setJustBought(true);
+    setTimeout(() => setJustBought(false), 300);
   };
 
   // Tooltip data
@@ -45,10 +48,11 @@ export function ShopItem({ item, buyQuantity }: Props) {
   return (
     <div
       onClick={() => setExpanded(!expanded)}
-      className={`w-full rounded-lg border transition-all text-left cursor-pointer
+      className={`w-full rounded-lg border transition-all text-left cursor-pointer glass-dark
+        ${justBought ? "animate-buy-pop" : ""}
         ${canAfford
-          ? "border-steel/30 bg-navy-800/80 hover:bg-navy-700/80 hover:border-steel/60"
-          : "border-gray-700/30 bg-navy-900/50 opacity-50"
+          ? "border-steel/30 hover:bg-navy-700/80 hover:border-steel/60"
+          : "border-gray-700/30 opacity-50"
         }`}
     >
       <div className="flex items-center gap-3 p-3">

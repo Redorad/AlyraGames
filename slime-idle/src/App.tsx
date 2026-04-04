@@ -19,6 +19,7 @@ import { QuestsPanel } from "./components/QuestsPanel";
 import { ArtifactsPanel } from "./components/ArtifactsPanel";
 import { SynergiesPanel } from "./components/SynergiesPanel";
 import { DailyRewardModal } from "./components/DailyRewardModal";
+import { EvolutionFlash } from "./components/EvolutionFlash";
 import { useGameLoop } from "./hooks/useGameLoop";
 import { useSaveLoad } from "./hooks/useSaveLoad";
 import { useGameStore } from "./store/gameStore";
@@ -78,9 +79,19 @@ export default function App() {
   }, [offlineMessage]);
 
   return (
-    <div className="min-h-screen bg-navy-900 text-white flex justify-center">
+    <div className="min-h-screen bg-navy-900 text-white flex justify-center relative overflow-hidden">
+      {/* Aurora background */}
+      <div
+        className="fixed inset-0 opacity-30 pointer-events-none"
+        style={{
+          background: "linear-gradient(135deg, rgba(30,60,140,0.4) 0%, rgba(80,40,160,0.3) 25%, rgba(10,14,39,0) 50%, rgba(60,120,200,0.3) 75%, rgba(40,100,140,0.4) 100%)",
+          backgroundSize: "400% 400%",
+          animation: "auroraShift 12s ease-in-out infinite",
+        }}
+      />
       <Particles />
       <ToastNotifications />
+      <EvolutionFlash />
       <DailyRewardModal />
       <div className="w-full max-w-md flex flex-col min-h-screen relative z-10">
         {/* Header */}

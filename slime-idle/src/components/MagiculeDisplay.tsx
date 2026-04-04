@@ -14,7 +14,7 @@ export function MagiculeDisplay() {
 
   return (
     <div className="text-center py-2">
-      <div className={`text-3xl font-bold ${stormActive ? "text-yellow-300" : "text-steel"}`}>
+      <div className={`text-3xl font-bold ${stormActive ? "gradient-text-gold" : "gradient-text"}`}>
         <AnimatedNumber value={magicules} prefix="🫧 " />
       </div>
       <div className="text-sm text-gray-400 mt-1 flex justify-center gap-4">

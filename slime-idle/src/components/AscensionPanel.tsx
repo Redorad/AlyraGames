@@ -22,7 +22,7 @@ export function AscensionPanel() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs px-3 py-1 rounded bg-purple-600/20 text-purple-400 border border-purple-600/40 hover:bg-purple-600/30 transition-colors"
+        className="shimmer-btn text-xs px-3 py-1 rounded bg-purple-600/20 text-purple-400 border border-purple-600/40 hover:bg-purple-600/30 transition-colors"
       >
         🌌 Ascension {ascensionCount > 0 ? `(${ascensionPoints} AP)` : ""}
       </button>
@@ -31,7 +31,7 @@ export function AscensionPanel() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-navy-800 border border-purple-500/30 rounded-xl p-4 max-w-sm w-full max-h-[80vh] flex flex-col">
+      <div className="glass border border-purple-500/30 rounded-xl p-4 max-w-sm w-full max-h-[80vh] flex flex-col">
         <h2 className="text-purple-400 font-bold mb-1">🌌 Ascension</h2>
         <p className="text-sm text-gray-400 mb-1">
           Ascension Points: <span className="text-purple-400 font-bold">{ascensionPoints}</span>

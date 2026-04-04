@@ -12,7 +12,7 @@ export function EventLog() {
   }, [eventLog]);
 
   return (
-    <div className="border-t border-navy-700">
+    <div className="border-t border-navy-700 glass-dark">
       <div className="px-3 py-1 text-xs text-accent font-semibold">
         🧠 Great Sage — Event Log
       </div>

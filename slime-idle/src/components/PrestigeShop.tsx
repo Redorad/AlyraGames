@@ -29,7 +29,7 @@ export function PrestigeShop() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-xs px-3 py-1 rounded bg-yellow-600/20 text-yellow-400 border border-yellow-600/40 hover:bg-yellow-600/30 transition-colors"
+        className="shimmer-btn text-xs px-3 py-1 rounded bg-yellow-600/20 text-yellow-400 border border-yellow-600/40 hover:bg-yellow-600/30 transition-colors"
       >
         ✦ Prestige Shop ({prestigePoints} pts)
       </button>
@@ -38,7 +38,7 @@ export function PrestigeShop() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-navy-800 border border-yellow-500/30 rounded-xl p-4 max-w-sm w-full max-h-[80vh] flex flex-col">
+      <div className="glass border border-yellow-500/30 rounded-xl p-4 max-w-sm w-full max-h-[80vh] flex flex-col">
         <h2 className="text-yellow-400 font-bold mb-1">
           ✦ Prestige Shop
         </h2>
