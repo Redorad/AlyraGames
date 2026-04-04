@@ -28,6 +28,7 @@ import { ArtifactFusionPanel } from "./components/ArtifactFusionPanel";
 import { BossRushPanel } from "./components/BossRushPanel";
 import { ResearchPanel } from "./components/ResearchPanel";
 import { StatsDashboard } from "./components/StatsDashboard";
+import { LeaderboardPanel } from "./components/LeaderboardPanel";
 import { useGameLoop } from "./hooks/useGameLoop";
 import { useSaveLoad } from "./hooks/useSaveLoad";
 import { useGameStore } from "./store/gameStore";
@@ -185,6 +186,7 @@ export default function App() {
               <p className="text-xs text-gray-500 mb-2">Stats & Settings</p>
               <MenuGrid buttons={[
                 { icon: "📊", label: "Stats", color: "text-cyan-400", onClick: () => setOpenPanel("stats") },
+                { icon: "🏆", label: "Leaderboard", color: "text-yellow-400", onClick: () => setOpenPanel("leaderboard") },
                 { icon: "🏅", label: "Achievements", color: "text-yellow-400", onClick: () => setOpenPanel("achievements") },
                 { icon: "💾", label: "Save Manager", color: "text-steel", onClick: () => setOpenPanel("save") },
                 { icon: soundEnabled ? "🔊" : "🔇", label: soundEnabled ? "Sound On" : "Sound Off", color: "text-gray-400", onClick: () => { toggleSound(); setSoundEnabled(!soundEnabled); } },
@@ -240,6 +242,7 @@ export default function App() {
     {openPanel === "fusion" && <ArtifactFusionPanel onClose={close} />}
     {openPanel === "synergies" && <SynergiesPanel onClose={close} />}
     {openPanel === "stats" && <StatsDashboard onClose={close} />}
+    {openPanel === "leaderboard" && <LeaderboardPanel onClose={close} />}
     {openPanel === "achievements" && <AchievementsPanel onClose={close} />}
     {openPanel === "save" && <SaveManager onClose={close} />}
     {openPanel === "prestige" && <PrestigeShop onClose={close} />}

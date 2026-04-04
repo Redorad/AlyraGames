@@ -9,6 +9,7 @@ import { CHALLENGES, Challenge } from "../data/challenges";
 import { SYNERGIES } from "../data/synergies";
 import { ARTIFACTS } from "../data/artifacts";
 import { ASCENSION_UPGRADES } from "../data/ascension";
+import { recordPrestigeRun } from "../components/LeaderboardPanel";
 import { SKILL_TREE } from "../data/skillTree";
 import { EQUIPMENT } from "../data/equipment";
 import { WORLD_MAP } from "../data/worldMap";
@@ -773,6 +774,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   prestige: () => {
     const s = get();
     if (s.evolutionIndex < 7) return;
+    recordPrestigeRun();
     const newPrestige = s.prestigeCount + 1;
     const pointsEarned = Math.floor(1 + Math.pow(s.evolutionIndex - 6, 1.5) + Math.log10(Math.max(1, s.lifetimeMagicules)) * 0.5);
     const startMag = getStartMagicules(s.prestigeUpgrades);

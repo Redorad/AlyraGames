@@ -12,6 +12,7 @@ const ALL_SAVE_KEYS = [
   "slime-idle-army",
   "slime-idle-research",
   "slime-idle-bossrush",
+  "slime-idle-leaderboard",
 ];
 
 // Unicode-safe base64 encode/decode
