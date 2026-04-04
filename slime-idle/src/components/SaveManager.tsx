@@ -14,18 +14,33 @@ const ALL_SAVE_KEYS = [
   "slime-idle-bossrush",
 ];
 
+// Unicode-safe base64 encode/decode
+function toBase64(str: string): string {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+    String.fromCharCode(parseInt(p1, 16))
+  ));
+}
+
+function fromBase64(b64: string): string {
+  return decodeURIComponent(
+    Array.from(atob(b64), (c) =>
+      "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join("")
+  );
+}
+
 function exportFullSave(): string {
   doGlobalSave();
   const bundle: Record<string, string | null> = {};
   for (const key of ALL_SAVE_KEYS) {
     bundle[key] = localStorage.getItem(key);
   }
-  return btoa(JSON.stringify(bundle));
+  return toBase64(JSON.stringify(bundle));
 }
 
 function importFullSave(data: string): boolean {
   try {
-    const json = atob(data.trim());
+    const json = fromBase64(data.trim());
     const bundle = JSON.parse(json);
 
     // Support old single-key format (just gameStore data)
@@ -68,16 +83,21 @@ export function SaveManager() {
   }
 
   const handleExport = () => {
-    const data = exportFullSave();
-    setExportText(data);
-    setMode("export");
-    // Try clipboard but don't rely on it
     try {
-      navigator.clipboard.writeText(data).then(() => {
-        setMessage("Copied to clipboard! You can also select & copy the text below.");
-        setTimeout(() => setMessage(""), 3000);
-      }).catch(() => {});
-    } catch {}
+      const data = exportFullSave();
+      setExportText(data);
+      setMode("export");
+      // Try clipboard but don't rely on it
+      try {
+        navigator.clipboard.writeText(data).then(() => {
+          setMessage("Copied to clipboard! You can also copy from the box below.");
+          setTimeout(() => setMessage(""), 3000);
+        }).catch(() => {});
+      } catch {}
+    } catch (err) {
+      setMessage("Export failed: " + (err instanceof Error ? err.message : "unknown error"));
+      setTimeout(() => setMessage(""), 5000);
+    }
   };
 
   const handleSelectAll = () => {
