@@ -15,4 +15,7 @@ export const DUNGEONS: Dungeon[] = [
   { id: "dg_labyrinth", name: "Ramiris's Labyrinth", emoji: "🏗️", description: "Infinite shifting maze", duration: 600, reward: { magiculesMult: 800, artifactChance: 0.3 }, requiredAllies: 10 },
   { id: "dg_underworld", name: "Spirit Realm", emoji: "👻", description: "Realm of the spirits", duration: 900, reward: { magiculesMult: 2000, artifactChance: 0.4 }, requiredAllies: 15 },
   { id: "dg_heavenly", name: "Heavenly Star Palace", emoji: "🌟", description: "Domain of the divine", duration: 1800, reward: { magiculesMult: 10000, artifactChance: 0.6 }, requiredAllies: 25 },
+  // Endgame dungeons
+  { id: "dg_void", name: "Void Between Worlds", emoji: "🌑", description: "The space between dimensions", duration: 3600, reward: { magiculesMult: 50000, artifactChance: 0.8 }, requiredAllies: 40 },
+  { id: "dg_origin", name: "Origin Point", emoji: "💠", description: "Where everything began", duration: 7200, reward: { magiculesMult: 500000, artifactChance: 1.0 }, requiredAllies: 60 },
 ];

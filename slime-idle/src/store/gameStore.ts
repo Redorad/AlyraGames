@@ -16,7 +16,7 @@ import { WORLD_MAP } from "../data/worldMap";
 import { RESEARCH_TREE } from "../data/research";
 
 const SAVE_KEY = "slime-idle-save";
-const COST_SCALE = 1.15;
+const COST_SCALE = 1.18;
 
 export interface GameState {
   magicules: number;
@@ -133,7 +133,7 @@ function computePassivePower(ownedItems: Record<string, number>): number {
 }
 
 function computePrestigeMultiplier(prestigeCount: number, prestigeUpgrades: Record<string, number>): number {
-  let mult = 1 + prestigeCount * 0.5;
+  let mult = 1 + prestigeCount * 0.2;
   for (const u of PRESTIGE_UPGRADES) {
     const level = prestigeUpgrades[u.id] ?? 0;
     if (level > 0 && u.effect.type === "all_mult") {
@@ -452,7 +452,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const artMult = computeArtifactMult(getOwnedArtifacts(), "crit_mult");
     const stCritMult = 1 + getSkillTreeBonus("crit_mult");
     const eqCritMult = getEquipmentBonus("crit_mult");
-    return Math.min(20, (3 + s.prestigeCount * 0.5) * artMult * stCritMult * eqCritMult);
+    return Math.min(20, (2 + s.prestigeCount * 0.15) * artMult * stCritMult * eqCritMult);
   },
 
   click: () => {
@@ -792,7 +792,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       autoPrestigeEnabled: s.autoPrestigeEnabled,
       eventLog: [
         `✦ Reincarnated! Prestige ${newPrestige} — earned ${pointsEarned} prestige points!`,
-        `Base multiplier: ×${(1 + newPrestige * 0.5).toFixed(1)}`,
+        `Base multiplier: ×${(1 + newPrestige * 0.2).toFixed(1)}`,
       ],
       startTime: Date.now(), lastSaveTime: Date.now(),
     });
