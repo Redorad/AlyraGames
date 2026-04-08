@@ -126,6 +126,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastEventTick: 0,
   eventLogCounter: 0,
   saveIndicator: false,
+  autoUpgradeEnabled: false,
+
+  toggleAutoUpgrade: () => {
+    set((s) => ({ autoUpgradeEnabled: !s.autoUpgradeEnabled }));
+  },
 
   startGame: () => {
     nameIndex = 0;
@@ -292,6 +297,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         ].slice(0, 20);
         playMilestoneSound();
       }
+    }
+
+    // Auto-upgrade every 5 ticks if enabled
+    if (state.autoUpgradeEnabled && newTickCount % 5 === 0) {
+      // Defer to after state is set
+      setTimeout(() => get().autoUpgradeBuildings(), 0);
     }
 
     // Show save indicator every 10 ticks
@@ -515,6 +526,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       citizens: newCitizens,
       ...stats,
     });
+  },
+
+  autoUpgradeBuildings: () => {
+    const state = get();
+    const hasForge = state.buildings.some((b) => b.defId === 'forge');
+    if (!hasForge) return;
+
+    for (const building of state.buildings) {
+      if (building.level >= 3) continue;
+      const def = getBuildingDef(building.defId);
+      if (!def) continue;
+
+      const upgradeCost: Partial<Resources> = {};
+      for (const [key, value] of Object.entries(def.cost)) {
+        upgradeCost[key as keyof Resources] = (value || 0) * (building.level + 1);
+      }
+
+      if (canAfford(get().resources, upgradeCost)) {
+        get().upgradeBuilding(building.id);
+        return; // One upgrade per tick to avoid draining all resources
+      }
+    }
   },
 
   addEvent: (text: string, emoji: string) => {

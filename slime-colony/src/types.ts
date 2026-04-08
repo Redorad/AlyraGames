@@ -79,6 +79,9 @@ export interface GameState {
   assignWorker: (citizenId: string, buildingId: string) => void;
   unassignWorker: (citizenId: string) => void;
   autoAssignWorkers: () => void;
+  autoUpgradeBuildings: () => void;
   addEvent: (text: string, emoji: string) => void;
   getProductionRates: () => Partial<Resources>;
+  autoUpgradeEnabled: boolean;
+  toggleAutoUpgrade: () => void;
 }

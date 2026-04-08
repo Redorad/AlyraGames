@@ -472,10 +472,76 @@ function SaveIndicator() {
   );
 }
 
+/* ─── Help Panel ─── */
+function HelpPanel({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-navy-800 border border-white/10 rounded-2xl p-5 max-w-lg max-h-[80vh] overflow-y-auto mx-4 text-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-accent font-bold text-lg">Comment jouer</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white text-lg">✕</button>
+        </div>
+        <div className="space-y-3 text-gray-300">
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">🏗️ Construire</p>
+            <p>Utilisez le menu a gauche pour construire des batiments. Chaque batiment coute des ressources.</p>
+          </div>
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">👷 Travailleurs</p>
+            <p>Cliquez sur un batiment construit pour y assigner des citoyens. <strong>Sans travailleurs, un batiment ne produit rien !</strong> Utilisez "Auto-assigner" pour remplir automatiquement.</p>
+          </div>
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">🌾 Nourriture</p>
+            <p>Chaque citoyen consomme <strong>0.3 nourriture/s</strong>. Construisez des Fermes et assignez des travailleurs pour produire de la nourriture. Priorite #1 !</p>
+          </div>
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">👥 Population</p>
+            <p>De nouveaux citoyens arrivent si vous avez assez de nourriture et de place (Huttes). Plus de citoyens = plus de travailleurs disponibles.</p>
+          </div>
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">⬆️ Ameliorations</p>
+            <p>Construisez une <strong>Forge</strong> pour debloquer les ameliorations. Chaque batiment peut monter au Niv.3 (⭐⭐⭐) pour doubler/tripler sa production.</p>
+          </div>
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">😊 Bonheur</p>
+            <p>Le bonheur affecte la production. Tavernes (+10), nourriture stockee (+10), citoyens inactifs (-5 chacun). Bonheur &gt;70% = +20% production !</p>
+          </div>
+          <div className="p-2 rounded-lg bg-navy-700/50 border border-white/5">
+            <p className="font-bold text-white mb-1">🔄 Auto-upgrade</p>
+            <p>Activez "Auto-upgrade" pour ameliorer automatiquement vos batiments quand vous avez les ressources.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Auto Controls ─── */
+function AutoControls() {
+  const autoUpgradeEnabled = useGameStore((s) => s.autoUpgradeEnabled);
+  const toggleAutoUpgrade = useGameStore((s) => s.toggleAutoUpgrade);
+
+  return (
+    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-steel/10">
+      <button
+        onClick={() => { playClickSound(); toggleAutoUpgrade(); }}
+        className={`flex-1 text-[10px] py-1.5 rounded-lg border font-medium transition-all
+          ${autoUpgradeEnabled
+            ? 'border-accent/50 bg-accent/20 text-accent'
+            : 'border-steel/20 bg-navy-800 text-steel/50'
+          }`}
+      >
+        {autoUpgradeEnabled ? '⬆️ Auto-UP ON' : '⬆️ Auto-UP OFF'}
+      </button>
+    </div>
+  );
+}
+
 /* ─── Main Game Screen ─── */
 export default function GameScreen() {
   const tick = useGameStore((s) => s.tick);
   const [selectedBuilding, setSelectedBuilding] = useState<BuildingInstance | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const tickRef = useRef(tick);
   tickRef.current = tick;
 
@@ -495,6 +561,7 @@ export default function GameScreen() {
         {/* Left sidebar: Build menu */}
         <div className="w-44 lg:w-52 border-r border-steel/10 p-3 overflow-y-auto custom-scroll flex-shrink-0">
           <BuildMenu />
+          <AutoControls />
         </div>
 
         {/* Center: Buildings grid + worker panel */}
@@ -519,13 +586,21 @@ export default function GameScreen() {
         </div>
       </div>
 
-      {/* Footer status */}
-      <div className="bg-navy-800 border-t border-steel/10 px-4 py-1 text-center">
+      {/* Footer */}
+      <div className="bg-navy-800 border-t border-steel/10 px-4 py-1.5 flex items-center justify-center gap-4">
+        <button
+          onClick={() => setShowHelp(true)}
+          className="text-steel/50 hover:text-steel text-xs transition-colors"
+        >
+          ❓ Aide
+        </button>
         <span className="text-steel/30 text-[10px]">
-          Tempest - Slime Colony Simulator
+          Tempest - Slime Colony
         </span>
         <SaveIndicator />
       </div>
+
+      {showHelp && <HelpPanel onClose={() => setShowHelp(false)} />}
     </div>
   );
 }
