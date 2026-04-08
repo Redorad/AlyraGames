@@ -1,0 +1,251 @@
+import { BattleUnit, BattleLog, DamageEvent, DeathEvent, UnitDef, PlacedUnit } from '../types';
+import { getUnitDef } from '../data/units';
+import { SYNERGIES } from '../data/synergies';
+
+let uidCounter = 0;
+function genUid(prefix: string): string {
+  return `${prefix}_${++uidCounter}`;
+}
+
+function computeSynergyBonuses(units: { def: UnitDef }[]): { atk: number; hp: number; crit: number } {
+  const counts: Record<string, number> = {};
+  for (const u of units) {
+    for (const s of u.def.synergies) {
+      counts[s] = (counts[s] || 0) + 1;
+    }
+  }
+  let atk = 0, hp = 0, crit = 0;
+  for (const syn of SYNERGIES) {
+    if ((counts[syn.id] || 0) >= syn.threshold) {
+      atk += syn.effect.atk || 0;
+      hp += syn.effect.hp || 0;
+      crit += syn.effect.crit || 0;
+    }
+  }
+  return { atk, hp, crit };
+}
+
+export function getActiveSynergies(units: PlacedUnit[]): { id: string; count: number; active: boolean }[] {
+  const counts: Record<string, number> = {};
+  for (const u of units) {
+    const def = getUnitDef(u.defId);
+    for (const s of def.synergies) {
+      counts[s] = (counts[s] || 0) + 1;
+    }
+  }
+  return SYNERGIES.map(syn => ({
+    id: syn.id,
+    count: counts[syn.id] || 0,
+    active: (counts[syn.id] || 0) >= syn.threshold,
+  }));
+}
+
+export function buildBattleUnits(
+  playerUnits: PlacedUnit[],
+  enemyUnits: { id: string; gridX: number; gridY: number }[]
+): { playerTeam: BattleUnit[]; enemyTeam: BattleUnit[] } {
+  const playerDefs = playerUnits.map(u => ({ def: getUnitDef(u.defId) }));
+  const enemyDefs = enemyUnits.map(u => ({ def: getUnitDef(u.id) }));
+
+  const playerBonuses = computeSynergyBonuses(playerDefs);
+  const enemyBonuses = computeSynergyBonuses(enemyDefs);
+
+  const playerTeam: BattleUnit[] = playerUnits.map(u => {
+    const def = getUnitDef(u.defId);
+    const maxHp = def.hp + playerBonuses.hp;
+    return {
+      uid: genUid('p'),
+      def,
+      currentHp: maxHp,
+      maxHp,
+      atk: def.atk + playerBonuses.atk,
+      defStat: def.def,
+      speed: def.speed,
+      gridX: u.gridX,
+      gridY: u.gridY,
+      side: 'player' as const,
+      alive: true,
+      synergyBonuses: playerBonuses,
+    };
+  });
+
+  const enemyTeam: BattleUnit[] = enemyUnits.map(u => {
+    const def = getUnitDef(u.id);
+    const maxHp = def.hp + enemyBonuses.hp;
+    return {
+      uid: genUid('e'),
+      def,
+      currentHp: maxHp,
+      maxHp,
+      atk: def.atk + enemyBonuses.atk,
+      defStat: def.def,
+      speed: def.speed,
+      gridX: u.gridX,
+      gridY: u.gridY,
+      side: 'enemy' as const,
+      alive: true,
+      synergyBonuses: enemyBonuses,
+    };
+  });
+
+  return { playerTeam, enemyTeam };
+}
+
+function pickTarget(attacker: BattleUnit, enemies: BattleUnit[]): BattleUnit | null {
+  const alive = enemies.filter(e => e.alive);
+  if (alive.length === 0) return null;
+
+  // Geld taunt: if a tank with taunt exists, target it
+  const taunter = alive.find(e => e.def.id === 'geld');
+  if (taunter) return taunter;
+
+  // Souei: target weakest
+  if (attacker.def.id === 'souei') {
+    return alive.reduce((min, e) => e.currentHp < min.currentHp ? e : min, alive[0]);
+  }
+
+  // Default: target closest by grid (or random)
+  return alive[Math.floor(Math.random() * alive.length)];
+}
+
+export function simulateBattle(
+  playerTeam: BattleUnit[],
+  enemyTeam: BattleUnit[]
+): BattleLog {
+  const allUnits = [...playerTeam, ...enemyTeam];
+  const damages: DamageEvent[] = [];
+  const deaths: DeathEvent[] = [];
+
+  // Sort by speed descending
+  allUnits.sort((a, b) => b.speed - a.speed);
+
+  const MAX_TICKS = 100;
+  let tick = 0;
+
+  while (tick < MAX_TICKS) {
+    const playersAlive = playerTeam.filter(u => u.alive);
+    const enemiesAlive = enemyTeam.filter(u => u.alive);
+
+    if (playersAlive.length === 0 || enemiesAlive.length === 0) break;
+
+    for (const unit of allUnits) {
+      if (!unit.alive) continue;
+
+      const targets = unit.side === 'player'
+        ? enemyTeam.filter(e => e.alive)
+        : playerTeam.filter(e => e.alive);
+
+      if (targets.length === 0) break;
+
+      const target = pickTarget(unit, targets);
+      if (!target) continue;
+
+      // Calculate damage
+      let dmg = Math.max(1, unit.atk - target.defStat);
+
+      // Crit chance
+      let isCrit = false;
+      let critChance = unit.synergyBonuses.crit / 100;
+
+      // Hakurou: 40% crit
+      if (unit.def.id === 'hakurou') critChance += 0.4;
+
+      // Shion: 20% double damage
+      if (unit.def.id === 'shion' && Math.random() < 0.2) {
+        dmg *= 2;
+        isCrit = true;
+      } else if (Math.random() < critChance) {
+        dmg = Math.floor(dmg * 1.5);
+        isCrit = true;
+      }
+
+      // Goblin damage reduction
+      if (target.def.id === 'goblin') {
+        dmg = Math.floor(dmg * 0.9);
+      }
+
+      // Diablo execute
+      if (unit.def.id === 'diablo' && target.currentHp / target.maxHp < 0.25) {
+        dmg = target.currentHp;
+      }
+
+      target.currentHp -= dmg;
+      damages.push({ attackerUid: unit.uid, targetUid: target.uid, damage: dmg, isCrit, tick });
+
+      if (target.currentHp <= 0) {
+        target.currentHp = 0;
+        target.alive = false;
+        deaths.push({ uid: target.uid, tick });
+      }
+
+      // Special abilities
+      // Benimaru AoE
+      if (unit.def.id === 'benimaru') {
+        const aoeTargets = unit.side === 'player'
+          ? enemyTeam.filter(e => e.alive && e.uid !== target.uid)
+          : playerTeam.filter(e => e.alive && e.uid !== target.uid);
+        for (const t of aoeTargets) {
+          const aoeDmg = 15;
+          t.currentHp -= aoeDmg;
+          damages.push({ attackerUid: unit.uid, targetUid: t.uid, damage: aoeDmg, isCrit: false, tick });
+          if (t.currentHp <= 0) {
+            t.currentHp = 0;
+            t.alive = false;
+            deaths.push({ uid: t.uid, tick });
+          }
+        }
+      }
+
+      // Veldora AoE
+      if (unit.def.id === 'veldora') {
+        const aoeTargets = unit.side === 'player'
+          ? enemyTeam.filter(e => e.alive && e.uid !== target.uid)
+          : playerTeam.filter(e => e.alive && e.uid !== target.uid);
+        for (const t of aoeTargets) {
+          const aoeDmg = 30;
+          t.currentHp -= aoeDmg;
+          damages.push({ attackerUid: unit.uid, targetUid: t.uid, damage: aoeDmg, isCrit: false, tick });
+          if (t.currentHp <= 0) {
+            t.currentHp = 0;
+            t.alive = false;
+            deaths.push({ uid: t.uid, tick });
+          }
+        }
+      }
+
+      // Shuna heal
+      if (unit.def.id === 'shuna') {
+        const allies = (unit.side === 'player' ? playerTeam : enemyTeam).filter(a => a.alive && a.uid !== unit.uid);
+        if (allies.length > 0) {
+          const injured = allies.reduce((min, a) =>
+            (a.currentHp / a.maxHp) < (min.currentHp / min.maxHp) ? a : min, allies[0]);
+          const heal = Math.min(20, injured.maxHp - injured.currentHp);
+          injured.currentHp += heal;
+        }
+      }
+
+      // Rimuru copies highest ATK enemy ability (simplified: gets +20 ATK)
+      if (unit.def.id === 'rimuru' && tick === 0) {
+        unit.atk += 20;
+      }
+
+      // Direwolf pack bonus
+      if (unit.def.id === 'direwolf') {
+        const allies = (unit.side === 'player' ? playerTeam : enemyTeam);
+        const hasWolf = allies.some(a => a.alive && a.uid !== unit.uid &&
+          (a.def.id === 'direwolf' || a.def.id === 'ranga'));
+        if (hasWolf) {
+          // One-time check; the bonus is already implicit in the extra damage
+          dmg += 5;
+        }
+      }
+    }
+
+    tick++;
+  }
+
+  const survivingEnemies = enemyTeam.filter(u => u.alive).length;
+  const winner = playerTeam.some(u => u.alive) ? 'player' as const : 'enemy' as const;
+
+  return { damages, deaths, winner, survivingEnemies };
+}

@@ -1,0 +1,89 @@
+import { BuildingDef } from '../types';
+
+export const BUILDING_DEFS: BuildingDef[] = [
+  {
+    id: 'hutte',
+    name: 'Hutte',
+    emoji: '🛖',
+    description: 'Abri pour les citoyens. +5 population max.',
+    cost: { wood: 20, stone: 10 },
+    maxWorkers: 0,
+    populationCap: 5,
+  },
+  {
+    id: 'ferme',
+    name: 'Ferme',
+    emoji: '🌾',
+    description: 'Produit de la nourriture.',
+    cost: { wood: 15, gold: 5 },
+    maxWorkers: 3,
+    production: { food: 2 },
+  },
+  {
+    id: 'scierie',
+    name: 'Scierie',
+    emoji: '🪓',
+    description: 'Produit du bois.',
+    cost: { stone: 15, gold: 5 },
+    maxWorkers: 3,
+    production: { wood: 2 },
+  },
+  {
+    id: 'carriere',
+    name: 'Carriere',
+    emoji: '⛏️',
+    description: 'Produit de la pierre.',
+    cost: { wood: 15, gold: 5 },
+    maxWorkers: 3,
+    production: { stone: 2 },
+  },
+  {
+    id: 'temple',
+    name: 'Temple',
+    emoji: '🏛️',
+    description: 'Produit des magicules.',
+    cost: { stone: 30, gold: 20 },
+    maxWorkers: 2,
+    production: { magicules: 1 },
+  },
+  {
+    id: 'marche',
+    name: 'Marche',
+    emoji: '🏪',
+    description: 'Convertit nourriture en or.',
+    cost: { wood: 25, stone: 25 },
+    maxWorkers: 2,
+    converts: { from: 'food', to: 'gold', rate: 3 },
+  },
+  {
+    id: 'forge',
+    name: 'Forge',
+    emoji: '🔨',
+    description: 'Permet les ameliorations.',
+    cost: { stone: 40, magicules: 10, gold: 30 },
+    maxWorkers: 2,
+    unlocks: 'upgrades',
+  },
+  {
+    id: 'muraille',
+    name: 'Muraille',
+    emoji: '🏰',
+    description: 'Defense +10 contre les raids.',
+    cost: { stone: 50, wood: 30 },
+    maxWorkers: 0,
+    defense: 10,
+  },
+  {
+    id: 'arene',
+    name: 'Arene',
+    emoji: '⚔️',
+    description: 'Entraine des soldats.',
+    cost: { wood: 30, stone: 30, gold: 20 },
+    maxWorkers: 4,
+    soldiers: 1,
+  },
+];
+
+export function getBuildingDef(id: string): BuildingDef | undefined {
+  return BUILDING_DEFS.find((b) => b.id === id);
+}

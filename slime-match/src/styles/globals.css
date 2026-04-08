@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  background: #0a0e27;
+}
+
+/* Gem animations */
+@keyframes gemAppear {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes gemMatch {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+@keyframes gemFall {
+  0% { transform: translateY(-60px); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0); }
+}
+
+@keyframes gemBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes gemSelected {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(167, 139, 250, 0.5); }
+  50% { transform: scale(1.1); box-shadow: 0 0 16px rgba(167, 139, 250, 0.9); }
+}
+
+@keyframes swapInvalid {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes comboPopup {
+  0% { transform: scale(0.5) translateY(0); opacity: 0; }
+  30% { transform: scale(1.2) translateY(-10px); opacity: 1; }
+  100% { transform: scale(1) translateY(-30px); opacity: 0; }
+}
+
+@keyframes specialPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0% { opacity: 0; transform: translateY(-30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 5px rgba(167, 139, 250, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(167, 139, 250, 0.7); }
+}
+
+@keyframes timerWarning {
+  0%, 100% { color: #ef4444; }
+  50% { color: #fbbf24; }
+}
+
+.animate-gem-appear {
+  animation: gemAppear 0.3s ease-out forwards;
+}
+
+.animate-gem-match {
+  animation: gemMatch 0.3s ease-in forwards;
+}
+
+.animate-gem-fall {
+  animation: gemFall 0.35s ease-out forwards;
+}
+
+.animate-gem-bounce {
+  animation: gemBounce 0.3s ease-in-out;
+}
+
+.animate-gem-selected {
+  animation: gemSelected 0.6s ease-in-out infinite;
+}
+
+.animate-swap-invalid {
+  animation: swapInvalid 0.3s ease-in-out;
+}
+
+.animate-combo-popup {
+  animation: comboPopup 0.8s ease-out forwards;
+}
+
+.animate-special-pulse {
+  animation: specialPulse 1s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-timer-warning {
+  animation: timerWarning 0.5s ease-in-out infinite;
+}
+
+/* Special gem indicators */
+.gem-special-line-h::after {
+  content: '━';
+  position: absolute;
+  font-size: 10px;
+  bottom: 0;
+  right: 1px;
+  color: #fbbf24;
+  text-shadow: 0 0 4px rgba(251, 191, 36, 0.8);
+}
+
+.gem-special-line-v::after {
+  content: '┃';
+  position: absolute;
+  font-size: 10px;
+  bottom: 0;
+  right: 2px;
+  color: #fbbf24;
+  text-shadow: 0 0 4px rgba(251, 191, 36, 0.8);
+}
+
+.gem-special-bomb::after {
+  content: '💥';
+  position: absolute;
+  font-size: 8px;
+  bottom: -1px;
+  right: 0;
+}
