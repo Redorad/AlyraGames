@@ -24,9 +24,10 @@ const SPECIAL_LABELS: Record<string, string> = {
 interface Props {
   levelId: number;
   onBack: () => void;
+  onRestart: () => void;
 }
 
-export default function GameScreen({ levelId, onBack }: Props) {
+export default function GameScreen({ levelId, onBack, onRestart }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const completeLevel = useProgressStore((s) => s.completeLevel);
@@ -119,9 +120,14 @@ export default function GameScreen({ levelId, onBack }: Props) {
     <div className="h-full bg-navy-900 flex flex-col overflow-hidden">
       {/* ── Top bar ─────────────────────── */}
       <div className="flex items-center justify-between px-3 py-2 bg-navy-800 border-b border-white/5 text-sm shrink-0">
-        <button onClick={onBack} className="text-gray-400 hover:text-white px-2">
-          ← Retour
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={onBack} className="text-gray-400 hover:text-white px-2">
+            ←
+          </button>
+          <button onClick={onRestart} className="text-gray-400 hover:text-white px-1" title="Recommencer">
+            ↻
+          </button>
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-yellow-400 font-bold">{state.gold} G</span>
           <span className="text-red-400">
@@ -327,7 +333,7 @@ export default function GameScreen({ levelId, onBack }: Props) {
                 Niveaux
               </button>
               <button
-                onClick={() => window.location.reload()}
+                onClick={onRestart}
                 className="px-4 py-2 rounded-lg bg-steel/20 text-steel border border-steel/30 text-sm font-medium"
               >
                 Rejouer
