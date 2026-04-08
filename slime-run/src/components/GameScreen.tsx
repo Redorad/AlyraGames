@@ -3,6 +3,14 @@ import { useGameStore } from '../store/gameStore'
 import { levels } from '../data/levels'
 import { GameEngine } from '../engine/GameEngine'
 
+function formatTime(ms: number): string {
+  const totalSec = Math.floor(ms / 1000)
+  const min = Math.floor(totalSec / 60)
+  const sec = totalSec % 60
+  const frac = Math.floor((ms % 1000) / 100)
+  return `${min}:${sec.toString().padStart(2, '0')}.${frac}`
+}
+
 export default function GameScreen() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<GameEngine | null>(null)
@@ -11,17 +19,40 @@ export default function GameScreen() {
   const [maxHp] = useState(3)
   const [score, setScore] = useState(0)
   const [overlay, setOverlay] = useState<'none' | 'victory' | 'gameover'>('none')
+  const [deaths, setDeaths] = useState(0)
+  const [elapsed, setElapsed] = useState(0)
+  const startTimeRef = useRef(Date.now())
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const level = levels[currentLevel]
 
+  const startTimer = useCallback(() => {
+    startTimeRef.current = Date.now()
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setElapsed(Date.now() - startTimeRef.current)
+    }, 100)
+  }, [])
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+    setElapsed(Date.now() - startTimeRef.current)
+  }, [])
+
   const onWin = useCallback(() => {
+    stopTimer()
     setOverlay('victory')
-    unlockLevel(currentLevel + 2) // unlock next (1-indexed)
-  }, [currentLevel, unlockLevel])
+    unlockLevel(currentLevel + 2)
+  }, [currentLevel, unlockLevel, stopTimer])
 
   const onDie = useCallback(() => {
+    stopTimer()
+    setDeaths(d => d + 1)
     setOverlay('gameover')
-  }, [])
+  }, [stopTimer])
 
   const onScore = useCallback(
     (pts: number) => {
@@ -45,8 +76,8 @@ export default function GameScreen() {
     const eng = new GameEngine(canvas, level, onScore, onWin, onDie)
     engineRef.current = eng
     eng.start()
+    startTimer()
 
-    // HUD updater
     const hudInterval = setInterval(() => {
       if (eng) {
         setHp(eng.getHP())
@@ -63,11 +94,13 @@ export default function GameScreen() {
     return () => {
       eng.stop()
       clearInterval(hudInterval)
+      if (timerRef.current) clearInterval(timerRef.current)
       window.removeEventListener('resize', handleResize)
     }
-  }, [level, onScore, onWin, onDie])
+  }, [level, onScore, onWin, onDie, startTimer])
 
   const handleBack = () => {
+    stopTimer()
     engineRef.current?.stop()
     setScreen('title')
   }
@@ -80,6 +113,7 @@ export default function GameScreen() {
     const eng = new GameEngine(canvas, level, onScore, onWin, onDie)
     engineRef.current = eng
     eng.start()
+    startTimer()
     setHp(3)
     setScore(0)
   }
@@ -90,7 +124,6 @@ export default function GameScreen() {
     if (nextIdx < levels.length) {
       useGameStore.getState().setCurrentLevel(nextIdx)
       setScreen('game')
-      // Force re-mount
       setTimeout(() => {
         const canvas = canvasRef.current
         if (!canvas) return
@@ -99,15 +132,16 @@ export default function GameScreen() {
         const eng = new GameEngine(canvas, nextLevel, onScore, onWin, onDie)
         engineRef.current = eng
         eng.start()
+        startTimer()
         setHp(3)
         setScore(0)
+        setDeaths(0)
       }, 50)
     } else {
       setScreen('title')
     }
   }
 
-  // Touch controls
   const touchStart = (action: 'left' | 'right' | 'jump') => {
     if (!engineRef.current) return
     if (action === 'left') engineRef.current.setLeft(true)
@@ -133,6 +167,12 @@ export default function GameScreen() {
         </button>
         <span className="font-bold text-accent">{level.name}</span>
         <div className="flex items-center gap-3">
+          <span className="text-gray-400 text-xs" title="Temps">
+            &#x23F1;&#xFE0F; {formatTime(elapsed)}
+          </span>
+          <span className="text-gray-400 text-xs" title="Morts">
+            &#x1F480; {deaths}
+          </span>
           <span className="text-lg">
             {Array.from({ length: maxHp }, (_, i) => (
               <span key={i}>{i < hp ? '\u{2764}\u{FE0F}' : '\u{1F5A4}'}</span>
@@ -146,12 +186,13 @@ export default function GameScreen() {
       <div className="flex-1 relative overflow-hidden">
         <canvas ref={canvasRef} className="w-full block" style={{ height: 480 }} />
 
-        {/* Overlays */}
         {overlay === 'victory' && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white z-10">
             <div className="text-5xl mb-4">&#x1F389;</div>
             <h2 className="text-3xl font-bold text-accent mb-2">Niveau Termin&eacute; !</h2>
-            <p className="text-steel mb-6">Score: {score}</p>
+            <div className="text-steel mb-1">Score: {score}</div>
+            <div className="text-gray-400 text-sm mb-1">Temps: {formatTime(elapsed)}</div>
+            <div className="text-gray-400 text-sm mb-6">Morts: {deaths}</div>
             <div className="flex gap-4">
               <button
                 onClick={handleBack}
@@ -182,7 +223,9 @@ export default function GameScreen() {
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white z-10">
             <div className="text-5xl mb-4">&#x1F480;</div>
             <h2 className="text-3xl font-bold text-red-500 mb-2">Game Over</h2>
-            <p className="text-gray-400 mb-6">Score: {score}</p>
+            <div className="text-gray-400 mb-1">Score: {score}</div>
+            <div className="text-gray-400 text-sm mb-1">Temps: {formatTime(elapsed)}</div>
+            <div className="text-gray-400 text-sm mb-6">Morts: {deaths}</div>
             <div className="flex gap-4">
               <button
                 onClick={handleBack}
