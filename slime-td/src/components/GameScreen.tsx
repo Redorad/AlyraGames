@@ -120,15 +120,13 @@ export default function GameScreen({ levelId, onBack }: Props) {
       </div>
 
       {/* ── Canvas ──────────────────────── */}
-      <div className="flex-1 flex items-start justify-center overflow-hidden bg-navy-900/50">
-        <div className="w-full max-w-[448px]">
-          <canvas
-            ref={canvasRef}
-            onMouseDown={handleCanvasClick}
-            onTouchStart={handleCanvasClick}
-            className="w-full cursor-pointer"
-          />
-        </div>
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-navy-900/50">
+        <canvas
+          ref={canvasRef}
+          onMouseDown={handleCanvasClick}
+          onTouchStart={handleCanvasClick}
+          className="cursor-pointer"
+        />
       </div>
 
       {/* ── Selected tower info ─────────── */}
