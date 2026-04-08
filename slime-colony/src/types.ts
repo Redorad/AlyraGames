@@ -66,7 +66,10 @@ export interface GameState {
   tickCount: number;
   lastEventTick: number;
   eventLogCounter: number;
+  saveIndicator: boolean;
   startGame: () => void;
+  loadSave: () => boolean;
+  clearSave: () => void;
   tick: () => void;
   buildBuilding: (defId: string) => void;
   assignWorker: (citizenId: string, buildingId: string) => void;

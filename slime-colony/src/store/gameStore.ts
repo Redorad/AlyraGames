@@ -4,6 +4,8 @@ import { getBuildingDef, BUILDING_DEFS } from '../data/buildings';
 import { getRandomEvent } from '../data/events';
 import { playBuildSound, playEventSound, playMilestoneSound } from '../utils/sounds';
 
+const SAVE_KEY = 'slime-colony-save';
+
 const SLIME_NAMES = [
   'Rimuru', 'Shion', 'Shuna', 'Benimaru', 'Souei', 'Hakurou',
   'Gobta', 'Rigurd', 'Rigur', 'Kaijin', 'Geld', 'Gabiru',
@@ -35,7 +37,7 @@ function createCitizen(): Citizen {
 }
 
 const INITIAL_RESOURCES: Resources = {
-  food: 50,
+  food: 100,
   wood: 40,
   stone: 30,
   magicules: 5,
@@ -82,6 +84,14 @@ function nextEventInterval(): number {
 
 const MILESTONES = [10, 25, 50, 100];
 
+export function hasSaveData(): boolean {
+  try {
+    return localStorage.getItem(SAVE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   phase: 'title',
   resources: { ...INITIAL_RESOURCES },
@@ -95,24 +105,73 @@ export const useGameStore = create<GameState>((set, get) => ({
   tickCount: 0,
   lastEventTick: 0,
   eventLogCounter: 0,
+  saveIndicator: false,
 
   startGame: () => {
     nameIndex = 0;
-    const initialCitizens = Array.from({ length: 3 }, () => createCitizen());
+    // Create 5 initial citizens
+    const initialCitizens = Array.from({ length: 5 }, () => createCitizen());
+    // Start with 1 farm already built, with 1 worker assigned
+    const farmDef = BUILDING_DEFS.find((d) => d.id === 'ferme')!;
+    const farmBuilding: BuildingInstance = {
+      id: `building-${Date.now()}-initial-farm`,
+      defId: farmDef.id,
+      level: 1,
+      assignedWorkers: [initialCitizens[0].id],
+    };
+    // Mark the first citizen as assigned to the farm
+    initialCitizens[0] = { ...initialCitizens[0], assignedTo: farmBuilding.id };
+
+    const initialBuildings = [farmBuilding];
+    const stats = computeStats(initialBuildings);
+
+    // Clear any old save
+    try { localStorage.removeItem(SAVE_KEY); } catch { /* noop */ }
+
     set({
       phase: 'playing',
       resources: { ...INITIAL_RESOURCES },
-      buildings: [],
+      buildings: initialBuildings,
       citizens: initialCitizens,
       eventLog: [],
-      totalPopulationCap: 5,
-      totalDefense: 0,
-      totalSoldiers: 0,
       milestones: [],
       tickCount: 0,
       lastEventTick: 0,
       eventLogCounter: 0,
+      saveIndicator: false,
+      ...stats,
     });
+  },
+
+  loadSave: () => {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return false;
+      const save = JSON.parse(raw);
+      // Restore nameIndex so new citizens get unique names
+      nameIndex = save.nameIndex || 0;
+      const stats = computeStats(save.buildings || []);
+      set({
+        phase: 'playing',
+        resources: save.resources || { ...INITIAL_RESOURCES },
+        buildings: save.buildings || [],
+        citizens: save.citizens || [],
+        eventLog: save.eventLog || [],
+        milestones: save.milestones || [],
+        tickCount: save.tickCount || 0,
+        lastEventTick: save.lastEventTick || 0,
+        eventLogCounter: save.eventLogCounter || 0,
+        saveIndicator: false,
+        ...stats,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  clearSave: () => {
+    try { localStorage.removeItem(SAVE_KEY); } catch { /* noop */ }
   },
 
   tick: () => {
@@ -145,8 +204,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    // Food consumption: 0.5 food per citizen per tick
-    const foodConsumed = state.citizens.length * 0.5;
+    // Food consumption: 0.3 food per citizen per tick
+    const foodConsumed = state.citizens.length * 0.3;
     newResources.food = Math.max(0, newResources.food - foodConsumed);
 
     const newTickCount = state.tickCount + 1;
@@ -168,11 +227,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       playEventSound();
     }
 
-    // Population growth: if food > 10 per citizen and under pop cap
+    // Population growth: if food > 20 + 2 per citizen and under pop cap
     const stats = computeStats(state.buildings);
     let newCitizens = [...state.citizens];
     if (
-      newResources.food > state.citizens.length * 10 &&
+      newResources.food > 20 + state.citizens.length * 2 &&
       state.citizens.length < stats.totalPopulationCap &&
       newTickCount % 15 === 0
     ) {
@@ -204,6 +263,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
+    // Show save indicator every 10 ticks
+    const showSaveIndicator = newTickCount % 10 === 0;
+
     set({
       resources: newResources,
       tickCount: newTickCount,
@@ -212,8 +274,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       citizens: newCitizens,
       milestones: newMilestones,
       eventLogCounter: logCounter,
+      saveIndicator: showSaveIndicator,
       ...stats,
     });
+
+    // Persist to localStorage after every tick
+    try {
+      const updated = get();
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        resources: updated.resources,
+        buildings: updated.buildings,
+        citizens: updated.citizens,
+        eventLog: updated.eventLog,
+        milestones: updated.milestones,
+        tickCount: updated.tickCount,
+        lastEventTick: updated.lastEventTick,
+        eventLogCounter: updated.eventLogCounter,
+        nameIndex,
+      }));
+    } catch { /* storage full or unavailable */ }
+
+    // Clear save indicator after a short delay
+    if (showSaveIndicator) {
+      setTimeout(() => {
+        set({ saveIndicator: false });
+      }, 1500);
+    }
   },
 
   buildBuilding: (defId: string) => {

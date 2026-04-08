@@ -312,6 +312,35 @@ function EventLog() {
   );
 }
 
+/* ─── Idle Citizens Banner ─── */
+function IdleBanner() {
+  const citizens = useGameStore((s) => s.citizens);
+  const idleCount = citizens.filter((c) => !c.assignedTo).length;
+
+  if (idleCount === 0) return null;
+
+  return (
+    <div className="bg-yellow-900/40 border border-yellow-500/40 rounded-lg px-3 py-2 mb-3 text-center animate-slide-in">
+      <span className="text-yellow-300 text-sm font-medium">
+        ⚠️ {idleCount} citoyen{idleCount > 1 ? 's' : ''} inactif{idleCount > 1 ? 's' : ''} — Assignez-les à des bâtiments !
+      </span>
+    </div>
+  );
+}
+
+/* ─── Save Indicator ─── */
+function SaveIndicator() {
+  const saveIndicator = useGameStore((s) => s.saveIndicator);
+
+  if (!saveIndicator) return null;
+
+  return (
+    <span className="text-accent/60 text-[10px] ml-2 animate-save-flash">
+      💾 Sauvegardé
+    </span>
+  );
+}
+
 /* ─── Main Game Screen ─── */
 export default function GameScreen() {
   const tick = useGameStore((s) => s.tick);
@@ -339,6 +368,7 @@ export default function GameScreen() {
 
         {/* Center: Buildings grid + worker panel */}
         <div className="flex-1 p-4 overflow-y-auto custom-scroll">
+          <IdleBanner />
           <BuiltBuildings onSelectBuilding={setSelectedBuilding} />
 
           {selectedBuilding && (
@@ -363,6 +393,7 @@ export default function GameScreen() {
         <span className="text-steel/30 text-[10px]">
           Tempest - Slime Colony Simulator
         </span>
+        <SaveIndicator />
       </div>
     </div>
   );

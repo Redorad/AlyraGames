@@ -38,6 +38,17 @@ html, body, #root {
   animation: slide-in 0.3s ease-out;
 }
 
+@keyframes save-flash {
+  0% { opacity: 0; transform: translateY(4px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+.animate-save-flash {
+  animation: save-flash 1.5s ease-in-out forwards;
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
