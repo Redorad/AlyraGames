@@ -136,8 +136,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const placedUnit = placed.find(u => u.uid === uid);
 
     if (benchUnit) {
-      // Max 6 on the field
-      if (placed.length >= 6 && !occupied) return;
+      // Max 8 on the field (4x2 grid)
+      if (placed.length >= 8 && !occupied) return;
 
       let newPlaced = [...placed];
       let newBench = bench.filter(u => u.uid !== uid);
