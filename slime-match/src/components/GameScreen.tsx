@@ -31,11 +31,13 @@ export default function GameScreen() {
   const [matchedCells, setMatchedCells] = useState<Set<string>>(new Set());
   const [fallingCells, setFallingCells] = useState<Set<string>>(new Set());
   const [comboDisplay, setComboDisplay] = useState<{ combo: number; key: number } | null>(null);
+  const [bonusDisplay, setBonusDisplay] = useState<{ type: string; key: number } | null>(null);
   const [invalidSwap, setInvalidSwap] = useState<Position | null>(null);
 
   const scoreRef = useRef(score);
   scoreRef.current = score;
   const comboKeyRef = useRef(0);
+  const bonusKeyRef = useRef(0);
 
   useEffect(() => {
     if (phase === 'gameover' || phase === 'levelcomplete') return;
@@ -78,9 +80,20 @@ export default function GameScreen() {
 
     const newCombo = currentCombo + 1;
     setCombo(newCombo);
+
     if (newCombo > 1) {
       comboKeyRef.current++;
       setComboDisplay({ combo: newCombo, key: comboKeyRef.current });
+    }
+
+    // Show bonus popup
+    if (result.bonusType === 'line') {
+      bonusKeyRef.current++;
+      setBonusDisplay({ type: 'LINE CLEAR!', key: bonusKeyRef.current });
+      playSpecial();
+    } else if (result.bonusType === 'color') {
+      bonusKeyRef.current++;
+      setBonusDisplay({ type: 'COLOR BOMB!', key: bonusKeyRef.current });
       playSpecial();
     } else {
       playMatch(newCombo);
@@ -106,7 +119,7 @@ export default function GameScreen() {
         setFallingCells(new Set());
         processCascade(result.board, newCombo);
       }, 400);
-    }, 350);
+    }, 400);
   }, []);
 
   const handleGemClick = useCallback((row: number, col: number) => {
@@ -163,7 +176,6 @@ export default function GameScreen() {
           </button>
         </div>
 
-        {/* Score */}
         <div className="mb-2">
           <div className="flex justify-between text-sm mb-1">
             <span className="text-gray-400">Score</span>
@@ -174,7 +186,6 @@ export default function GameScreen() {
           </div>
         </div>
 
-        {/* Timer */}
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span className="text-gray-400">Temps</span>
@@ -186,7 +197,7 @@ export default function GameScreen() {
         </div>
       </div>
 
-      {/* Combo */}
+      {/* Combo popup */}
       {comboDisplay && (
         <div key={comboDisplay.key} className="absolute top-32 left-1/2 -translate-x-1/2 animate-combo-popup pointer-events-none z-20">
           <span className="text-3xl font-black text-yellow-400 drop-shadow-[0_0_14px_rgba(251,191,36,0.7)]">
@@ -195,10 +206,19 @@ export default function GameScreen() {
         </div>
       )}
 
-      {/* Game Board — fills all remaining space */}
+      {/* Bonus popup */}
+      {bonusDisplay && (
+        <div key={bonusDisplay.key} className="absolute top-44 left-1/2 -translate-x-1/2 animate-combo-popup pointer-events-none z-20">
+          <span className="text-2xl font-black text-cyan-300 drop-shadow-[0_0_14px_rgba(34,211,238,0.7)]">
+            {"\u{2728}"} {bonusDisplay.type} {"\u{2728}"}
+          </span>
+        </div>
+      )}
+
+      {/* Board */}
       <div className="flex-1 flex items-center justify-center px-2 pb-3 overflow-hidden">
         <div
-          className="rounded-2xl p-1"
+          className="rounded-2xl p-1.5"
           style={{
             background: 'linear-gradient(135deg, rgba(30,35,80,0.9), rgba(15,18,50,0.95))',
             border: '2px solid rgba(126,200,227,0.15)',
@@ -222,7 +242,6 @@ export default function GameScreen() {
                 const isMatched = matchedCells.has(`${r},${c}`);
                 const isFalling = fallingCells.has(`${r},${c}`);
                 const isInvalid = invalidSwap?.row === r && invalidSwap?.col === c;
-                const isSpecial = gem.special !== 'none';
                 const gemColor = getGemColor(gem.type);
 
                 return (
@@ -230,16 +249,11 @@ export default function GameScreen() {
                     key={gem.id}
                     onClick={() => handleGemClick(r, c)}
                     className={`
-                      gem-cell relative flex items-center justify-center
-                      leading-none select-none
+                      gem-cell relative flex items-center justify-center leading-none select-none
                       ${isSelected ? 'animate-gem-selected z-10' : ''}
                       ${isMatched ? 'animate-gem-match' : ''}
                       ${isFalling ? 'animate-gem-fall' : ''}
                       ${isInvalid ? 'animate-swap-invalid' : ''}
-                      ${isSpecial ? 'animate-special-pulse' : ''}
-                      ${gem.special === 'line_h' ? 'gem-special-line-h' : ''}
-                      ${gem.special === 'line_v' ? 'gem-special-line-v' : ''}
-                      ${gem.special === 'bomb' ? 'gem-special-bomb' : ''}
                     `}
                     style={{
                       backgroundColor: `${gemColor}20`,
@@ -254,14 +268,9 @@ export default function GameScreen() {
                     }}
                     disabled={phase !== 'idle'}
                   >
-                    <span className={isSpecial ? 'drop-shadow-lg' : 'drop-shadow-sm'}>
+                    <span className="drop-shadow-sm">
                       {getGemEmoji(gem.type)}
                     </span>
-                    {isSpecial && (
-                      <span className="absolute bottom-0 right-0.5" style={{ fontSize: 'clamp(8px, 1.5vw, 12px)' }}>
-                        {gem.special === 'bomb' ? '\u{1F4A5}' : '\u{2728}'}
-                      </span>
-                    )}
                   </button>
                 );
               })
