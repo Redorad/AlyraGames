@@ -79,9 +79,12 @@ export default function TitleScreen() {
               <p className="font-bold text-white mb-1">{"\u{2728}"} Synergies</p>
               <p>Certaines unités partagent des <strong>tags</strong> (Ogre, Kijin, Monstre).</p>
               <ul className="mt-1 ml-4 list-disc text-gray-400 space-y-0.5">
-                <li><strong>Ogre</strong> (2+) : +30% ATK</li>
+                <li><strong>Ogre</strong> (2+) : +15 ATK</li>
                 <li><strong>Kijin</strong> (3+) : +25% Critique</li>
-                <li><strong>Monstre</strong> (4+) : +25% PV</li>
+                <li><strong>Monstre</strong> (4+) : +50 PV</li>
+                <li><strong>Rapide</strong> (2+) : +3 Vitesse</li>
+                <li><strong>D{"\u00e9"}mon</strong> (2+) : +20 ATK</li>
+                <li><strong>Gu{"\u00e9"}risseur</strong> (2+) : +30 PV</li>
               </ul>
             </div>
           </div>
