@@ -25,6 +25,9 @@ export interface BattleUnit {
   side: 'player' | 'enemy';
   alive: boolean;
   synergyBonuses: { atk: number; hp: number; crit: number };
+  burn: number;
+  poison: number;
+  stun: number;
 }
 
 export interface DamageEvent {
@@ -40,9 +43,17 @@ export interface DeathEvent {
   tick: number;
 }
 
+export interface HealEvent {
+  healerUid: string;
+  targetUid: string;
+  amount: number;
+  tick: number;
+}
+
 export interface BattleLog {
   damages: DamageEvent[];
   deaths: DeathEvent[];
+  heals: HealEvent[];
   winner: 'player' | 'enemy';
   survivingEnemies: number;
 }
@@ -53,7 +64,7 @@ export interface SynergyDef {
   emoji: string;
   threshold: number;
   bonus: string;
-  effect: { atk?: number; hp?: number; crit?: number };
+  effect: { atk?: number; hp?: number; crit?: number; speed?: number };
 }
 
 export interface EnemyRound {

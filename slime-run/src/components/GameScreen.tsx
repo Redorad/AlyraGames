@@ -133,11 +133,9 @@ export default function GameScreen() {
         </button>
         <span className="font-bold text-accent">{level.name}</span>
         <div className="flex items-center gap-3">
-          <span>
+          <span className="text-lg">
             {Array.from({ length: maxHp }, (_, i) => (
-              <span key={i} className={i < hp ? 'text-red-500' : 'text-gray-600'}>
-                &#x2764;&#xFE0F;
-              </span>
+              <span key={i}>{i < hp ? '\u{2764}\u{FE0F}' : '\u{1F5A4}'}</span>
             ))}
           </span>
           <span className="text-yellow-400">&#x2728; {score}</span>
