@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { GameState } from "../types";
 import { LEVELS } from "../data/levels";
-import { TOWER_DEFS, getAvailableTowers, getUpgradeCost } from "../data/towers";
+import { TOWER_DEFS, getAvailableTowers, getUpgradeCost, getTowerDamage, getTowerRange, getTowerAttackSpeed } from "../data/towers";
 import { GameEngine } from "../engine/GameEngine";
 import { useProgressStore } from "../store/gameStore";
 import { isSoundEnabled, setSoundEnabled } from "../utils/sounds";
+
+const TOWER_EMOJI: Record<string, string> = {
+  goblin: "\u{1F3F9}", ranga: "\u{1F43A}", shion: "\u{2694}\u{FE0F}",
+  benimaru: "\u{1F525}", souei: "\u{1F578}\u{FE0F}", shuna: "\u{1F338}",
+  hakurou: "\u{1F3AF}", geld: "\u{1F6E1}\u{FE0F}", diablo: "\u{1F608}",
+};
+
+const SPECIAL_LABELS: Record<string, string> = {
+  splash: "Splash AoE",
+  slow: "Ralentissement",
+  buff: "Buff alliés",
+  crit: "Coup critique",
+  aura: "Aura de dégâts",
+  priority: "Cible le + fort",
+};
 
 interface Props {
   levelId: number;
@@ -129,38 +144,89 @@ export default function GameScreen({ levelId, onBack }: Props) {
         />
       </div>
 
-      {/* ── Selected tower info ─────────── */}
-      {state.selectedTower && (
-        <div className="px-3 py-2 bg-navy-800 border-t border-white/5 flex items-center justify-between shrink-0">
-          <div className="text-sm">
-            <span
-              className="font-bold"
-              style={{ color: TOWER_DEFS[state.selectedTower.defId]?.color }}
-            >
-              {TOWER_DEFS[state.selectedTower.defId]?.name}
-            </span>
-            <span className="text-gray-400 ml-2">Nv.{state.selectedTower.level}</span>
-          </div>
-          <div className="flex gap-2">
-            {state.selectedTower.level < 3 && (
-              <button
-                onClick={upgrade}
-                disabled={!state.canUpgrade}
-                className={`text-xs px-3 py-1 rounded-lg font-medium
-                  ${state.canUpgrade ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40" : "bg-gray-700/30 text-gray-500 border border-gray-600/20"}`}
+      {/* ── Info panel (selected tower def OR placed tower) ── */}
+      {(state.selectedTowerDef || state.selectedTower) && (() => {
+        const placedTower = state.selectedTower;
+        const def = placedTower
+          ? TOWER_DEFS[placedTower.defId]
+          : state.selectedTowerDef!;
+        const lvl = placedTower ? placedTower.level : 1;
+        const dmg = getTowerDamage(def, lvl);
+        const range = getTowerRange(def, lvl).toFixed(1);
+        const spd = def.attackSpeed > 0 ? getTowerAttackSpeed(def, lvl).toFixed(1) : "—";
+        const emoji = TOWER_EMOJI[def.id] ?? "";
+
+        return (
+          <div className="px-3 py-2 bg-navy-800 border-t border-white/10 shrink-0">
+            <div className="flex items-start gap-3">
+              {/* Icon */}
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
+                style={{ backgroundColor: def.color + "30", borderColor: def.color, borderWidth: 1 }}
               >
-                Upgrade ({state.upgradeCost}G)
-              </button>
-            )}
-            <button
-              onClick={sell}
-              className="text-xs px-3 py-1 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40"
-            >
-              Vendre ({state.sellValue}G)
-            </button>
+                {emoji}
+              </div>
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm" style={{ color: def.color }}>
+                    {def.name}
+                  </span>
+                  {placedTower && (
+                    <span className="text-xs text-gray-400">Nv.{lvl}</span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 leading-snug mt-0.5">{def.description}</p>
+                {/* Stats row */}
+                <div className="flex gap-3 mt-1.5 text-xs">
+                  {def.special !== "buff" && (
+                    <span className="text-red-300" title="Dégâts">
+                      {def.special === "aura" ? `${dmg}/s` : dmg} DMG
+                    </span>
+                  )}
+                  <span className="text-blue-300" title="Portée">{range} POR</span>
+                  {def.attackSpeed > 0 && (
+                    <span className="text-green-300" title="Vitesse d'attaque">{spd}/s VIT</span>
+                  )}
+                </div>
+                {/* Special ability */}
+                {def.special && (
+                  <div className="mt-1">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent border border-accent/30">
+                      {SPECIAL_LABELS[def.special] ?? def.special}
+                      {def.special === "slow" && ` ${((def.specialValue ?? 0) * 100).toFixed(0)}%`}
+                      {def.special === "buff" && ` +${((def.specialValue ?? 0) * 100).toFixed(0)}%`}
+                      {def.special === "crit" && ` ${((def.specialValue ?? 0) * 100).toFixed(0)}% ×3`}
+                      {def.special === "splash" && ` r=${def.specialValue}`}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Actions for placed tower */}
+              {placedTower && (
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  {placedTower.level < 3 && (
+                    <button
+                      onClick={upgrade}
+                      disabled={!state.canUpgrade}
+                      className={`text-xs px-3 py-1 rounded-lg font-medium
+                        ${state.canUpgrade ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40" : "bg-gray-700/30 text-gray-500 border border-gray-600/20"}`}
+                    >
+                      Nv.{lvl + 1} ({state.upgradeCost}G)
+                    </button>
+                  )}
+                  <button
+                    onClick={sell}
+                    className="text-xs px-3 py-1 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40"
+                  >
+                    Vendre ({state.sellValue}G)
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Tower selection + controls ──── */}
       <div className="bg-navy-800 border-t border-white/10 px-2 py-2 shrink-0">
@@ -206,6 +272,7 @@ export default function GameScreen({ levelId, onBack }: Props) {
           {towers.map((t) => {
             const selected = state.selectedTowerDef?.id === t.id;
             const affordable = state.gold >= t.cost;
+            const emoji = TOWER_EMOJI[t.id] ?? "";
             return (
               <button
                 key={t.id}
@@ -220,10 +287,10 @@ export default function GameScreen({ levelId, onBack }: Props) {
                   }`}
               >
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs mb-0.5"
-                  style={{ backgroundColor: t.color }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-base mb-0.5"
+                  style={{ backgroundColor: t.color + "30" }}
                 >
-                  {t.symbol}
+                  {emoji}
                 </div>
                 <span className="text-gray-300 truncate w-full text-center leading-tight">
                   {t.name.split(" ")[0]}
