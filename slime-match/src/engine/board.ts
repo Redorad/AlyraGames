@@ -29,7 +29,6 @@ export function createBoard(): Gem[][] {
     board[r] = [];
     for (let c = 0; c < COLS; c++) {
       let gem = createGem(r, c);
-      // Avoid initial matches
       while (hasInitialMatch(board, r, c, gem.type)) {
         gem = createGem(r, c);
       }
@@ -40,13 +39,11 @@ export function createBoard(): Gem[][] {
 }
 
 function hasInitialMatch(board: Gem[][], row: number, col: number, type: GemType): boolean {
-  // Check horizontal
   if (col >= 2) {
     if (board[row][col - 1]?.type === type && board[row][col - 2]?.type === type) {
       return true;
     }
   }
-  // Check vertical
   if (row >= 2) {
     if (board[row - 1]?.[col]?.type === type && board[row - 2]?.[col]?.type === type) {
       return true;
@@ -64,7 +61,6 @@ export function swapGems(board: Gem[][], pos1: Position, pos2: Position): Gem[][
   const gem1 = newBoard[pos1.row][pos1.col];
   const gem2 = newBoard[pos2.row][pos2.col];
 
-  // Swap positions
   gem1.row = pos2.row;
   gem1.col = pos2.col;
   gem2.row = pos1.row;
@@ -134,17 +130,17 @@ export function hasAnyMatch(board: Gem[][]): boolean {
   return findMatches(board).length > 0;
 }
 
+function posKey(row: number, col: number): string {
+  return `${row},${col}`;
+}
+
 export interface MatchInfo {
   matchedPositions: Set<string>;
   specialsToCreate: { pos: Position; special: SpecialType; type: GemType }[];
   score: number;
 }
 
-function posKey(row: number, col: number): string {
-  return `${row},${col}`;
-}
-
-export function processMatches(board: Gem[][], swapPos?: Position): MatchInfo {
+export function processMatches(board: Gem[][]): MatchInfo {
   const matches = findMatches(board);
   const matchedPositions = new Set<string>();
   const specialsToCreate: { pos: Position; special: SpecialType; type: GemType }[] = [];
@@ -155,16 +151,11 @@ export function processMatches(board: Gem[][], swapPos?: Position): MatchInfo {
       matchedPositions.add(posKey(pos.row, pos.col));
     }
 
-    // Base score: 10 per gem
     score += match.length * 10;
 
-    // Bonus for longer matches
     if (match.length === 4) {
       score += 20;
-      // Create a line-clear special gem at swap position or middle of match
-      const specialPos = swapPos && match.positions.some(p => p.row === swapPos.row && p.col === swapPos.col)
-        ? swapPos
-        : match.positions[Math.floor(match.positions.length / 2)];
+      const specialPos = match.positions[Math.floor(match.positions.length / 2)];
       specialsToCreate.push({
         pos: specialPos,
         special: match.isHorizontal ? 'line_h' : 'line_v',
@@ -172,9 +163,7 @@ export function processMatches(board: Gem[][], swapPos?: Position): MatchInfo {
       });
     } else if (match.length >= 5) {
       score += 50;
-      const specialPos = swapPos && match.positions.some(p => p.row === swapPos.row && p.col === swapPos.col)
-        ? swapPos
-        : match.positions[Math.floor(match.positions.length / 2)];
+      const specialPos = match.positions[Math.floor(match.positions.length / 2)];
       specialsToCreate.push({
         pos: specialPos,
         special: 'bomb',
@@ -186,7 +175,7 @@ export function processMatches(board: Gem[][], swapPos?: Position): MatchInfo {
   return { matchedPositions, specialsToCreate, score };
 }
 
-export function activateSpecial(board: Gem[][], gem: Gem): Set<string> {
+function activateSpecial(board: Gem[][], gem: Gem): Set<string> {
   const destroyed = new Set<string>();
 
   if (gem.special === 'line_h') {
@@ -198,7 +187,6 @@ export function activateSpecial(board: Gem[][], gem: Gem): Set<string> {
       destroyed.add(posKey(r, gem.col));
     }
   } else if (gem.special === 'bomb') {
-    // Destroy all gems of the same type
     const targetType = gem.type;
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
@@ -212,12 +200,20 @@ export function activateSpecial(board: Gem[][], gem: Gem): Set<string> {
   return destroyed;
 }
 
-export function removeMatchedAndActivateSpecials(
-  board: Gem[][],
-  matchInfo: MatchInfo
-): { board: Gem[][]; totalScore: number; extraDestroyed: Set<string> } {
+/**
+ * Resolves a full match cycle: remove matched, activate specials, create new specials,
+ * apply gravity. Returns the new board and score earned.
+ */
+export function resolveMatches(board: Gem[][]): { board: Gem[][]; score: number; hadMatch: boolean; matchedPositions: Set<string> } {
+  const matchInfo = processMatches(board);
+  if (matchInfo.matchedPositions.size === 0) {
+    return { board, score: 0, hadMatch: false, matchedPositions: new Set() };
+  }
+
   const newBoard = cloneBoard(board);
   let totalScore = matchInfo.score;
+
+  // Collect all positions to destroy
   const allDestroyed = new Set(matchInfo.matchedPositions);
 
   // Activate specials that are being matched
@@ -229,29 +225,33 @@ export function removeMatchedAndActivateSpecials(
       for (const sk of specialDestroyed) {
         allDestroyed.add(sk);
       }
-      totalScore += 30; // Bonus for activating special
+      totalScore += 30;
     }
   }
 
-  return { board: newBoard, totalScore, extraDestroyed: allDestroyed };
-}
-
-export function removeGems(board: Gem[][], positions: Set<string>): Gem[][] {
-  const newBoard = cloneBoard(board);
-  for (const key of positions) {
-    const [r, c] = key.split(',').map(Number);
-    // Mark as null by setting id to -1 (we'll handle in gravity)
-    newBoard[r][c] = { ...newBoard[r][c], id: -1, type: 'water', special: 'none' };
+  // Determine positions where specials will be spawned — exclude from destruction
+  const specialPositions = new Set<string>();
+  for (const s of matchInfo.specialsToCreate) {
+    specialPositions.add(posKey(s.pos.row, s.pos.col));
   }
-  return newBoard;
-}
 
-export function applyGravity(board: Gem[][]): { board: Gem[][]; fell: boolean } {
-  const newBoard = cloneBoard(board);
-  let fell = false;
+  // Remove destroyed gems EXCEPT where specials will be placed
+  for (const key of allDestroyed) {
+    if (specialPositions.has(key)) continue;
+    const [r, c] = key.split(',').map(Number);
+    newBoard[r][c] = { ...newBoard[r][c], id: -1 };
+  }
 
+  // Place specials at their positions (they survive the destruction)
+  for (const s of matchInfo.specialsToCreate) {
+    const gem = newBoard[s.pos.row][s.pos.col];
+    gem.special = s.special;
+    gem.type = s.type;
+    gem.id = nextId++; // new id so React re-renders it
+  }
+
+  // Apply gravity
   for (let c = 0; c < COLS; c++) {
-    // Collect non-removed gems from bottom to top
     const remaining: Gem[] = [];
     for (let r = ROWS - 1; r >= 0; r--) {
       if (newBoard[r][c].id !== -1) {
@@ -259,54 +259,30 @@ export function applyGravity(board: Gem[][]): { board: Gem[][]; fell: boolean } 
       }
     }
 
-    // Fill column from bottom
     let writeRow = ROWS - 1;
     for (let i = 0; i < remaining.length; i++) {
-      const gem = remaining[i];
-      if (gem.row !== writeRow) {
-        fell = true;
-      }
-      gem.row = writeRow;
-      gem.col = c;
-      newBoard[writeRow][c] = gem;
+      remaining[i].row = writeRow;
+      remaining[i].col = c;
+      newBoard[writeRow][c] = remaining[i];
       writeRow--;
     }
 
-    // Fill remaining top slots with new gems
     while (writeRow >= 0) {
-      fell = true;
       newBoard[writeRow][c] = createGem(writeRow, c);
       writeRow--;
     }
   }
 
-  return { board: newBoard, fell };
-}
-
-export function placeSpecials(
-  board: Gem[][],
-  specials: { pos: Position; special: SpecialType; type: GemType }[]
-): Gem[][] {
-  const newBoard = cloneBoard(board);
-  for (const s of specials) {
-    const gem = newBoard[s.pos.row][s.pos.col];
-    if (gem.id !== -1) {
-      gem.special = s.special;
-      gem.type = s.type;
-    }
-  }
-  return newBoard;
+  return { board: newBoard, score: totalScore, hadMatch: true, matchedPositions: allDestroyed };
 }
 
 export function hasValidMoves(board: Gem[][]): boolean {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      // Try swap right
       if (c < COLS - 1) {
         const swapped = swapGems(board, { row: r, col: c }, { row: r, col: c + 1 });
         if (hasAnyMatch(swapped)) return true;
       }
-      // Try swap down
       if (r < ROWS - 1) {
         const swapped = swapGems(board, { row: r, col: c }, { row: r + 1, col: c });
         if (hasAnyMatch(swapped)) return true;
@@ -318,7 +294,6 @@ export function hasValidMoves(board: Gem[][]): boolean {
 
 export function shuffleBoard(board: Gem[][]): Gem[][] {
   const flat = board.flat().map(g => g.type);
-  // Fisher-Yates shuffle
   for (let i = flat.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [flat[i], flat[j]] = [flat[j], flat[i]];
@@ -334,7 +309,6 @@ export function shuffleBoard(board: Gem[][]): Gem[][] {
     }
   }
 
-  // If it has matches or no valid moves, just create a fresh board
   if (hasAnyMatch(newBoard) || !hasValidMoves(newBoard)) {
     return createBoard();
   }
