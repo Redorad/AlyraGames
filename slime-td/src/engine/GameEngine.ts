@@ -8,6 +8,7 @@ import type {
 } from "../types";
 import { TOWER_DEFS, getTowerDamage, getTowerRange, getTowerAttackSpeed, getUpgradeCost, getSellValue } from "../data/towers";
 import { ENEMY_DEFS } from "../data/enemies";
+import { generateEndlessWave } from "../data/endless";
 import * as sfx from "../utils/sounds";
 
 const TOWER_EMOJI: Record<string, string> = {
@@ -47,7 +48,7 @@ export class GameEngine {
   private maxLives = 0;
   private currentWave = 0;
   private waveActive = false;
-  private gameStatus: "playing" | "won" | "lost" = "playing";
+  private gameStatus: "playing" | "won" | "lost" | "retreat" = "playing";
   private speed = 1;
 
   /* ── spawn queue ─────────────────── */
@@ -78,6 +79,9 @@ export class GameEngine {
 
   /* ── mode ─────────────────────────── */
   private hardMode: boolean;
+  private endless: boolean;
+  private killCount = 0;
+  private score = 0;
 
   /* ── callback ────────────────────── */
   private onUpdate: (s: GameState) => void;
@@ -89,6 +93,7 @@ export class GameEngine {
     availableTowerIds: string[],
     onUpdate: (s: GameState) => void,
     hardMode = false,
+    endless = false,
   ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
@@ -96,6 +101,7 @@ export class GameEngine {
     this.availableTowerIds = availableTowerIds;
     this.onUpdate = onUpdate;
     this.hardMode = hardMode;
+    this.endless = endless;
 
     this.rows = level.grid.length;
     this.cols = level.grid[0].length;
@@ -194,25 +200,36 @@ export class GameEngine {
 
   startWave() {
     if (this.waveActive || this.gameStatus !== "playing") return;
-    if (this.currentWave >= this.level.waves.length) return;
+    if (!this.endless && this.currentWave >= this.level.waves.length) return;
 
-    const wave = this.level.waves[this.currentWave];
-    this.spawnQueue = [];
-
-    for (const group of wave.groups) {
-      for (let i = 0; i < group.count; i++) {
-        this.spawnQueue.push({
-          defId: group.enemyId,
-          delay: i * group.interval,
-        });
+    if (this.endless) {
+      // Generate wave dynamically
+      this.spawnQueue = generateEndlessWave(this.currentWave);
+    } else {
+      const wave = this.level.waves[this.currentWave];
+      this.spawnQueue = [];
+      for (const group of wave.groups) {
+        for (let i = 0; i < group.count; i++) {
+          this.spawnQueue.push({
+            defId: group.enemyId,
+            delay: i * group.interval,
+          });
+        }
       }
+      // Sort by delay so they spawn in order
+      this.spawnQueue.sort((a, b) => a.delay - b.delay);
     }
 
-    // Sort by delay so they spawn in order
-    this.spawnQueue.sort((a, b) => a.delay - b.delay);
     this.spawnTimer = 0;
     this.waveActive = true;
     sfx.playWaveStart();
+    this.emitState();
+  }
+
+  /** Retreat from endless mode — saves current score */
+  retreat() {
+    if (!this.endless || this.gameStatus !== "playing") return;
+    this.gameStatus = "retreat";
     this.emitState();
   }
 
@@ -315,10 +332,14 @@ export class GameEngine {
     const def = ENEMY_DEFS[defId];
     if (!def) return;
     const start = this.level.path[0];
+    // Endless mode: enemies scale with wave number
+    const endlessScale = this.endless ? 1 + this.currentWave * 0.12 : 1;
+    const endlessSpd = this.endless ? 1 + this.currentWave * 0.008 : 1;
+    const endlessArmor = this.endless ? Math.floor(this.currentWave / 8) : 0;
     // Hard mode: 1.8x HP, 15% faster, +1 armor
-    const hpMult = this.hardMode ? 1.8 : 1;
-    const spdMult = this.hardMode ? 1.15 : 1;
-    const armorBonus = this.hardMode ? 1 : 0;
+    const hpMult = (this.hardMode ? 1.8 : 1) * endlessScale;
+    const spdMult = (this.hardMode ? 1.15 : 1) * endlessSpd;
+    const armorBonus = (this.hardMode ? 1 : 0) + endlessArmor;
     const hp = Math.round(def.hp * hpMult);
     const enemy: EnemyInstance = {
       id: this.nextId++,
@@ -487,6 +508,8 @@ export class GameEngine {
         if (e.hp <= 0 && !e.dead) {
           e.dead = true;
           this.gold += e.reward;
+          this.killCount++;
+          this.score += e.reward;
           this.emitState();
         }
       }
@@ -550,6 +573,8 @@ export class GameEngine {
     if (target.hp <= 0 && !target.dead) {
       target.dead = true;
       this.gold += target.reward;
+      this.killCount++;
+      this.score += target.reward;
       if (target.isBoss) {
         sfx.playBossKill();
         this.spawnParticles(target.x * this.cellSize, target.y * this.cellSize, "#fbbf24", 20, 4, 5);
@@ -572,6 +597,8 @@ export class GameEngine {
           if (e.hp <= 0 && !e.dead) {
             e.dead = true;
             this.gold += e.reward;
+            this.killCount++;
+            this.score += e.reward;
             this.emitState();
           }
         }
@@ -595,8 +622,12 @@ export class GameEngine {
     // Wave complete
     this.waveActive = false;
     this.currentWave++;
+    // Endless bonus gold per wave
+    if (this.endless) {
+      this.gold += 20 + this.currentWave * 5;
+    }
 
-    if (this.currentWave >= this.level.waves.length) {
+    if (!this.endless && this.currentWave >= this.level.waves.length) {
       this.gameStatus = "won";
       sfx.playVictory();
     }
@@ -613,7 +644,7 @@ export class GameEngine {
       lives: this.lives,
       maxLives: this.maxLives,
       currentWave: this.currentWave,
-      totalWaves: this.level.waves.length,
+      totalWaves: this.endless ? Infinity : this.level.waves.length,
       waveActive: this.waveActive,
       gameStatus: this.gameStatus,
       selectedTowerDef: this.selectedTowerDef,
@@ -622,6 +653,8 @@ export class GameEngine {
       upgradeCost: st && def ? getUpgradeCost(def, st.level) : 0,
       sellValue: st && def ? getSellValue(def, st.level) : 0,
       towersPlaced: this.towers.length,
+      score: this.score,
+      killCount: this.killCount,
     });
   }
 

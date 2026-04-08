@@ -16,24 +16,24 @@ const LEVEL_ICONS = [
 
 interface Props {
   onSelect: (levelId: number, hard: boolean) => void;
+  onEndless: () => void;
 }
 
-export default function LevelSelect({ onSelect }: Props) {
-  const { completed, completedHard, highestUnlocked } = useProgressStore();
+export default function LevelSelect({ onSelect, onEndless }: Props) {
+  const { completed, completedHard, completedNoHit, highestUnlocked, endlessScores } = useProgressStore();
   const totalDone = completed.length;
   const totalHard = completedHard.length;
   const allCompleted = LEVELS.every((l) => completed.includes(l.id));
+  const bestEndless = endlessScores.length > 0 ? endlessScores[0] : null;
 
   return (
     <div className="h-full bg-navy-900 flex flex-col">
       {/* Hero header */}
       <div className="relative text-center pt-8 pb-6 px-4 overflow-hidden">
-        {/* Background glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-blue-900/30 via-navy-900 to-navy-900" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full bg-blue-500/10 blur-3xl" />
 
         <div className="relative">
-          {/* Slime icon */}
           <div className="text-5xl mb-3">{"\u{1F9CA}"}</div>
           <h1 className="text-3xl font-black tracking-tight">
             <span className="text-steel">SLIME</span>{" "}
@@ -71,10 +71,9 @@ export default function LevelSelect({ onSelect }: Props) {
             )}
           </div>
 
-          {/* Rimuru unlock banner */}
           {allCompleted && (
             <div className="mt-3 text-xs px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 inline-block">
-              {"\u{1F9CA}"} Rimuru d&eacute;bloqu&eacute; ! Mode Difficile disponible !
+              {"\u{1F9CA}"} Rimuru débloqué ! Mode Difficile disponible !
             </div>
           )}
         </div>
@@ -82,10 +81,68 @@ export default function LevelSelect({ onSelect }: Props) {
 
       {/* Level list */}
       <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-3">
+        {/* ── Endless mode card ── */}
+        <button
+          onClick={onEndless}
+          className="level-card w-full text-left rounded-xl p-4 border transition-all
+            bg-gradient-to-r from-purple-900/40 to-navy-800/60 border-purple-500/40 shadow-lg shadow-purple-500/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 bg-purple-500/10">
+              {"\u{267E}\u{FE0F}"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-base font-bold text-purple-300">Mode Infini</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Vagues infinies de difficulté croissante. Toutes les tours disponibles.
+              </p>
+              {bestEndless && (
+                <div className="mt-1.5 flex items-center gap-3">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    {"\u{1F3C6}"} Record : Vague {bestEndless.wave} ({bestEndless.kills} kills)
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-xs text-purple-400">{"\u221E"} vagues</div>
+              <div className="text-xs text-red-400/70 mt-0.5">
+                {"\u{2764}\u{FE0F}"} 20
+              </div>
+              <div className="text-xs text-yellow-400/70 mt-0.5">
+                300G
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {/* ── Leaderboard (if scores exist) ── */}
+        {endlessScores.length > 0 && (
+          <div className="rounded-xl border border-purple-500/20 bg-navy-800/50 p-3">
+            <h3 className="text-sm font-bold text-purple-300 mb-2">{"\u{1F3C6}"} Leaderboard Infini</h3>
+            <div className="space-y-1">
+              {endlessScores.map((s, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <span className={`w-5 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-orange-400" : "text-gray-500"}`}>
+                    {i + 1}.
+                  </span>
+                  <span className="text-white font-medium">Vague {s.wave}</span>
+                  <span className="text-gray-500">{s.kills} kills</span>
+                  <span className="ml-auto text-gray-600">{s.date}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Level cards ── */}
         {LEVELS.map((lvl) => {
           const unlocked = lvl.id <= highestUnlocked;
           const done = completed.includes(lvl.id);
           const doneHard = completedHard.includes(lvl.id);
+          const doneNoHit = completedNoHit.includes(lvl.id);
           const newTowers = getAvailableTowers(lvl.id).filter(
             (t) => t.unlockLevel === lvl.id,
           );
@@ -107,13 +164,11 @@ export default function LevelSelect({ onSelect }: Props) {
                 `}
               >
                 <div className="flex items-center gap-3">
-                  {/* Level icon */}
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0
                     ${done ? "bg-green-500/10" : unlocked ? "bg-steel/10" : "bg-gray-800/50"}`}>
                     {unlocked ? icon : "\u{1F512}"}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-base font-bold text-white">
@@ -129,10 +184,14 @@ export default function LevelSelect({ onSelect }: Props) {
                           {"\u{2620}\u{FE0F}"}
                         </span>
                       )}
+                      {doneNoHit && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 font-medium">
+                          {"\u{2B50}"}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5">{lvl.subtitle}</p>
 
-                    {/* New towers */}
                     {newTowers.length > 0 && unlocked && (
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {newTowers.map((t) => (
@@ -152,7 +211,6 @@ export default function LevelSelect({ onSelect }: Props) {
                     )}
                   </div>
 
-                  {/* Stats */}
                   <div className="text-right shrink-0">
                     <div className="text-xs text-gray-500">{lvl.waves.length} vagues</div>
                     <div className="text-xs text-red-400/70 mt-0.5">
@@ -165,7 +223,6 @@ export default function LevelSelect({ onSelect }: Props) {
                 </div>
               </button>
 
-              {/* Hard mode button — shown only when level is completed normally */}
               {done && (
                 <button
                   onClick={() => onSelect(lvl.id, true)}

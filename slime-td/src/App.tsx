@@ -5,15 +5,17 @@ import GameScreen from "./components/GameScreen";
 export default function App() {
   const [activeLevelId, setActiveLevelId] = useState<number | null>(null);
   const [hardMode, setHardMode] = useState(false);
+  const [endless, setEndless] = useState(false);
   const [restartKey, setRestartKey] = useState(0);
 
   if (activeLevelId !== null) {
     return (
       <GameScreen
-        key={`${activeLevelId}-${restartKey}-${hardMode}`}
+        key={`${activeLevelId}-${restartKey}-${hardMode}-${endless}`}
         levelId={activeLevelId}
         hardMode={hardMode}
-        onBack={() => { setActiveLevelId(null); setHardMode(false); }}
+        endless={endless}
+        onBack={() => { setActiveLevelId(null); setHardMode(false); setEndless(false); }}
         onRestart={() => setRestartKey((k) => k + 1)}
       />
     );
@@ -21,7 +23,8 @@ export default function App() {
 
   return (
     <LevelSelect
-      onSelect={(id, hard) => { setActiveLevelId(id); setHardMode(hard); }}
+      onSelect={(id, hard) => { setActiveLevelId(id); setHardMode(hard); setEndless(false); }}
+      onEndless={() => { setActiveLevelId(0); setEndless(true); setHardMode(false); }}
     />
   );
 }

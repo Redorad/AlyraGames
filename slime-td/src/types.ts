@@ -104,11 +104,13 @@ export interface GameState {
   currentWave: number;
   totalWaves: number;
   waveActive: boolean;
-  gameStatus: "playing" | "won" | "lost";
+  gameStatus: "playing" | "won" | "lost" | "retreat";
   selectedTowerDef: TowerDef | null;
   selectedTower: TowerInstance | null;
   canUpgrade: boolean;
   upgradeCost: number;
   sellValue: number;
   towersPlaced: number;
+  score: number;
+  killCount: number;
 }
