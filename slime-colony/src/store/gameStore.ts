@@ -397,8 +397,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (placeX < 0 || placeY < 0) {
       const usedCells = new Set(state.buildings.map(b => `${b.gridX},${b.gridY}`));
       let found = false;
-      for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 10; x++) {
+      for (let y = 0; y < 15; y++) {
+        for (let x = 0; x < 20; x++) {
           if (!usedCells.has(`${x},${y}`)) {
             placeX = x; placeY = y; found = true; break;
           }
