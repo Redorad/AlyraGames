@@ -120,14 +120,9 @@ export default function GameScreen({ levelId, onBack, onRestart }: Props) {
     <div className="h-full bg-navy-900 flex flex-col overflow-hidden">
       {/* ── Top bar ─────────────────────── */}
       <div className="flex items-center justify-between px-3 py-2 bg-navy-800 border-b border-white/5 text-sm shrink-0">
-        <div className="flex items-center gap-2">
-          <button onClick={onBack} className="text-gray-400 hover:text-white px-2">
-            ←
-          </button>
-          <button onClick={onRestart} className="text-gray-400 hover:text-white px-1" title="Recommencer">
-            ↻
-          </button>
-        </div>
+        <button onClick={onBack} className="text-gray-400 hover:text-white px-2">
+          ← Retour
+        </button>
         <div className="flex items-center gap-4">
           <span className="text-yellow-400 font-bold">{state.gold} G</span>
           <span className="text-red-400">
@@ -251,6 +246,14 @@ export default function GameScreen({ levelId, onBack, onRestart }: Props) {
           )}
 
           <div className="flex-1" />
+
+          {/* Restart */}
+          <button
+            onClick={onRestart}
+            className="text-sm px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30"
+          >
+            ↻ Restart
+          </button>
 
           {/* Sound toggle */}
           <button

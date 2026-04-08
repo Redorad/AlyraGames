@@ -632,90 +632,281 @@ export class GameEngine {
     this.drawParticles(ctx);
   }
 
+  /* ── helpers ──────────────────────────────────────────── */
+
+  private isPath(r: number, c: number): boolean {
+    if (r < 0 || r >= this.rows || c < 0 || c >= this.cols) return false;
+    const t = this.level.grid[r][c];
+    return t === 1 || t === 3 || t === 4;
+  }
+
+  /** Seeded random per tile for consistent decoration */
+  private tileRand(r: number, c: number, seed = 0): number {
+    const n = Math.sin(r * 127.1 + c * 311.7 + seed * 43.3) * 43758.5453;
+    return n - Math.floor(n);
+  }
+
   /* ── grid ────────────────────────────────────────────── */
 
   private drawGrid(ctx: CanvasRenderingContext2D, cs: number) {
     const grid = this.level.grid;
 
+    // ── Pass 1: Grass base ──
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
         const x = c * cs;
         const y = r * cs;
+        // All tiles get grass first
+        const v = this.tileRand(r, c);
+        const g = Math.floor(40 + v * 15);
+        ctx.fillStyle = `rgb(${30 + (v > 0.5 ? 5 : 0)},${100 + g},${25 + (v > 0.7 ? 8 : 0)})`;
+        ctx.fillRect(x, y, cs, cs);
+        // Subtle checkerboard
+        if ((c + r) % 2 === 0) {
+          ctx.fillStyle = "rgba(0,0,0,0.03)";
+          ctx.fillRect(x, y, cs, cs);
+        }
+      }
+    }
+
+    // ── Pass 2: Grass details (flowers, stones, grass blades) ──
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
         const tile = grid[r][c];
+        if (tile !== 0) continue;
+        const x = c * cs;
+        const y = r * cs;
+        const v = this.tileRand(r, c, 1);
 
-        // Grass with checkerboard variation
-        if (tile === 0 || tile === 2) {
-          const shade = (c + r) % 2 === 0;
-          ctx.fillStyle = shade ? "#3a7d28" : "#348525";
-          ctx.fillRect(x, y, cs, cs);
-          // Grass tufts
-          if ((c * 7 + r * 13) % 5 === 0) {
-            ctx.fillStyle = shade ? "#2f6e1f" : "#2d7520";
-            ctx.fillRect(x + cs * 0.2, y + cs * 0.3, cs * 0.15, cs * 0.15);
-            ctx.fillRect(x + cs * 0.6, y + cs * 0.6, cs * 0.12, cs * 0.12);
-          }
+        // Small flowers
+        if (v > 0.82) {
+          const fx = x + cs * (0.2 + this.tileRand(r, c, 2) * 0.6);
+          const fy = y + cs * (0.2 + this.tileRand(r, c, 3) * 0.6);
+          const colors = ["#fde047", "#f9a8d4", "#c4b5fd", "#fca5a5", "#86efac"];
+          ctx.fillStyle = colors[Math.floor(this.tileRand(r, c, 4) * colors.length)];
+          ctx.beginPath();
+          ctx.arc(fx, fy, cs * 0.04, 0, Math.PI * 2);
+          ctx.fill();
         }
-
-        // Path with stone texture
-        if (tile === 1 || tile === 3 || tile === 4) {
-          const grad = ctx.createLinearGradient(x, y, x + cs, y + cs);
-          grad.addColorStop(0, "#8a7b5e");
-          grad.addColorStop(0.5, "#9a8b6e");
-          grad.addColorStop(1, "#7a6b4e");
-          ctx.fillStyle = grad;
-          ctx.fillRect(x, y, cs, cs);
-          // Stone pattern
-          ctx.fillStyle = "rgba(0,0,0,0.06)";
-          ctx.fillRect(x + 1, y + 1, cs * 0.45, cs * 0.45);
-          ctx.fillRect(x + cs * 0.5, y + cs * 0.5, cs * 0.45, cs * 0.45);
-          // Path border
-          ctx.strokeStyle = "rgba(0,0,0,0.12)";
+        // Small stones
+        if (v > 0.65 && v < 0.72) {
+          ctx.fillStyle = "rgba(120,110,90,0.3)";
+          const sx = x + cs * (0.3 + this.tileRand(r, c, 5) * 0.4);
+          const sy = y + cs * (0.3 + this.tileRand(r, c, 6) * 0.4);
+          ctx.beginPath();
+          ctx.ellipse(sx, sy, cs * 0.06, cs * 0.04, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Grass blades
+        if (v < 0.3) {
+          ctx.strokeStyle = "rgba(20,80,15,0.4)";
           ctx.lineWidth = 1;
-          ctx.strokeRect(x + 0.5, y + 0.5, cs - 1, cs - 1);
+          const gx = x + cs * (0.3 + this.tileRand(r, c, 7) * 0.4);
+          const gy = y + cs * 0.7;
+          ctx.beginPath();
+          ctx.moveTo(gx, gy);
+          ctx.quadraticCurveTo(gx + cs * 0.05, gy - cs * 0.2, gx + cs * 0.02, gy - cs * 0.25);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(gx + cs * 0.06, gy);
+          ctx.quadraticCurveTo(gx + cs * 0.12, gy - cs * 0.15, gx + cs * 0.1, gy - cs * 0.2);
+          ctx.stroke();
         }
+      }
+    }
 
-        // Highlight buildable when placing (only between waves)
-        if (tile === 0 && this.selectedTowerDef && !this.waveActive) {
-          const occupied = this.towers.some((t) => t.col === c && t.row === r);
-          if (!occupied) {
-            ctx.fillStyle = "rgba(74, 222, 128, 0.2)";
-            ctx.fillRect(x, y, cs, cs);
-            ctx.strokeStyle = "rgba(74, 222, 128, 0.4)";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x + 1, y + 1, cs - 2, cs - 2);
+    // ── Pass 3: Path tiles with edge detection ──
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const tile = grid[r][c];
+        if (!this.isPath(r, c)) continue;
+        const x = c * cs;
+        const y = r * cs;
+
+        const up = this.isPath(r - 1, c);
+        const dn = this.isPath(r + 1, c);
+        const lt = this.isPath(r, c - 1);
+        const rt = this.isPath(r, c + 1);
+
+        // Main path fill
+        const pathGrad = ctx.createLinearGradient(x, y, x + cs, y + cs);
+        pathGrad.addColorStop(0, "#a09078");
+        pathGrad.addColorStop(0.5, "#b0a088");
+        pathGrad.addColorStop(1, "#908068");
+        ctx.fillStyle = pathGrad;
+        ctx.fillRect(x, y, cs, cs);
+
+        // Cobblestone pattern
+        const stoneSize = cs * 0.22;
+        ctx.strokeStyle = "rgba(0,0,0,0.08)";
+        ctx.lineWidth = 0.5;
+        for (let sy = 0; sy < 3; sy++) {
+          for (let sx = 0; sx < 3; sx++) {
+            const offset = sy % 2 === 0 ? 0 : stoneSize * 0.5;
+            const px = x + sx * stoneSize + offset + cs * 0.08;
+            const py = y + sy * stoneSize + cs * 0.08;
+            const sv = this.tileRand(r * 3 + sy, c * 3 + sx, 10);
+            ctx.fillStyle = `rgba(${sv > 0.5 ? 0 : 255},${sv > 0.5 ? 0 : 255},${sv > 0.5 ? 0 : 255},0.04)`;
+            this.roundRect(ctx, px, py, stoneSize * 0.9, stoneSize * 0.9, 2);
+            ctx.fill();
+            ctx.stroke();
           }
         }
 
-        // Decoration: tree with trunk
+        // Edge shadows (dark border where path meets grass)
+        ctx.lineWidth = 2;
+        if (!up) {
+          ctx.strokeStyle = "rgba(0,0,0,0.2)";
+          ctx.beginPath(); ctx.moveTo(x, y + 1); ctx.lineTo(x + cs, y + 1); ctx.stroke();
+          ctx.strokeStyle = "rgba(255,255,255,0.08)";
+          ctx.beginPath(); ctx.moveTo(x, y + 3); ctx.lineTo(x + cs, y + 3); ctx.stroke();
+        }
+        if (!dn) {
+          ctx.strokeStyle = "rgba(0,0,0,0.15)";
+          ctx.beginPath(); ctx.moveTo(x, y + cs - 1); ctx.lineTo(x + cs, y + cs - 1); ctx.stroke();
+        }
+        if (!lt) {
+          ctx.strokeStyle = "rgba(0,0,0,0.2)";
+          ctx.beginPath(); ctx.moveTo(x + 1, y); ctx.lineTo(x + 1, y + cs); ctx.stroke();
+          ctx.strokeStyle = "rgba(255,255,255,0.08)";
+          ctx.beginPath(); ctx.moveTo(x + 3, y); ctx.lineTo(x + 3, y + cs); ctx.stroke();
+        }
+        if (!rt) {
+          ctx.strokeStyle = "rgba(0,0,0,0.15)";
+          ctx.beginPath(); ctx.moveTo(x + cs - 1, y); ctx.lineTo(x + cs - 1, y + cs); ctx.stroke();
+        }
+
+        // Grass overhang (small grass tufts creeping onto path edges)
+        if (!up) {
+          for (let i = 0; i < 4; i++) {
+            const gx = x + cs * (0.1 + i * 0.25 + this.tileRand(r, c, 20 + i) * 0.1);
+            ctx.fillStyle = `rgba(45,${110 + Math.floor(this.tileRand(r, c, 30 + i) * 20)},30,0.6)`;
+            ctx.beginPath();
+            ctx.moveTo(gx, y);
+            ctx.lineTo(gx + cs * 0.06, y + cs * 0.08);
+            ctx.lineTo(gx - cs * 0.06, y + cs * 0.06);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+        if (!dn) {
+          for (let i = 0; i < 3; i++) {
+            const gx = x + cs * (0.15 + i * 0.3 + this.tileRand(r, c, 40 + i) * 0.1);
+            ctx.fillStyle = `rgba(40,${105 + Math.floor(this.tileRand(r, c, 50 + i) * 20)},25,0.5)`;
+            ctx.beginPath();
+            ctx.moveTo(gx, y + cs);
+            ctx.lineTo(gx + cs * 0.05, y + cs - cs * 0.07);
+            ctx.lineTo(gx - cs * 0.05, y + cs - cs * 0.05);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+      }
+    }
+
+    // ── Pass 4: Direction arrows on path ──
+    ctx.globalAlpha = 0.12;
+    const path = this.level.path;
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = path[i];
+      const b = path[i + 1];
+      const dx = b.col - a.col;
+      const dy = b.row - a.row;
+      const steps = Math.max(Math.abs(dx), Math.abs(dy));
+      const sx = dx === 0 ? 0 : dx / Math.abs(dx);
+      const sy = dy === 0 ? 0 : dy / Math.abs(dy);
+      for (let s = 0; s < steps; s++) {
+        const col = a.col + sx * s;
+        const row = a.row + sy * s;
+        const cx = (col + 0.5) * cs;
+        const cy = (row + 0.5) * cs;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(Math.atan2(sy, sx));
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.moveTo(cs * 0.15, 0);
+        ctx.lineTo(-cs * 0.08, -cs * 0.08);
+        ctx.lineTo(-cs * 0.08, cs * 0.08);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    // ── Pass 5: Decorations, spawn, base ──
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const tile = grid[r][c];
+        const x = c * cs;
+        const y = r * cs;
+
+        // Trees
         if (tile === 2) {
+          // Shadow
+          ctx.fillStyle = "rgba(0,0,0,0.15)";
+          ctx.beginPath();
+          ctx.ellipse(x + cs * 0.55, y + cs * 0.85, cs * 0.3, cs * 0.1, 0, 0, Math.PI * 2);
+          ctx.fill();
           // Trunk
           ctx.fillStyle = "#5a3a1a";
-          ctx.fillRect(x + cs * 0.42, y + cs * 0.55, cs * 0.16, cs * 0.3);
-          // Canopy (triangle layers)
-          ctx.fillStyle = "#1a5a0e";
-          ctx.beginPath();
-          ctx.moveTo(x + cs * 0.5, y + cs * 0.1);
-          ctx.lineTo(x + cs * 0.2, y + cs * 0.55);
-          ctx.lineTo(x + cs * 0.8, y + cs * 0.55);
-          ctx.closePath();
+          const tw = cs * 0.12;
+          this.roundRect(ctx, x + cs * 0.5 - tw / 2, y + cs * 0.5, tw, cs * 0.35, 2);
           ctx.fill();
-          ctx.fillStyle = "#166a0b";
+          ctx.fillStyle = "#4a2a10";
+          ctx.fillRect(x + cs * 0.5 - tw / 4, y + cs * 0.55, tw / 2, cs * 0.1);
+          // Canopy layers (3 overlapping circles)
+          const layers = [
+            { cy: 0.42, r: 0.28, color: "#1a6a0e" },
+            { cy: 0.32, r: 0.24, color: "#228a14" },
+            { cy: 0.24, r: 0.18, color: "#2a9a1c" },
+          ];
+          for (const l of layers) {
+            ctx.fillStyle = l.color;
+            ctx.beginPath();
+            ctx.arc(x + cs * 0.5, y + cs * l.cy, cs * l.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          // Highlight
+          ctx.fillStyle = "rgba(255,255,255,0.08)";
           ctx.beginPath();
-          ctx.moveTo(x + cs * 0.5, y + cs * 0.22);
-          ctx.lineTo(x + cs * 0.25, y + cs * 0.5);
-          ctx.lineTo(x + cs * 0.75, y + cs * 0.5);
-          ctx.closePath();
+          ctx.arc(x + cs * 0.42, y + cs * 0.22, cs * 0.08, 0, Math.PI * 2);
           ctx.fill();
         }
 
         // Spawn portal
         if (tile === 3) {
           const pulse = Math.sin(this.frameCount * 0.05) * 0.15 + 0.85;
-          ctx.fillStyle = `rgba(239, 68, 68, ${0.3 * pulse})`;
+          // Outer glow ring
+          ctx.strokeStyle = `rgba(239, 68, 68, ${0.3 * pulse})`;
+          ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.4 * pulse, 0, Math.PI * 2);
+          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.42 * pulse, 0, Math.PI * 2);
+          ctx.stroke();
+          // Inner glow
+          const glow = ctx.createRadialGradient(x + cs / 2, y + cs / 2, 0, x + cs / 2, y + cs / 2, cs * 0.4);
+          glow.addColorStop(0, `rgba(239, 68, 68, ${0.35 * pulse})`);
+          glow.addColorStop(0.6, `rgba(180, 30, 30, ${0.15 * pulse})`);
+          glow.addColorStop(1, "rgba(239, 68, 68, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.4, 0, Math.PI * 2);
           ctx.fill();
-          ctx.font = `${cs * 0.5}px serif`;
+          // Spinning rune circle
+          ctx.save();
+          ctx.translate(x + cs / 2, y + cs / 2);
+          ctx.rotate(this.frameCount * 0.02);
+          ctx.strokeStyle = `rgba(255,100,100,${0.3 * pulse})`;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 5]);
+          ctx.beginPath();
+          ctx.arc(0, 0, cs * 0.32, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+          // Icon
+          ctx.font = `${cs * 0.4}px serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText("\u{2620}\u{FE0F}", x + cs / 2, y + cs / 2);
@@ -724,21 +915,68 @@ export class GameEngine {
         // Base (Rimuru slime)
         if (tile === 4) {
           const pulse = Math.sin(this.frameCount * 0.03) * 0.1 + 0.9;
+          const breathe = Math.sin(this.frameCount * 0.04) * 0.03;
+          // Protection circle
+          ctx.strokeStyle = `rgba(96, 165, 250, ${0.2 + Math.sin(this.frameCount * 0.02) * 0.1})`;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.45, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
           // Glow
           const glow = ctx.createRadialGradient(x + cs / 2, y + cs / 2, 0, x + cs / 2, y + cs / 2, cs * 0.5);
-          glow.addColorStop(0, "rgba(96, 165, 250, 0.4)");
+          glow.addColorStop(0, "rgba(96, 165, 250, 0.35)");
+          glow.addColorStop(0.5, "rgba(96, 165, 250, 0.1)");
           glow.addColorStop(1, "rgba(96, 165, 250, 0)");
           ctx.fillStyle = glow;
-          ctx.fillRect(x, y, cs, cs);
-          // Slime body
-          ctx.fillStyle = "#60a5fa";
           ctx.beginPath();
-          ctx.ellipse(x + cs / 2, y + cs * 0.55, cs * 0.32 * pulse, cs * 0.25 * pulse, 0, 0, Math.PI * 2);
+          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.5, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = "#93c5fd";
+          // Shadow
+          ctx.fillStyle = "rgba(0,0,0,0.15)";
           ctx.beginPath();
-          ctx.ellipse(x + cs * 0.43, y + cs * 0.48, cs * 0.08, cs * 0.06, -0.3, 0, Math.PI * 2);
+          ctx.ellipse(x + cs * 0.52, y + cs * 0.72, cs * 0.25, cs * 0.08, 0, 0, Math.PI * 2);
           ctx.fill();
+          // Slime body (gradient)
+          const slimeGrad = ctx.createRadialGradient(
+            x + cs * 0.45, y + cs * 0.48, 0,
+            x + cs * 0.5, y + cs * 0.55, cs * 0.3,
+          );
+          slimeGrad.addColorStop(0, "#93c5fd");
+          slimeGrad.addColorStop(0.5, "#60a5fa");
+          slimeGrad.addColorStop(1, "#3b82f6");
+          ctx.fillStyle = slimeGrad;
+          ctx.beginPath();
+          ctx.ellipse(x + cs / 2, y + cs * 0.55, cs * (0.28 + breathe) * pulse, cs * (0.22 - breathe) * pulse, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // Eyes
+          ctx.fillStyle = "#1e3a5f";
+          ctx.beginPath();
+          ctx.ellipse(x + cs * 0.42, y + cs * 0.52, cs * 0.035, cs * 0.045, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.ellipse(x + cs * 0.58, y + cs * 0.52, cs * 0.035, cs * 0.045, 0, 0, Math.PI * 2);
+          ctx.fill();
+          // Shine
+          ctx.fillStyle = "rgba(255,255,255,0.35)";
+          ctx.beginPath();
+          ctx.ellipse(x + cs * 0.4, y + cs * 0.46, cs * 0.06, cs * 0.04, -0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Highlight buildable when placing (only between waves)
+        if (tile === 0 && this.selectedTowerDef && !this.waveActive) {
+          const occupied = this.towers.some((t) => t.col === c && t.row === r);
+          if (!occupied) {
+            ctx.fillStyle = "rgba(74, 222, 128, 0.15)";
+            ctx.fillRect(x, y, cs, cs);
+            ctx.strokeStyle = "rgba(74, 222, 128, 0.35)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.strokeRect(x + 1, y + 1, cs - 2, cs - 2);
+            ctx.setLineDash([]);
+          }
         }
       }
     }
