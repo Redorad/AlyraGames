@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+  background: #0a0e27;
+  color: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  touch-action: manipulation;
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tower panel scrollbar */
+.tower-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.tower-scroll::-webkit-scrollbar-thumb {
+  background: rgba(126, 200, 227, 0.3);
+  border-radius: 2px;
+}
+
+/* Pulse animation for start wave button */
+@keyframes pulse-btn {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+}
+.pulse-btn {
+  animation: pulse-btn 2s ease-in-out infinite;
+}
+
+/* Boss HP bar glow */
+@keyframes boss-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 12px rgba(239, 68, 68, 0.8); }
+}
+
+/* Level select card hover */
+.level-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.level-card:active {
+  transform: scale(0.97);
+}
+
+/* Victory/defeat overlay */
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.result-overlay {
+  animation: fade-in 0.4s ease-out;
+}
