@@ -59,10 +59,12 @@ function subtractCost(resources: Resources, cost: Partial<Resources>): Resources
   return result;
 }
 
-function computeStats(buildings: BuildingInstance[]) {
+function computeStats(buildings: BuildingInstance[], citizens?: Citizen[]) {
   let totalPopulationCap = 5; // base capacity
   let totalDefense = 0;
   let totalSoldiers = 0;
+  let totalStorageCap = 500; // base storage
+  let taverneCount = 0;
 
   for (const b of buildings) {
     const def = getBuildingDef(b.defId);
@@ -70,9 +72,25 @@ function computeStats(buildings: BuildingInstance[]) {
     if (def.populationCap) totalPopulationCap += def.populationCap * b.level;
     if (def.defense) totalDefense += def.defense * b.level;
     if (def.soldiers) totalSoldiers += b.assignedWorkers.length;
+    if (def.storageCap) totalStorageCap += def.storageCap * b.level;
+    if (def.id === 'taverne') taverneCount++;
   }
 
-  return { totalPopulationCap, totalDefense, totalSoldiers };
+  return { totalPopulationCap, totalDefense, totalSoldiers, totalStorageCap, taverneCount };
+}
+
+function computeHappiness(buildings: BuildingInstance[], citizens: Citizen[], food: number): number {
+  const { taverneCount } = computeStats(buildings);
+  const idleCount = citizens.filter((c) => !c.assignedTo).length;
+  let happiness = 50 + taverneCount * 10 + (food > 50 ? 10 : 0) - idleCount * 5;
+  happiness = Math.max(0, Math.min(100, happiness));
+  return happiness;
+}
+
+function getHappinessMultiplier(happiness: number): number {
+  if (happiness < 30) return 0.5;
+  if (happiness > 70) return 1.2;
+  return 1;
 }
 
 // Event timing: between 30 and 60 ticks (seconds)
@@ -101,6 +119,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   totalPopulationCap: 5,
   totalDefense: 0,
   totalSoldiers: 0,
+  totalStorageCap: 500,
+  happiness: 50,
   milestones: [],
   tickCount: 0,
   lastEventTick: 0,
@@ -123,7 +143,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     initialCitizens[0] = { ...initialCitizens[0], assignedTo: farmBuilding.id };
 
     const initialBuildings = [farmBuilding];
-    const stats = computeStats(initialBuildings);
+    const stats = computeStats(initialBuildings, initialCitizens);
+    const happiness = computeHappiness(initialBuildings, initialCitizens, INITIAL_RESOURCES.food);
 
     // Clear any old save
     try { localStorage.removeItem(SAVE_KEY); } catch { /* noop */ }
@@ -139,6 +160,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       lastEventTick: 0,
       eventLogCounter: 0,
       saveIndicator: false,
+      happiness,
       ...stats,
     });
   },
@@ -150,18 +172,23 @@ export const useGameStore = create<GameState>((set, get) => ({
       const save = JSON.parse(raw);
       // Restore nameIndex so new citizens get unique names
       nameIndex = save.nameIndex || 0;
-      const stats = computeStats(save.buildings || []);
+      const buildings = save.buildings || [];
+      const citizens = save.citizens || [];
+      const resources = save.resources || { ...INITIAL_RESOURCES };
+      const stats = computeStats(buildings, citizens);
+      const happiness = computeHappiness(buildings, citizens, resources.food);
       set({
         phase: 'playing',
-        resources: save.resources || { ...INITIAL_RESOURCES },
-        buildings: save.buildings || [],
-        citizens: save.citizens || [],
+        resources,
+        buildings,
+        citizens,
         eventLog: save.eventLog || [],
         milestones: save.milestones || [],
         tickCount: save.tickCount || 0,
         lastEventTick: save.lastEventTick || 0,
         eventLogCounter: save.eventLogCounter || 0,
         saveIndicator: false,
+        happiness,
         ...stats,
       });
       return true;
@@ -182,6 +209,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     let newLog = [...state.eventLog];
     let logCounter = state.eventLogCounter;
 
+    // Calculate happiness multiplier
+    const happiness = computeHappiness(state.buildings, state.citizens, state.resources.food);
+    const happinessMult = getHappinessMultiplier(happiness);
+
     // Production from buildings
     for (const b of state.buildings) {
       const def = getBuildingDef(b.defId);
@@ -191,12 +222,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       if (def.production) {
         for (const [res, amount] of Object.entries(def.production)) {
-          newResources[res as keyof Resources] += (amount || 0) * workerCount * b.level;
+          newResources[res as keyof Resources] += (amount || 0) * workerCount * b.level * happinessMult;
         }
       }
 
       if (def.converts) {
-        const convertAmount = def.converts.rate * workerCount * b.level;
+        const convertAmount = def.converts.rate * workerCount * b.level * happinessMult;
         if (newResources[def.converts.from] >= convertAmount) {
           newResources[def.converts.from] -= convertAmount;
           newResources[def.converts.to] += convertAmount;
@@ -228,7 +259,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     // Population growth: if food > 20 + 2 per citizen and under pop cap
-    const stats = computeStats(state.buildings);
+    const stats = computeStats(state.buildings, state.citizens);
     let newCitizens = [...state.citizens];
     if (
       newResources.food > 20 + state.citizens.length * 2 &&
@@ -266,6 +297,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Show save indicator every 10 ticks
     const showSaveIndicator = newTickCount % 10 === 0;
 
+    const updatedHappiness = computeHappiness(state.buildings, newCitizens, newResources.food);
+
     set({
       resources: newResources,
       tickCount: newTickCount,
@@ -275,6 +308,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       milestones: newMilestones,
       eventLogCounter: logCounter,
       saveIndicator: showSaveIndicator,
+      happiness: updatedHappiness,
       ...stats,
     });
 

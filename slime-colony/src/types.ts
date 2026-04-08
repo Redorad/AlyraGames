@@ -21,6 +21,7 @@ export interface BuildingDef {
   soldiers?: number;
   unlocks?: string;
   converts?: { from: ResourceKey; to: ResourceKey; rate: number };
+  storageCap?: number;
 }
 
 export interface BuildingInstance {
@@ -62,6 +63,8 @@ export interface GameState {
   totalPopulationCap: number;
   totalDefense: number;
   totalSoldiers: number;
+  totalStorageCap: number;
+  happiness: number;
   milestones: number[];
   tickCount: number;
   lastEventTick: number;
@@ -72,7 +75,10 @@ export interface GameState {
   clearSave: () => void;
   tick: () => void;
   buildBuilding: (defId: string) => void;
+  upgradeBuilding: (buildingId: string) => void;
   assignWorker: (citizenId: string, buildingId: string) => void;
   unassignWorker: (citizenId: string) => void;
+  autoAssignWorkers: () => void;
   addEvent: (text: string, emoji: string) => void;
+  getProductionRates: () => Partial<Resources>;
 }

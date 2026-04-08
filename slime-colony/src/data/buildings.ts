@@ -82,6 +82,33 @@ export const BUILDING_DEFS: BuildingDef[] = [
     maxWorkers: 4,
     soldiers: 1,
   },
+  {
+    id: 'entrepot',
+    name: 'Entrepot',
+    emoji: '🏗️',
+    description: 'Augmente la capacite de stockage. +200 stockage.',
+    cost: { wood: 30, stone: 20 },
+    maxWorkers: 0,
+    storageCap: 200,
+  },
+  {
+    id: 'taverne',
+    name: 'Taverne',
+    emoji: '🍺',
+    description: 'Genere de l\'or passivement.',
+    cost: { wood: 25, gold: 15 },
+    maxWorkers: 2,
+    production: { gold: 1 },
+  },
+  {
+    id: 'academie',
+    name: 'Academie',
+    emoji: '📚',
+    description: 'Genere des magicules rapidement.',
+    cost: { stone: 40, magicules: 20, gold: 30 },
+    maxWorkers: 3,
+    production: { magicules: 2 },
+  },
 ];
 
 export function getBuildingDef(id: string): BuildingDef | undefined {
