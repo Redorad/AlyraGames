@@ -57,7 +57,7 @@ export default function PrepScreen() {
   };
 
   return (
-    <div className="h-full flex flex-col text-white p-3 overflow-hidden">
+    <div className="h-full flex flex-col text-white p-3 overflow-y-auto">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-2 flex-shrink-0">
         <div className="flex items-center gap-4">
