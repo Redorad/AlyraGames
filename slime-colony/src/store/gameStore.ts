@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { GameState, Resources, BuildingInstance, Citizen } from '../types';
 import { getBuildingDef, BUILDING_DEFS } from '../data/buildings';
 import { getRandomEvent } from '../data/events';
-import { playBuildSound, playEventSound, playMilestoneSound } from '../utils/sounds';
+import { playAssignSound, playBuildSound, playEventSound, playMilestoneSound } from '../utils/sounds';
 
 const SAVE_KEY = 'slime-colony-save';
 
@@ -351,11 +351,57 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
 
     const newBuildings = [...state.buildings, newBuilding];
-    const stats = computeStats(newBuildings);
+    const stats = computeStats(newBuildings, state.citizens);
 
     let logCounter = state.eventLogCounter + 1;
     const newLog = [
       { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} construit!`, emoji: '🔨' },
+      ...state.eventLog,
+    ].slice(0, 20);
+
+    playBuildSound();
+
+    set({
+      resources: newResources,
+      buildings: newBuildings,
+      eventLog: newLog,
+      eventLogCounter: logCounter,
+      ...stats,
+    });
+  },
+
+  upgradeBuilding: (buildingId: string) => {
+    const state = get();
+    const building = state.buildings.find((b) => b.id === buildingId);
+    if (!building) return;
+    const def = getBuildingDef(building.defId);
+    if (!def) return;
+
+    // Check max level
+    if (building.level >= 3) return;
+
+    // Check if a forge exists
+    const hasForge = state.buildings.some((b) => b.defId === 'forge');
+    if (!hasForge) return;
+
+    // Upgrade cost = original cost * current level (to go to next level)
+    const upgradeCost: Partial<Resources> = {};
+    for (const [key, value] of Object.entries(def.cost)) {
+      upgradeCost[key as keyof Resources] = (value || 0) * (building.level + 1);
+    }
+
+    if (!canAfford(state.resources, upgradeCost)) return;
+
+    const newResources = subtractCost(state.resources, upgradeCost);
+    const newBuildings = state.buildings.map((b) =>
+      b.id === buildingId ? { ...b, level: b.level + 1 } : b
+    );
+    const stats = computeStats(newBuildings, state.citizens);
+
+    let logCounter = state.eventLogCounter + 1;
+    const stars = '⭐'.repeat(building.level + 1);
+    const newLog = [
+      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} ameliore! ${stars}`, emoji: '⬆️' },
       ...state.eventLog,
     ].slice(0, 20);
 
@@ -396,7 +442,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       c.id === citizenId ? { ...c, assignedTo: buildingId } : c
     );
 
-    const stats = computeStats(newBuildings);
+    const stats = computeStats(newBuildings, newCitizens);
 
     set({
       buildings: newBuildings,
@@ -417,7 +463,52 @@ export const useGameStore = create<GameState>((set, get) => ({
       c.id === citizenId ? { ...c, assignedTo: null } : c
     );
 
-    const stats = computeStats(newBuildings);
+    const stats = computeStats(newBuildings, newCitizens);
+
+    set({
+      buildings: newBuildings,
+      citizens: newCitizens,
+      ...stats,
+    });
+  },
+
+  autoAssignWorkers: () => {
+    const state = get();
+    const idleCitizens = state.citizens.filter((c) => !c.assignedTo);
+    if (idleCitizens.length === 0) return;
+
+    let newBuildings = state.buildings.map((b) => ({ ...b, assignedWorkers: [...b.assignedWorkers] }));
+    let newCitizens = [...state.citizens];
+    let assigned = 0;
+
+    // Sort buildings: farms first, then others
+    const sortedBuildings = [...newBuildings].sort((a, b) => {
+      if (a.defId === 'ferme' && b.defId !== 'ferme') return -1;
+      if (a.defId !== 'ferme' && b.defId === 'ferme') return 1;
+      return 0;
+    });
+
+    for (const building of sortedBuildings) {
+      const def = getBuildingDef(building.defId);
+      if (!def || def.maxWorkers === 0) continue;
+
+      const bRef = newBuildings.find((b) => b.id === building.id)!;
+      while (bRef.assignedWorkers.length < def.maxWorkers) {
+        const idle = newCitizens.find((c) => !c.assignedTo);
+        if (!idle) break;
+
+        bRef.assignedWorkers.push(idle.id);
+        newCitizens = newCitizens.map((c) =>
+          c.id === idle.id ? { ...c, assignedTo: building.id } : c
+        );
+        assigned++;
+      }
+    }
+
+    if (assigned === 0) return;
+
+    const stats = computeStats(newBuildings, newCitizens);
+    playAssignSound();
 
     set({
       buildings: newBuildings,
@@ -436,5 +527,36 @@ export const useGameStore = create<GameState>((set, get) => ({
       ].slice(0, 20),
       eventLogCounter: logCounter,
     });
+  },
+
+  getProductionRates: () => {
+    const state = get();
+    const rates: Resources = { food: 0, wood: 0, stone: 0, magicules: 0, gold: 0 };
+    const happiness = computeHappiness(state.buildings, state.citizens, state.resources.food);
+    const happinessMult = getHappinessMultiplier(happiness);
+
+    for (const b of state.buildings) {
+      const def = getBuildingDef(b.defId);
+      if (!def) continue;
+      const workerCount = b.assignedWorkers.length;
+      if (workerCount === 0) continue;
+
+      if (def.production) {
+        for (const [res, amount] of Object.entries(def.production)) {
+          rates[res as keyof Resources] += (amount || 0) * workerCount * b.level * happinessMult;
+        }
+      }
+
+      if (def.converts) {
+        const convertAmount = def.converts.rate * workerCount * b.level * happinessMult;
+        rates[def.converts.from] -= convertAmount;
+        rates[def.converts.to] += convertAmount;
+      }
+    }
+
+    // Food consumption
+    rates.food -= state.citizens.length * 0.3;
+
+    return rates;
   },
 }));
