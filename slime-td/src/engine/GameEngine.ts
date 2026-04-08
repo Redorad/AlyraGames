@@ -8,6 +8,21 @@ import type {
 } from "../types";
 import { TOWER_DEFS, getTowerDamage, getTowerRange, getTowerAttackSpeed, getUpgradeCost, getSellValue } from "../data/towers";
 import { ENEMY_DEFS } from "../data/enemies";
+import * as sfx from "../utils/sounds";
+
+const TOWER_EMOJI: Record<string, string> = {
+  goblin: "\u{1F3F9}", ranga: "\u{1F43A}", shion: "\u{2694}\u{FE0F}",
+  benimaru: "\u{1F525}", souei: "\u{1F578}\u{FE0F}", shuna: "\u{1F338}",
+  hakurou: "\u{1F3AF}", geld: "\u{1F6E1}\u{FE0F}", diablo: "\u{1F608}",
+};
+
+const ENEMY_EMOJI: Record<string, string> = {
+  direwolf: "\u{1F43A}", orc: "\u{1F479}", orcCaptain: "\u{1F47A}",
+  ogre: "\u{1F4AA}", lizardman: "\u{1F98E}", shadow: "\u{1F47B}",
+  holyKnight: "\u{1F6E1}\u{FE0F}", otherworlder: "\u{1F300}", demon: "\u{1F47F}",
+  gabiru: "\u{1F40A}", gelmud: "\u{1F9DF}", clayman: "\u{1F3AD}",
+  hinata: "\u{2694}\u{FE0F}", milim: "\u{1F4A5}", charybdis: "\u{1F30A}",
+};
 
 /* ═══════════════════════════════════════════════════════════
    GameEngine — handles logic, spawning, and canvas rendering
@@ -44,6 +59,11 @@ export class GameEngine {
 
   /* ── IDs ─────────────────────────── */
   private nextId = 1;
+  private lastShootSound = 0;
+
+  /* ── particles ────────────────────── */
+  private particles: { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; color: string; size: number }[] = [];
+  private frameCount = 0;
 
   /* ── rendering ───────────────────── */
   private cellSize = 0;
@@ -52,6 +72,8 @@ export class GameEngine {
   private animFrame = 0;
   private lastTime = 0;
   private running = false;
+  private gridCache: ImageBitmap | null = null;
+  private gridDirty = true;
 
   /* ── callback ────────────────────── */
   private onUpdate: (s: GameState) => void;
@@ -94,8 +116,12 @@ export class GameEngine {
 
   resize() {
     const parent = this.canvas.parentElement!;
-    const w = parent.clientWidth;
-    this.cellSize = Math.floor(w / this.cols);
+    const maxW = parent.clientWidth;
+    const maxH = parent.clientHeight;
+    // Fit grid in available space using whichever dimension is tighter
+    const cellByW = Math.floor(maxW / this.cols);
+    const cellByH = Math.floor(maxH / this.rows);
+    this.cellSize = Math.max(1, Math.min(cellByW, cellByH));
     const canvasW = this.cellSize * this.cols;
     const canvasH = this.cellSize * this.rows;
     this.canvas.width = canvasW * devicePixelRatio;
@@ -103,6 +129,7 @@ export class GameEngine {
     this.canvas.style.width = `${canvasW}px`;
     this.canvas.style.height = `${canvasH}px`;
     this.ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    this.gridDirty = true;
     this.render();
   }
 
@@ -130,8 +157,8 @@ export class GameEngine {
       return;
     }
 
-    // Place tower
-    if (this.selectedTowerDef && this.level.grid[row][col] === 0) {
+    // Place tower (only between waves)
+    if (this.selectedTowerDef && this.level.grid[row][col] === 0 && !this.waveActive) {
       const def = this.selectedTowerDef;
       if (this.gold < def.cost) return;
 
@@ -147,6 +174,7 @@ export class GameEngine {
       };
       this.towers.push(tower);
       this.recalcBuffs();
+      sfx.playPlace();
       this.emitState();
       return;
     }
@@ -177,6 +205,7 @@ export class GameEngine {
     this.spawnQueue.sort((a, b) => a.delay - b.delay);
     this.spawnTimer = 0;
     this.waveActive = true;
+    sfx.playWaveStart();
     this.emitState();
   }
 
@@ -189,6 +218,7 @@ export class GameEngine {
     this.gold -= cost;
     this.selectedTower.level++;
     this.recalcBuffs();
+    sfx.playUpgrade();
     this.emitState();
   }
 
@@ -199,6 +229,7 @@ export class GameEngine {
     this.towers = this.towers.filter((t) => t.id !== this.selectedTower!.id);
     this.selectedTower = null;
     this.recalcBuffs();
+    sfx.playSell();
     this.emitState();
   }
 
@@ -208,6 +239,32 @@ export class GameEngine {
 
   getCanvasHeight(): number {
     return this.cellSize * this.rows;
+  }
+
+  private spawnParticles(x: number, y: number, color: string, count: number, speed = 2, size = 3) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spd = (0.5 + Math.random()) * speed;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        life: 0.4 + Math.random() * 0.3,
+        maxLife: 0.7,
+        color,
+        size: size * (0.5 + Math.random() * 0.5),
+      });
+    }
+  }
+
+  private updateParticles(dt: number) {
+    for (const p of this.particles) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 2 * dt; // gravity
+      p.life -= dt;
+    }
+    this.particles = this.particles.filter(p => p.life > 0);
   }
 
   /* ── main loop ───────────────────────────────────────── */
@@ -223,8 +280,12 @@ export class GameEngine {
       this.updateEnemies(dt);
       this.updateTowers(dt);
       this.updateProjectiles(dt);
+      this.updateParticles(dt);
       this.checkWaveEnd();
+    } else {
+      this.updateParticles(dt);
     }
+    this.frameCount++;
 
     this.render();
     this.animFrame = requestAnimationFrame((t) => this.loop(t));
@@ -283,9 +344,11 @@ export class GameEngine {
         // Reached end
         this.lives = Math.max(0, this.lives - (e.isBoss ? 3 : 1));
         e.dead = true;
+        sfx.playLeak();
         this.emitState();
         if (this.lives <= 0) {
           this.gameStatus = "lost";
+          sfx.playDefeat();
           this.emitState();
         }
         continue;
@@ -356,6 +419,13 @@ export class GameEngine {
         isCrit,
         dead: false,
       });
+
+      // Throttled shoot sound (~5 per second max)
+      const now = performance.now();
+      if (now - this.lastShootSound > 200) {
+        this.lastShootSound = now;
+        sfx.playShoot();
+      }
     }
   }
 
@@ -461,17 +531,26 @@ export class GameEngine {
 
   private hitEnemy(target: EnemyInstance, p: Projectile) {
     let dmg = p.isCrit ? p.damage * 3 : p.damage;
+    if (p.isCrit) sfx.playCrit();
     dmg = Math.max(1, dmg - target.armor);
     target.hp -= dmg;
 
     if (target.hp <= 0 && !target.dead) {
       target.dead = true;
       this.gold += target.reward;
+      if (target.isBoss) {
+        sfx.playBossKill();
+        this.spawnParticles(target.x * this.cellSize, target.y * this.cellSize, "#fbbf24", 20, 4, 5);
+      } else {
+        sfx.playKill();
+        this.spawnParticles(target.x * this.cellSize, target.y * this.cellSize, ENEMY_DEFS[target.defId]?.color ?? "#fff", 8, 2, 3);
+      }
       this.emitState();
     }
 
     // Splash
     if (p.splashRadius) {
+      sfx.playSplash();
       for (const e of this.enemies) {
         if (e === target || e.dead) continue;
         const d = Math.hypot(e.x - target.x, e.y - target.y);
@@ -507,6 +586,7 @@ export class GameEngine {
 
     if (this.currentWave >= this.level.waves.length) {
       this.gameStatus = "won";
+      sfx.playVictory();
     }
     this.emitState();
   }
@@ -549,6 +629,7 @@ export class GameEngine {
     this.drawTowers(ctx, cs);
     this.drawEnemies(ctx, cs);
     this.drawProjectiles(ctx, cs);
+    this.drawParticles(ctx);
   }
 
   /* ── grid ────────────────────────────────────────────── */
@@ -562,90 +643,128 @@ export class GameEngine {
         const y = r * cs;
         const tile = grid[r][c];
 
-        // Base color
-        if (tile === 0) {
-          ctx.fillStyle = (c + r) % 2 === 0 ? "#2d6e1e" : "#2a6a1b";
-        } else if (tile === 1) {
-          ctx.fillStyle = "#8a7b5e";
-        } else if (tile === 2) {
-          ctx.fillStyle = "#1a4a0a";
-        } else if (tile === 3) {
-          ctx.fillStyle = "#6b3030";
-        } else if (tile === 4) {
-          ctx.fillStyle = "#2a4a8a";
-        }
-        ctx.fillRect(x, y, cs, cs);
-
-        // Highlight buildable when placing
-        if (tile === 0 && this.selectedTowerDef) {
-          const occupied = this.towers.some((t) => t.col === c && t.row === r);
-          if (!occupied) {
-            ctx.fillStyle = "rgba(74, 222, 128, 0.15)";
-            ctx.fillRect(x, y, cs, cs);
+        // Grass with checkerboard variation
+        if (tile === 0 || tile === 2) {
+          const shade = (c + r) % 2 === 0;
+          ctx.fillStyle = shade ? "#3a7d28" : "#348525";
+          ctx.fillRect(x, y, cs, cs);
+          // Grass tufts
+          if ((c * 7 + r * 13) % 5 === 0) {
+            ctx.fillStyle = shade ? "#2f6e1f" : "#2d7520";
+            ctx.fillRect(x + cs * 0.2, y + cs * 0.3, cs * 0.15, cs * 0.15);
+            ctx.fillRect(x + cs * 0.6, y + cs * 0.6, cs * 0.12, cs * 0.12);
           }
         }
 
-        // Decoration: draw a small tree
+        // Path with stone texture
+        if (tile === 1 || tile === 3 || tile === 4) {
+          const grad = ctx.createLinearGradient(x, y, x + cs, y + cs);
+          grad.addColorStop(0, "#8a7b5e");
+          grad.addColorStop(0.5, "#9a8b6e");
+          grad.addColorStop(1, "#7a6b4e");
+          ctx.fillStyle = grad;
+          ctx.fillRect(x, y, cs, cs);
+          // Stone pattern
+          ctx.fillStyle = "rgba(0,0,0,0.06)";
+          ctx.fillRect(x + 1, y + 1, cs * 0.45, cs * 0.45);
+          ctx.fillRect(x + cs * 0.5, y + cs * 0.5, cs * 0.45, cs * 0.45);
+          // Path border
+          ctx.strokeStyle = "rgba(0,0,0,0.12)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, cs - 1, cs - 1);
+        }
+
+        // Highlight buildable when placing (only between waves)
+        if (tile === 0 && this.selectedTowerDef && !this.waveActive) {
+          const occupied = this.towers.some((t) => t.col === c && t.row === r);
+          if (!occupied) {
+            ctx.fillStyle = "rgba(74, 222, 128, 0.2)";
+            ctx.fillRect(x, y, cs, cs);
+            ctx.strokeStyle = "rgba(74, 222, 128, 0.4)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 1, y + 1, cs - 2, cs - 2);
+          }
+        }
+
+        // Decoration: tree with trunk
         if (tile === 2) {
-          ctx.fillStyle = "#0f3a08";
+          // Trunk
+          ctx.fillStyle = "#5a3a1a";
+          ctx.fillRect(x + cs * 0.42, y + cs * 0.55, cs * 0.16, cs * 0.3);
+          // Canopy (triangle layers)
+          ctx.fillStyle = "#1a5a0e";
           ctx.beginPath();
-          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.35, 0, Math.PI * 2);
+          ctx.moveTo(x + cs * 0.5, y + cs * 0.1);
+          ctx.lineTo(x + cs * 0.2, y + cs * 0.55);
+          ctx.lineTo(x + cs * 0.8, y + cs * 0.55);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = "#166a0b";
+          ctx.beginPath();
+          ctx.moveTo(x + cs * 0.5, y + cs * 0.22);
+          ctx.lineTo(x + cs * 0.25, y + cs * 0.5);
+          ctx.lineTo(x + cs * 0.75, y + cs * 0.5);
+          ctx.closePath();
           ctx.fill();
         }
 
-        // Spawn marker
+        // Spawn portal
         if (tile === 3) {
-          ctx.fillStyle = "#ef4444";
-          ctx.font = `bold ${cs * 0.4}px sans-serif`;
+          const pulse = Math.sin(this.frameCount * 0.05) * 0.15 + 0.85;
+          ctx.fillStyle = `rgba(239, 68, 68, ${0.3 * pulse})`;
+          ctx.beginPath();
+          ctx.arc(x + cs / 2, y + cs / 2, cs * 0.4 * pulse, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.font = `${cs * 0.5}px serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
-          ctx.fillText("▼", x + cs / 2, y + cs / 2);
+          ctx.fillText("\u{2620}\u{FE0F}", x + cs / 2, y + cs / 2);
         }
 
-        // Base marker (Rimuru)
+        // Base (Rimuru slime)
         if (tile === 4) {
+          const pulse = Math.sin(this.frameCount * 0.03) * 0.1 + 0.9;
+          // Glow
+          const glow = ctx.createRadialGradient(x + cs / 2, y + cs / 2, 0, x + cs / 2, y + cs / 2, cs * 0.5);
+          glow.addColorStop(0, "rgba(96, 165, 250, 0.4)");
+          glow.addColorStop(1, "rgba(96, 165, 250, 0)");
+          ctx.fillStyle = glow;
+          ctx.fillRect(x, y, cs, cs);
+          // Slime body
           ctx.fillStyle = "#60a5fa";
-          ctx.font = `bold ${cs * 0.5}px sans-serif`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText("★", x + cs / 2, y + cs / 2);
+          ctx.beginPath();
+          ctx.ellipse(x + cs / 2, y + cs * 0.55, cs * 0.32 * pulse, cs * 0.25 * pulse, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#93c5fd";
+          ctx.beginPath();
+          ctx.ellipse(x + cs * 0.43, y + cs * 0.48, cs * 0.08, cs * 0.06, -0.3, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
-    }
-
-    // Grid lines
-    ctx.strokeStyle = "rgba(0,0,0,0.08)";
-    ctx.lineWidth = 0.5;
-    for (let r = 0; r <= this.rows; r++) {
-      ctx.beginPath();
-      ctx.moveTo(0, r * cs);
-      ctx.lineTo(this.cols * cs, r * cs);
-      ctx.stroke();
-    }
-    for (let c = 0; c <= this.cols; c++) {
-      ctx.beginPath();
-      ctx.moveTo(c * cs, 0);
-      ctx.lineTo(c * cs, this.rows * cs);
-      ctx.stroke();
     }
   }
 
   /* ── range circle ────────────────────────────────────── */
 
   private drawRangeCircle(ctx: CanvasRenderingContext2D, cs: number) {
-    // For selected placed tower
     if (this.selectedTower) {
       const def = TOWER_DEFS[this.selectedTower.defId];
       const range = getTowerRange(def, this.selectedTower.level) * cs;
       const cx = (this.selectedTower.col + 0.5) * cs;
       const cy = (this.selectedTower.row + 0.5) * cs;
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, range);
+      grad.addColorStop(0, "rgba(126, 200, 227, 0.15)");
+      grad.addColorStop(0.7, "rgba(126, 200, 227, 0.08)");
+      grad.addColorStop(1, "rgba(126, 200, 227, 0)");
       ctx.beginPath();
       ctx.arc(cx, cy, range, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(126, 200, 227, 0.1)";
+      ctx.fillStyle = grad;
       ctx.fill();
-      ctx.strokeStyle = "rgba(126, 200, 227, 0.4)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(126, 200, 227, 0.5)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
       ctx.stroke();
+      ctx.setLineDash([]);
     }
   }
 
@@ -656,62 +775,90 @@ export class GameEngine {
       const def = TOWER_DEFS[tower.defId];
       const cx = (tower.col + 0.5) * cs;
       const cy = (tower.row + 0.5) * cs;
-      const radius = cs * 0.38;
+      const r = cs * 0.4;
+      const selected = this.selectedTower?.id === tower.id;
 
-      // Tower body
+      // Platform shadow
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
       ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = def.color;
+      ctx.ellipse(cx, cy + r * 0.9, r * 0.9, r * 0.3, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Border (selected = white, buffed = gold, default = dark)
-      ctx.lineWidth = this.selectedTower?.id === tower.id ? 2.5 : 1.5;
-      ctx.strokeStyle =
-        this.selectedTower?.id === tower.id
-          ? "#ffffff"
-          : tower.buffMultiplier > 1
-            ? "#fbbf24"
-            : "rgba(0,0,0,0.4)";
+      // Platform
+      ctx.fillStyle = "#555";
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + r * 0.4, r * 0.85, r * 0.25, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tower body with gradient
+      const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, 0, cx, cy, r);
+      grad.addColorStop(0, this.lightenColor(def.color, 40));
+      grad.addColorStop(1, def.color);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Border
+      ctx.lineWidth = selected ? 3 : 2;
+      ctx.strokeStyle = selected
+        ? "#ffffff"
+        : tower.buffMultiplier > 1
+          ? "#fbbf24"
+          : "rgba(255,255,255,0.2)";
       ctx.stroke();
 
-      // Symbol
-      ctx.fillStyle = "#ffffff";
-      ctx.font = `bold ${cs * 0.3}px sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(def.symbol, cx, cy);
-
-      // Level pips
-      if (tower.level >= 2) {
-        const pipY = cy + radius + 3;
-        for (let i = 0; i < tower.level - 1; i++) {
-          ctx.beginPath();
-          ctx.arc(cx - 3 + i * 6, pipY, 2, 0, Math.PI * 2);
-          ctx.fillStyle = "#fbbf24";
-          ctx.fill();
-        }
+      // Emoji
+      const emoji = TOWER_EMOJI[tower.defId];
+      if (emoji) {
+        ctx.font = `${cs * 0.45}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(emoji, cx, cy);
       }
 
-      // Aura ring for Geld
+      // Level stars
+      if (tower.level >= 2) {
+        ctx.font = `${cs * 0.2}px serif`;
+        ctx.textAlign = "center";
+        const stars = tower.level === 2 ? "\u{2B50}" : "\u{2B50}\u{2B50}";
+        ctx.fillText(stars, cx, cy + r + cs * 0.12);
+      }
+
+      // Aura ring for Geld (animated)
       if (def.special === "aura") {
         const range = getTowerRange(def, tower.level) * cs;
+        const pulse = 0.7 + Math.sin(this.frameCount * 0.08) * 0.3;
         ctx.beginPath();
         ctx.arc(cx, cy, range, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(161, 98, 7, 0.3)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(161, 98, 7, ${0.4 * pulse})`;
+        ctx.lineWidth = 2;
         ctx.stroke();
+        ctx.fillStyle = `rgba(161, 98, 7, ${0.05 * pulse})`;
+        ctx.fill();
       }
 
-      // Buff ring for Shuna
+      // Buff ring for Shuna (animated)
       if (def.special === "buff") {
         const range = getTowerRange(def, tower.level) * cs;
+        const pulse = 0.7 + Math.sin(this.frameCount * 0.06) * 0.3;
         ctx.beginPath();
         ctx.arc(cx, cy, range, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(249, 168, 212, 0.3)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(249, 168, 212, ${0.4 * pulse})`;
+        ctx.lineWidth = 2;
         ctx.stroke();
+        ctx.fillStyle = `rgba(249, 168, 212, ${0.05 * pulse})`;
+        ctx.fill();
       }
     }
+  }
+
+  private lightenColor(hex: string, amount: number): string {
+    const num = parseInt(hex.replace("#", ""), 16);
+    const r = Math.min(255, (num >> 16) + amount);
+    const g = Math.min(255, ((num >> 8) & 0xff) + amount);
+    const b = Math.min(255, (num & 0xff) + amount);
+    return `rgb(${r},${g},${b})`;
   }
 
   /* ── enemies ─────────────────────────────────────────── */
@@ -722,47 +869,102 @@ export class GameEngine {
       const def = ENEMY_DEFS[e.defId];
       const cx = e.x * cs;
       const cy = e.y * cs;
-      const radius = cs * 0.3 * def.size;
+      const radius = cs * 0.32 * def.size;
 
       // Shadow
       ctx.beginPath();
-      ctx.ellipse(cx, cy + radius * 0.8, radius * 0.8, radius * 0.3, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.ellipse(cx, cy + radius * 0.9, radius * 0.9, radius * 0.3, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
       ctx.fill();
 
-      // Body
+      // Body with gradient
+      const grad = ctx.createRadialGradient(cx - radius * 0.2, cy - radius * 0.3, 0, cx, cy, radius);
+      grad.addColorStop(0, this.lightenColor(def.color, 50));
+      grad.addColorStop(1, def.color);
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fillStyle = def.color;
+      ctx.fillStyle = grad;
       ctx.fill();
 
-      // Boss glow
+      // Boss crown glow
       if (e.isBoss) {
-        ctx.lineWidth = 2;
+        const glow = ctx.createRadialGradient(cx, cy, radius * 0.5, cx, cy, radius * 1.5);
+        glow.addColorStop(0, "rgba(251, 191, 36, 0)");
+        glow.addColorStop(0.6, "rgba(251, 191, 36, 0.15)");
+        glow.addColorStop(1, "rgba(251, 191, 36, 0)");
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.lineWidth = 2.5;
         ctx.strokeStyle = "#fbbf24";
         ctx.stroke();
       }
 
-      // Slow tint
+      // Slow tint overlay
       if (e.slowTimer > 0) {
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(96, 165, 250, 0.3)";
+        ctx.fillStyle = "rgba(96, 165, 250, 0.35)";
         ctx.fill();
       }
 
-      // HP bar
-      const barW = cs * 0.7;
-      const barH = 3;
+      // Emoji
+      const emoji = ENEMY_EMOJI[e.defId];
+      if (emoji) {
+        ctx.font = `${radius * 1.4}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(emoji, cx, cy);
+      }
+
+      // Boss crown
+      if (e.isBoss) {
+        ctx.font = `${cs * 0.25}px serif`;
+        ctx.textAlign = "center";
+        ctx.fillText("\u{1F451}", cx, cy - radius - cs * 0.05);
+      }
+
+      // HP bar (rounded, bordered)
+      const barW = Math.max(cs * 0.5, radius * 2.5);
+      const barH = 4;
       const barX = cx - barW / 2;
-      const barY = cy - radius - 6;
+      const barY = cy - radius - (e.isBoss ? cs * 0.28 : 8);
       const pct = Math.max(0, e.hp / e.maxHp);
 
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(barX, barY, barW, barH);
-      ctx.fillStyle = pct > 0.5 ? "#4ade80" : pct > 0.25 ? "#fbbf24" : "#ef4444";
-      ctx.fillRect(barX, barY, barW * pct, barH);
+      // Background
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      this.roundRect(ctx, barX, barY, barW, barH, 2);
+      ctx.fill();
+      // Fill
+      const hpColor = pct > 0.5 ? "#4ade80" : pct > 0.25 ? "#fbbf24" : "#ef4444";
+      ctx.fillStyle = hpColor;
+      if (pct > 0) {
+        this.roundRect(ctx, barX, barY, barW * pct, barH, 2);
+        ctx.fill();
+      }
+      // Border
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.lineWidth = 0.5;
+      this.roundRect(ctx, barX, barY, barW, barH, 2);
+      ctx.stroke();
     }
+  }
+
+  private roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
   }
 
   /* ── projectiles ─────────────────────────────────────── */
@@ -770,11 +972,42 @@ export class GameEngine {
   private drawProjectiles(ctx: CanvasRenderingContext2D, cs: number) {
     for (const p of this.projectiles) {
       if (p.dead) continue;
+      const px = p.x * cs;
+      const py = p.y * cs;
+      const radius = p.isCrit ? cs * 0.12 : cs * 0.07;
+
+      // Glow
+      const glow = ctx.createRadialGradient(px, py, 0, px, py, radius * 2.5);
+      glow.addColorStop(0, p.isCrit ? "rgba(251,191,36,0.4)" : `${p.color}66`);
+      glow.addColorStop(1, "rgba(0,0,0,0)");
       ctx.beginPath();
-      const radius = p.isCrit ? cs * 0.12 : cs * 0.06;
-      ctx.arc(p.x * cs, p.y * cs, radius, 0, Math.PI * 2);
-      ctx.fillStyle = p.isCrit ? "#fbbf24" : p.color;
+      ctx.arc(px, py, radius * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = glow;
+      ctx.fill();
+
+      // Core
+      ctx.beginPath();
+      ctx.arc(px, py, radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.isCrit ? "#fbbf24" : "#ffffff";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px, py, radius * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = p.isCrit ? "#fff" : p.color;
       ctx.fill();
     }
+  }
+
+  /* ── particles ───────────────────────────────────────── */
+
+  private drawParticles(ctx: CanvasRenderingContext2D) {
+    for (const p of this.particles) {
+      const alpha = Math.max(0, p.life / p.maxLife);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 }

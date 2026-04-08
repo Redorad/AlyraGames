@@ -4,6 +4,7 @@ import { LEVELS } from "../data/levels";
 import { TOWER_DEFS, getAvailableTowers, getUpgradeCost } from "../data/towers";
 import { GameEngine } from "../engine/GameEngine";
 import { useProgressStore } from "../store/gameStore";
+import { isSoundEnabled, setSoundEnabled } from "../utils/sounds";
 
 interface Props {
   levelId: number;
@@ -35,6 +36,7 @@ export default function GameScreen({ levelId, onBack }: Props) {
   });
 
   const [speed, setSpeedUI] = useState(1);
+  const [sound, setSound] = useState(isSoundEnabled());
 
   const handleStateUpdate = useCallback((s: GameState) => {
     setState(s);
@@ -118,15 +120,13 @@ export default function GameScreen({ levelId, onBack }: Props) {
       </div>
 
       {/* ── Canvas ──────────────────────── */}
-      <div className="flex-1 flex items-start justify-center overflow-hidden bg-navy-900/50">
-        <div className="w-full max-w-[448px]">
-          <canvas
-            ref={canvasRef}
-            onMouseDown={handleCanvasClick}
-            onTouchStart={handleCanvasClick}
-            className="w-full cursor-pointer"
-          />
-        </div>
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-navy-900/50">
+        <canvas
+          ref={canvasRef}
+          onMouseDown={handleCanvasClick}
+          onTouchStart={handleCanvasClick}
+          className="cursor-pointer"
+        />
       </div>
 
       {/* ── Selected tower info ─────────── */}
@@ -179,6 +179,18 @@ export default function GameScreen({ levelId, onBack }: Props) {
           )}
 
           <div className="flex-1" />
+
+          {/* Sound toggle */}
+          <button
+            onClick={() => {
+              const next = !sound;
+              setSound(next);
+              setSoundEnabled(next);
+            }}
+            className="text-xs px-3 py-1.5 rounded-lg bg-navy-700 text-steel border border-steel/20"
+          >
+            {sound ? "Son" : "Muet"}
+          </button>
 
           {/* Speed */}
           <button
