@@ -25,4 +25,28 @@ export const SYNERGIES: SynergyDef[] = [
     bonus: '4+ Monstres : +50 PV',
     effect: { hp: 50 },
   },
+  {
+    id: 'rapide',
+    name: 'Rapide',
+    emoji: '⚡',
+    threshold: 2,
+    bonus: '2+ Rapides : +3 Vitesse',
+    effect: { speed: 3 },
+  },
+  {
+    id: 'demon',
+    name: 'Démon',
+    emoji: '👿',
+    threshold: 2,
+    bonus: '2+ Démons : +20 ATK',
+    effect: { atk: 20 },
+  },
+  {
+    id: 'guerisseur',
+    name: 'Guérisseur',
+    emoji: '💚',
+    threshold: 2,
+    bonus: '2+ Guérisseurs : +30 PV',
+    effect: { hp: 30 },
+  },
 ];

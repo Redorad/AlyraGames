@@ -25,7 +25,7 @@ export const UNITS: UnitDef[] = [
     speed: 10,
     cost: 1,
     special: 'Éclair : attaque en premier',
-    synergies: ['monster'],
+    synergies: ['monster', 'rapide'],
   },
   {
     id: 'direwolf',
@@ -77,7 +77,7 @@ export const UNITS: UnitDef[] = [
     speed: 9,
     cost: 2,
     special: 'Assassinat : cible l\'ennemi le plus faible',
-    synergies: ['ogre', 'kijin'],
+    synergies: ['ogre', 'kijin', 'rapide'],
   },
   {
     id: 'shuna',
@@ -90,7 +90,7 @@ export const UNITS: UnitDef[] = [
     speed: 3,
     cost: 2,
     special: 'Soin : restaure 20 PV à l\'allié le plus blessé',
-    synergies: ['ogre', 'kijin'],
+    synergies: ['ogre', 'kijin', 'guerisseur'],
   },
   {
     id: 'geld',
@@ -103,7 +103,7 @@ export const UNITS: UnitDef[] = [
     speed: 2,
     cost: 2,
     special: 'Provocation : attire les attaques ennemies',
-    synergies: ['monster'],
+    synergies: ['monster', 'guerisseur'],
   },
   {
     id: 'hakurou',
@@ -116,7 +116,7 @@ export const UNITS: UnitDef[] = [
     speed: 8,
     cost: 3,
     special: 'Maître de l\'épée : 40% de chance de coup critique',
-    synergies: ['kijin'],
+    synergies: ['kijin', 'rapide'],
   },
   {
     id: 'diablo',
@@ -129,7 +129,7 @@ export const UNITS: UnitDef[] = [
     speed: 7,
     cost: 3,
     special: 'Mort Nucléaire : exécute les ennemis sous 25% PV',
-    synergies: ['monster'],
+    synergies: ['monster', 'demon'],
   },
   {
     id: 'rimuru',
@@ -155,7 +155,7 @@ export const UNITS: UnitDef[] = [
     speed: 5,
     cost: 4,
     special: 'Souffle du Dragon : inflige 30 dégâts à tous les ennemis',
-    synergies: ['monster'],
+    synergies: ['monster', 'demon'],
   },
 ];
 
