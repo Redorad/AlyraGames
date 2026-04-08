@@ -99,8 +99,8 @@ export class GameEngine {
 
     this.rows = level.grid.length;
     this.cols = level.grid[0].length;
-    // Hard mode: 80% gold, fewer lives
-    this.gold = hardMode ? Math.round(level.startGold * 0.8) : level.startGold;
+    // Hard mode: same gold, fewer lives
+    this.gold = level.startGold;
     this.lives = hardMode ? Math.max(3, Math.floor(level.lives * 0.6)) : level.lives;
     this.maxLives = this.lives;
 

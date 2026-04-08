@@ -44,8 +44,8 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
     ? getAvailableTowers(99, rimuruUnlocked)
     : getAvailableTowers(levelId, rimuruUnlocked);
 
-  // Hard mode: 80% gold, fewer lives
-  const startGold = hardMode ? Math.round(level.startGold * 0.8) : level.startGold;
+  // Hard mode: same gold, fewer lives
+  const startGold = level.startGold;
   const startLives = hardMode ? Math.max(3, Math.floor(level.lives * 0.6)) : level.lives;
 
   const [state, setState] = useState<GameState>({
