@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { LEVELS } from '../data/levels';
 import { playSelect } from '../utils/sounds';
 
 export default function TitleScreen() {
   const { unlockedLevel, highScores, setScreen, setCurrentLevel } = useGameStore();
+  const [showRules, setShowRules] = useState(false);
 
   const handleLevelSelect = (level: number) => {
     if (level > unlockedLevel) return;
@@ -24,7 +26,29 @@ export default function TitleScreen() {
         <div className="flex justify-center gap-1 mt-2 text-2xl">
           <span>🔵</span><span>🔴</span><span>🟢</span><span>🟡</span><span>🟣</span><span>⚪</span>
         </div>
+        <button
+          onClick={() => setShowRules(!showRules)}
+          className="mt-3 text-xs px-3 py-1 rounded-lg bg-navy-700 text-steel border border-steel/20 hover:bg-navy-700/80 transition"
+        >
+          {showRules ? 'Masquer les règles' : 'Règles du jeu'}
+        </button>
       </div>
+
+      {showRules && (
+        <div className="w-full max-w-sm mb-4 p-4 rounded-xl bg-navy-800 border border-white/10 text-sm text-gray-300 space-y-2 animate-fade-in">
+          <h3 className="text-accent font-bold text-base mb-1">Comment jouer</h3>
+          <p>🔹 <strong>Échange</strong> deux slimes adjacents en cliquant dessus l'un après l'autre.</p>
+          <p>🔹 <strong>Aligne 3+</strong> slimes identiques en ligne ou en colonne pour les faire disparaître et marquer des points.</p>
+          <p>🔹 <strong>Gravité</strong> : les slimes tombent pour remplir les cases vides, de nouveaux apparaissent en haut.</p>
+          <p>🔹 <strong>Cascades</strong> : les matchs en chaîne augmentent le multiplicateur de combo (×2, ×3... jusqu'à ×5).</p>
+          <h3 className="text-accent font-bold text-base mt-3 mb-1">Gemmes spéciales</h3>
+          <p>✨ <strong>Match de 4</strong> → crée une gemme <span className="text-yellow-400">Ligne</span> qui détruit toute une ligne ou colonne.</p>
+          <p>💎 <strong>Match de 5+</strong> → crée une <span className="text-purple-400">Bombe</span> qui détruit toutes les gemmes de la même couleur.</p>
+          <h3 className="text-accent font-bold text-base mt-3 mb-1">Objectif</h3>
+          <p>🎯 Atteins le <strong>score cible</strong> avant la fin du <strong>temps</strong> (60 secondes par niveau).</p>
+          <p>⭐ 10 niveaux de difficulté croissante !</p>
+        </div>
+      )}
 
       <div className="w-full max-w-sm space-y-2">
         <h2 className="text-steel text-center text-lg font-semibold mb-3">Select Level</h2>
@@ -68,11 +92,6 @@ export default function TitleScreen() {
             );
           })}
         </div>
-      </div>
-
-      <div className="mt-6 text-center text-steel/40 text-xs animate-fade-in">
-        <p>Swap adjacent slimes to match 3+</p>
-        <p>Match 4 = Line Clear | Match 5 = Color Bomb</p>
       </div>
     </div>
   );
