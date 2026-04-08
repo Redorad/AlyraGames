@@ -184,27 +184,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       const citizens = save.citizens || [];
       const resources = save.resources || { ...INITIAL_RESOURCES };
 
-      // Migrate old saves: auto-assign grid positions if missing
-      let nextX = 0;
-      let nextY = 0;
-      const occupied = new Set<string>();
-      for (const b of buildings) {
-        if (b.gridX !== undefined && b.gridY !== undefined) {
-          occupied.add(`${b.gridX},${b.gridY}`);
-        }
-      }
+      // Re-layout ALL buildings into a clean grid (fixes old saves, re-aligns on new grid size)
+      const total = buildings.length + 3;
+      const rows = Math.max(2, Math.ceil(Math.sqrt(total / 1.5)));
+      const cols = Math.max(3, Math.ceil(total / rows));
+      let idx = 0;
       buildings = buildings.map(b => {
-        if (b.gridX !== undefined && b.gridY !== undefined) return b;
-        // Find next free cell
-        while (occupied.has(`${nextX},${nextY}`)) {
-          nextX++;
-          if (nextX >= 10) { nextX = 0; nextY++; }
-        }
-        occupied.add(`${nextX},${nextY}`);
-        const migrated = { ...b, gridX: nextX, gridY: nextY, constructing: false, constructionEnd: 0 };
-        nextX++;
-        if (nextX >= 10) { nextX = 0; nextY++; }
-        return migrated;
+        const gx = idx % cols;
+        const gy = Math.floor(idx / cols);
+        idx++;
+        return { ...b, gridX: gx, gridY: gy, constructing: b.constructing ?? false, constructionEnd: b.constructionEnd ?? 0 };
       });
 
       const stats = computeStats(buildings, citizens);
