@@ -596,8 +596,10 @@ export default function GameScreen() {
   }, []);
 
   const handleSelectDef = useCallback((defId: string) => {
-    setSelectedDef((prev) => (prev === defId ? null : defId));
-  }, []);
+    // Auto-place: build immediately at next free cell
+    buildBuilding(defId);
+    setSelectedDef(null);
+  }, [buildBuilding]);
 
   return (
     <div className="game-screen">

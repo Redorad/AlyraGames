@@ -78,7 +78,7 @@ export interface GameState {
   loadSave: () => boolean;
   clearSave: () => void;
   tick: () => void;
-  buildBuilding: (defId: string, gridX: number, gridY: number) => void;
+  buildBuilding: (defId: string, gridX?: number, gridY?: number) => void;
   upgradeBuilding: (buildingId: string) => void;
   assignWorker: (citizenId: string, buildingId: string) => void;
   unassignWorker: (citizenId: string) => void;

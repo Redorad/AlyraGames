@@ -179,11 +179,34 @@ export const useGameStore = create<GameState>((set, get) => ({
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return false;
       const save = JSON.parse(raw);
-      // Restore nameIndex so new citizens get unique names
       nameIndex = save.nameIndex || 0;
-      const buildings = save.buildings || [];
+      let buildings: BuildingInstance[] = save.buildings || [];
       const citizens = save.citizens || [];
       const resources = save.resources || { ...INITIAL_RESOURCES };
+
+      // Migrate old saves: auto-assign grid positions if missing
+      let nextX = 0;
+      let nextY = 0;
+      const occupied = new Set<string>();
+      for (const b of buildings) {
+        if (b.gridX !== undefined && b.gridY !== undefined) {
+          occupied.add(`${b.gridX},${b.gridY}`);
+        }
+      }
+      buildings = buildings.map(b => {
+        if (b.gridX !== undefined && b.gridY !== undefined) return b;
+        // Find next free cell
+        while (occupied.has(`${nextX},${nextY}`)) {
+          nextX++;
+          if (nextX >= 10) { nextX = 0; nextY++; }
+        }
+        occupied.add(`${nextX},${nextY}`);
+        const migrated = { ...b, gridX: nextX, gridY: nextY, constructing: false, constructionEnd: 0 };
+        nextX++;
+        if (nextX >= 10) { nextX = 0; nextY++; }
+        return migrated;
+      });
+
       const stats = computeStats(buildings, citizens);
       const happiness = computeHappiness(buildings, citizens, resources.food);
       set({
@@ -362,14 +385,31 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  buildBuilding: (defId: string, gridX: number, gridY: number) => {
+  buildBuilding: (defId: string, gridX?: number, gridY?: number) => {
     const state = get();
     const def = BUILDING_DEFS.find((d) => d.id === defId);
     if (!def) return;
     if (!canAfford(state.resources, def.cost)) return;
 
+    // Auto-find next free cell if no position given
+    let placeX = gridX ?? -1;
+    let placeY = gridY ?? -1;
+    if (placeX < 0 || placeY < 0) {
+      const usedCells = new Set(state.buildings.map(b => `${b.gridX},${b.gridY}`));
+      let found = false;
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 10; x++) {
+          if (!usedCells.has(`${x},${y}`)) {
+            placeX = x; placeY = y; found = true; break;
+          }
+        }
+        if (found) break;
+      }
+      if (!found) return;
+    }
+
     // Check if cell is already occupied
-    const occupied = state.buildings.some((b) => b.gridX === gridX && b.gridY === gridY);
+    const occupied = state.buildings.some((b) => b.gridX === placeX && b.gridY === placeY);
     if (occupied) return;
 
     const newResources = subtractCost(state.resources, def.cost);
@@ -378,8 +418,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       defId: def.id,
       level: 1,
       assignedWorkers: [],
-      gridX,
-      gridY,
+      gridX: placeX,
+      gridY: placeY,
       constructing: true,
       constructionEnd: Date.now() + 5000,
     };
