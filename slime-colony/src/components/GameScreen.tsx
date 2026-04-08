@@ -4,20 +4,13 @@ import { BUILDING_DEFS, getBuildingDef } from '../data/buildings';
 import { BuildingInstance, ResourceKey } from '../types';
 import { playAssignSound, playBuildSound, playClickSound } from '../utils/sounds';
 
-/** Compute grid size based on building count — grows as you build */
+/** Compute grid size based on building count — grows as you build, wider than tall */
 function getGridSize(buildingCount: number): { cols: number; rows: number } {
-  const total = buildingCount + 2; // extra empty cells for placement
-  if (total <= 4) return { cols: 2, rows: 2 };
-  if (total <= 6) return { cols: 3, rows: 2 };
-  if (total <= 9) return { cols: 3, rows: 3 };
-  if (total <= 12) return { cols: 4, rows: 3 };
-  if (total <= 16) return { cols: 4, rows: 4 };
-  if (total <= 20) return { cols: 5, rows: 4 };
-  if (total <= 25) return { cols: 5, rows: 5 };
-  if (total <= 30) return { cols: 6, rows: 5 };
-  if (total <= 42) return { cols: 7, rows: 6 };
-  if (total <= 56) return { cols: 8, rows: 7 };
-  return { cols: 10, rows: 8 };
+  const total = buildingCount + 3; // extra empty cells
+  // Target ratio ~1.5:1 (cols:rows), expanding smoothly
+  const rows = Math.max(2, Math.ceil(Math.sqrt(total / 1.5)));
+  const cols = Math.max(3, Math.ceil(total / rows));
+  return { cols: Math.min(cols, 20), rows: Math.min(rows, 15) };
 }
 
 /* ─── Resource Bar (slim top HUD) ─── */
