@@ -179,19 +179,22 @@ html, body, #root {
 
 .village-grid {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(8, 1fr);
+  /* columns set via inline style */
+  grid-auto-rows: 1fr;
   gap: 2px;
   background: rgba(34, 80, 34, 0.15);
   border: 2px solid rgba(34, 100, 34, 0.3);
   border-radius: 12px;
   padding: 4px;
   box-shadow: 0 0 40px rgba(34, 100, 34, 0.1), inset 0 0 30px rgba(34, 80, 34, 0.08);
+  width: 100%;
+  max-width: min(90vw, 90vh - 140px);
+  aspect-ratio: auto;
+  margin: 0 auto;
 }
 
 .grid-cell {
-  width: 64px;
-  height: 64px;
+  aspect-ratio: 1;
   border-radius: 6px;
   border: 1px solid rgba(34, 100, 34, 0.2);
   display: flex;
@@ -200,6 +203,7 @@ html, body, #root {
   cursor: pointer;
   transition: all 0.15s;
   position: relative;
+  min-width: 0;
 }
 
 .grid-cell.empty {
@@ -264,7 +268,7 @@ html, body, #root {
 }
 
 .building-emoji {
-  font-size: 28px;
+  font-size: clamp(16px, 4vw, 32px);
   line-height: 1;
 }
 
