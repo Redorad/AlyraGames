@@ -99,9 +99,9 @@ export class GameEngine {
 
     this.rows = level.grid.length;
     this.cols = level.grid[0].length;
-    // Hard mode: 60% gold, half lives
-    this.gold = hardMode ? Math.round(level.startGold * 0.6) : level.startGold;
-    this.lives = hardMode ? Math.max(1, Math.floor(level.lives / 2)) : level.lives;
+    // Hard mode: 80% gold, fewer lives
+    this.gold = hardMode ? Math.round(level.startGold * 0.8) : level.startGold;
+    this.lives = hardMode ? Math.max(3, Math.floor(level.lives * 0.6)) : level.lives;
     this.maxLives = this.lives;
 
     this.resize();
@@ -315,10 +315,10 @@ export class GameEngine {
     const def = ENEMY_DEFS[defId];
     if (!def) return;
     const start = this.level.path[0];
-    // Hard mode: 2x HP, 20% faster, +2 armor
-    const hpMult = this.hardMode ? 2 : 1;
-    const spdMult = this.hardMode ? 1.2 : 1;
-    const armorBonus = this.hardMode ? 2 : 0;
+    // Hard mode: 1.8x HP, 15% faster, +1 armor
+    const hpMult = this.hardMode ? 1.8 : 1;
+    const spdMult = this.hardMode ? 1.15 : 1;
+    const armorBonus = this.hardMode ? 1 : 0;
     const hp = Math.round(def.hp * hpMult);
     const enemy: EnemyInstance = {
       id: this.nextId++,
