@@ -171,32 +171,32 @@ html, body, #root {
 
 /* ── Village Grid ── */
 .village-area {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 12px;
+  overflow: auto;
+  min-height: 0;
 }
 
 .village-grid {
   display: grid;
   /* columns set via inline style */
   grid-auto-rows: 1fr;
-  gap: 2px;
+  gap: 3px;
   background: rgba(34, 80, 34, 0.15);
   border: 2px solid rgba(34, 100, 34, 0.3);
   border-radius: 12px;
-  padding: 4px;
+  padding: 6px;
   box-shadow: 0 0 40px rgba(34, 100, 34, 0.1), inset 0 0 30px rgba(34, 80, 34, 0.08);
   width: 100%;
-  max-width: min(90vw, 90vh - 140px);
-  aspect-ratio: auto;
-  margin: 0 auto;
+  height: 100%;
 }
 
 .grid-cell {
-  aspect-ratio: 1;
   border-radius: 6px;
-  border: 1px solid rgba(34, 100, 34, 0.2);
+  border: 1px solid rgba(34, 100, 34, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,6 +204,8 @@ html, body, #root {
   transition: all 0.15s;
   position: relative;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .grid-cell.empty {
