@@ -4,8 +4,21 @@ import { BUILDING_DEFS, getBuildingDef } from '../data/buildings';
 import { BuildingInstance, ResourceKey } from '../types';
 import { playAssignSound, playBuildSound, playClickSound } from '../utils/sounds';
 
-const GRID_COLS = 10;
-const GRID_ROWS = 8;
+/** Compute grid size based on building count — grows as you build */
+function getGridSize(buildingCount: number): { cols: number; rows: number } {
+  const total = buildingCount + 2; // extra empty cells for placement
+  if (total <= 4) return { cols: 2, rows: 2 };
+  if (total <= 6) return { cols: 3, rows: 2 };
+  if (total <= 9) return { cols: 3, rows: 3 };
+  if (total <= 12) return { cols: 4, rows: 3 };
+  if (total <= 16) return { cols: 4, rows: 4 };
+  if (total <= 20) return { cols: 5, rows: 4 };
+  if (total <= 25) return { cols: 5, rows: 5 };
+  if (total <= 30) return { cols: 6, rows: 5 };
+  if (total <= 42) return { cols: 7, rows: 6 };
+  if (total <= 56) return { cols: 8, rows: 7 };
+  return { cols: 10, rows: 8 };
+}
 
 /* ─── Resource Bar (slim top HUD) ─── */
 function ResourceBar() {
@@ -295,7 +308,6 @@ function VillageGrid({
   const buildings = useGameStore((s) => s.buildings);
   const [now, setNow] = useState(Date.now());
 
-  // Re-render for construction progress
   useEffect(() => {
     const hasConstructing = buildings.some((b) => b.constructing);
     if (!hasConstructing) return;
@@ -303,14 +315,16 @@ function VillageGrid({
     return () => clearInterval(interval);
   }, [buildings]);
 
+  const { cols, rows } = getGridSize(buildings.length);
+
   const buildingMap = new Map<string, BuildingInstance>();
   for (const b of buildings) {
     buildingMap.set(`${b.gridX},${b.gridY}`, b);
   }
 
   const cells: React.ReactNode[] = [];
-  for (let y = 0; y < GRID_ROWS; y++) {
-    for (let x = 0; x < GRID_COLS; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
       const key = `${x},${y}`;
       const building = buildingMap.get(key);
       const isOccupied = !!building;
@@ -342,7 +356,7 @@ function VillageGrid({
 
   return (
     <div className="village-area">
-      <div className="village-grid">
+      <div className="village-grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
         {cells}
       </div>
     </div>
