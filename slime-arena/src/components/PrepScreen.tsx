@@ -108,59 +108,67 @@ export default function PrepScreen() {
         {/* Grid */}
         <div className="flex-1 flex flex-col">
           <div className="text-xs text-gray-500 mb-1">Votre grille (glissez ou cliquez pour placer)</div>
-          <div className="grid grid-cols-4 gap-1.5 mb-3">
-            {Array.from({ length: 8 }).map((_, i) => {
-              const x = i % 4;
-              const y = Math.floor(i / 4);
-              const unit = placed.find(u => u.gridX === x && u.gridY === y);
-              const def = unit ? getUnitDef(unit.defId) : null;
+          {[0, 1].map(row => (
+            <div key={row} className="mb-1.5">
+              <div className="text-[10px] font-bold mb-0.5" style={{ color: row === 0 ? '#facc15' : '#60a5fa' }}>
+                {row === 0 ? 'Avant (front)' : 'Arrière (back -20% dégâts)'}
+              </div>
+              <div className="grid grid-cols-4 gap-1.5">
+                {Array.from({ length: 4 }).map((_, col) => {
+                  const x = col;
+                  const y = row;
+                  const unit = placed.find(u => u.gridX === x && u.gridY === y);
+                  const def = unit ? getUnitDef(unit.defId) : null;
 
-              return (
-                <div
-                  key={i}
-                  className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer
-                    transition-all duration-150 relative
-                    ${unit ? 'border-accent/50 bg-navy-700' : 'border-gray-700 bg-navy-800/50 hover:border-steel/50'}
-                    ${selectedUid && !unit ? 'ring-2 ring-steel/50' : ''}
-                  `}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleGridDrop(x, y)}
-                  onClick={() => unit ? handleUnitClick(unit.uid) : handleGridClick(x, y)}
-                >
-                  {unit && def && (
+                  return (
                     <div
-                      draggable
-                      onDragStart={() => handleDragStart(unit.uid)}
-                      className="flex flex-col items-center select-none"
+                      key={`${x}-${y}`}
+                      className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer
+                        transition-all duration-150 relative
+                        ${unit ? 'border-accent/50 bg-navy-700' : 'border-gray-700 bg-navy-800/50 hover:border-steel/50'}
+                        ${selectedUid && !unit ? 'ring-2 ring-steel/50' : ''}
+                      `}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => handleGridDrop(x, y)}
+                      onClick={() => unit ? handleUnitClick(unit.uid) : handleGridClick(x, y)}
                     >
-                      <span className="text-2xl">{def.emoji}</span>
-                      <span className="text-[10px] font-bold truncate max-w-full">{def.name}</span>
-                      <span className={`text-[9px] ${starColors[def.stars]}`}>
-                        {'⭐'.repeat(def.stars)}
-                      </span>
+                      {unit && def && (
+                        <div
+                          draggable
+                          onDragStart={() => handleDragStart(unit.uid)}
+                          className="flex flex-col items-center select-none"
+                        >
+                          <span className="text-2xl">{def.emoji}</span>
+                          <span className="text-[10px] font-bold truncate max-w-full">{def.name}</span>
+                          <span className={`text-[9px] ${starColors[def.stars]}`}>
+                            {'⭐'.repeat(def.stars)}
+                          </span>
+                        </div>
+                      )}
+                      {unit && selectedUid === unit.uid && (
+                        <div className="absolute -top-1 -right-1 flex gap-0.5">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeUnit(unit.uid); playClick(); setSelectedUid(null); }}
+                            className="w-5 h-5 bg-gray-700 rounded-full text-[10px] hover:bg-gray-600"
+                            title="Retirer"
+                          >↩</button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); sellUnit(unit.uid); playClick(); setSelectedUid(null); }}
+                            className="w-5 h-5 bg-red-700 rounded-full text-[10px] hover:bg-red-600"
+                            title="Vendre"
+                          >💰</button>
+                        </div>
+                      )}
+                      {!unit && (
+                        <span className="text-gray-700 text-xs">{x},{y}</span>
+                      )}
                     </div>
-                  )}
-                  {unit && selectedUid === unit.uid && (
-                    <div className="absolute -top-1 -right-1 flex gap-0.5">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); removeUnit(unit.uid); playClick(); setSelectedUid(null); }}
-                        className="w-5 h-5 bg-gray-700 rounded-full text-[10px] hover:bg-gray-600"
-                        title="Retirer"
-                      >↩</button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); sellUnit(unit.uid); playClick(); setSelectedUid(null); }}
-                        className="w-5 h-5 bg-red-700 rounded-full text-[10px] hover:bg-red-600"
-                        title="Vendre"
-                      >💰</button>
-                    </div>
-                  )}
-                  {!unit && (
-                    <span className="text-gray-700 text-xs">{x},{y}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          <div className="mb-1"></div>
 
           {/* Bench */}
           <div className="text-xs text-gray-500 mb-1">Banc ({bench.length}/4)</div>
