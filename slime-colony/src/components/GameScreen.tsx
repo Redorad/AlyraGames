@@ -10,6 +10,11 @@ function ResourceBar() {
   const citizens = useGameStore((s) => s.citizens);
   const popCap = useGameStore((s) => s.totalPopulationCap);
   const defense = useGameStore((s) => s.totalDefense);
+  const totalStorageCap = useGameStore((s) => s.totalStorageCap);
+  const happiness = useGameStore((s) => s.happiness);
+  const getProductionRates = useGameStore((s) => s.getProductionRates);
+
+  const rates = getProductionRates();
 
   const items: { key: ResourceKey; emoji: string; label: string }[] = [
     { key: 'food', emoji: '🌾', label: 'Nourriture' },
@@ -19,15 +24,35 @@ function ResourceBar() {
     { key: 'gold', emoji: '💰', label: 'Or' },
   ];
 
+  const happinessEmoji = happiness > 70 ? '😊' : happiness >= 30 ? '😐' : '😡';
+  const happinessColor = happiness > 70 ? 'text-green-400' : happiness >= 30 ? 'text-yellow-400' : 'text-red-400';
+
+  function formatRate(rate: number): string {
+    const rounded = Math.round(rate * 10) / 10;
+    if (rounded >= 0) return `+${rounded}`;
+    return `${rounded}`;
+  }
+
   return (
-    <div className="bg-navy-800 border-b border-steel/20 px-4 py-2 flex flex-wrap items-center gap-4">
-      {items.map((r) => (
-        <div key={r.key} className="flex items-center gap-1 text-sm" title={r.label}>
-          <span>{r.emoji}</span>
-          <span className="text-steel font-mono">{Math.floor(resources[r.key])}</span>
-        </div>
-      ))}
+    <div className="bg-navy-800 border-b border-steel/20 px-4 py-2 flex flex-wrap items-center gap-4 pl-20">
+      {items.map((r) => {
+        const rate = rates[r.key] || 0;
+        const rateColor = rate >= 0 ? 'text-green-400' : 'text-red-400';
+        return (
+          <div key={r.key} className="flex items-center gap-1 text-sm" title={r.label}>
+            <span>{r.emoji}</span>
+            <span className="text-steel font-mono">{Math.floor(resources[r.key])}</span>
+            <span className={`${rateColor} font-mono text-[10px]`}>({formatRate(rate)}/s)</span>
+          </div>
+        );
+      })}
       <div className="ml-auto flex items-center gap-4 text-sm">
+        <span title={`Bonheur: ${happiness}%`} className={happinessColor}>
+          {happinessEmoji} <span className="font-mono text-xs">{happiness}%</span>
+        </span>
+        <span title="Stockage">
+          📦 <span className="text-steel font-mono">{totalStorageCap}</span>
+        </span>
         <span title="Population">
           👥 <span className="text-steel font-mono">{citizens.length}/{popCap}</span>
         </span>
@@ -102,6 +127,7 @@ function BuildMenu() {
 /* ─── Built Buildings ─── */
 function BuiltBuildings({ onSelectBuilding }: { onSelectBuilding: (b: BuildingInstance) => void }) {
   const buildings = useGameStore((s) => s.buildings);
+  const happiness = useGameStore((s) => s.happiness);
 
   if (buildings.length === 0) {
     return (
@@ -118,6 +144,9 @@ function BuiltBuildings({ onSelectBuilding }: { onSelectBuilding: (b: BuildingIn
     grouped[b.defId].push(b);
   }
 
+  // Happiness multiplier for display
+  const happinessMult = happiness < 30 ? 0.5 : happiness > 70 ? 1.2 : 1;
+
   return (
     <div className="space-y-2">
       <h2 className="text-accent font-bold text-sm uppercase tracking-wider mb-2">
@@ -127,23 +156,55 @@ function BuiltBuildings({ onSelectBuilding }: { onSelectBuilding: (b: BuildingIn
         {Object.entries(grouped).map(([defId, instances]) => {
           const def = getBuildingDef(defId);
           if (!def) return null;
-          return instances.map((b) => (
-            <button
-              key={b.id}
-              onClick={() => {
-                playClickSound();
-                onSelectBuilding(b);
-              }}
-              className="p-2 rounded-lg border border-steel/20 bg-navy-700/30 hover:bg-navy-700/60
-                         hover:border-steel/40 transition-all text-left"
-            >
-              <div className="text-xl text-center">{def.emoji}</div>
-              <div className="text-steel text-[10px] text-center font-medium mt-1">{def.name}</div>
-              <div className="text-accent/60 text-[10px] text-center">
-                👷 {b.assignedWorkers.length}/{def.maxWorkers}
-              </div>
-            </button>
-          ));
+          return instances.map((b) => {
+            const stars = '⭐'.repeat(b.level);
+            const workerCount = b.assignedWorkers.length;
+
+            // Build production info string
+            let prodInfo = '';
+            if (def.production && workerCount > 0) {
+              const icons: Record<string, string> = {
+                food: '🌾', wood: '🪵', stone: '🪨', magicules: '✨', gold: '💰',
+              };
+              prodInfo = Object.entries(def.production)
+                .map(([res, amount]) => {
+                  const total = Math.round((amount || 0) * workerCount * b.level * happinessMult * 10) / 10;
+                  return `${icons[res] || res} +${total}/s`;
+                })
+                .join(' ');
+            }
+            if (def.converts && workerCount > 0) {
+              const icons: Record<string, string> = {
+                food: '🌾', wood: '🪵', stone: '🪨', magicules: '✨', gold: '💰',
+              };
+              const total = Math.round(def.converts.rate * workerCount * b.level * happinessMult * 10) / 10;
+              prodInfo = `${icons[def.converts.from]} -${total} → ${icons[def.converts.to]} +${total}/s`;
+            }
+
+            return (
+              <button
+                key={b.id}
+                onClick={() => {
+                  playClickSound();
+                  onSelectBuilding(b);
+                }}
+                className="p-2 rounded-lg border border-steel/20 bg-navy-700/30 hover:bg-navy-700/60
+                           hover:border-steel/40 transition-all text-left"
+              >
+                <div className="text-xl text-center">{def.emoji}</div>
+                <div className="text-steel text-[10px] text-center font-medium mt-1">{def.name}</div>
+                {b.level > 1 && (
+                  <div className="text-[10px] text-center">{stars}</div>
+                )}
+                <div className="text-accent/60 text-[10px] text-center">
+                  👷 {workerCount}/{def.maxWorkers}
+                </div>
+                {prodInfo && (
+                  <div className="text-green-400/70 text-[9px] text-center mt-0.5">{prodInfo}</div>
+                )}
+              </button>
+            );
+          });
         })}
       </div>
     </div>
@@ -161,7 +222,9 @@ function WorkerPanel({
   const citizens = useGameStore((s) => s.citizens);
   const assignWorker = useGameStore((s) => s.assignWorker);
   const unassignWorker = useGameStore((s) => s.unassignWorker);
+  const upgradeBuilding = useGameStore((s) => s.upgradeBuilding);
   const buildings = useGameStore((s) => s.buildings);
+  const resources = useGameStore((s) => s.resources);
 
   if (!selectedBuilding) return null;
 
@@ -176,13 +239,30 @@ function WorkerPanel({
   const unassigned = citizens.filter((c) => !c.assignedTo);
   const isFull = currentBuilding.assignedWorkers.length >= def.maxWorkers;
 
+  // Upgrade logic
+  const hasForge = buildings.some((b) => b.defId === 'forge');
+  const canUpgrade = currentBuilding.level < 3 && hasForge;
+  const upgradeCost: Partial<Record<ResourceKey, number>> = {};
+  if (canUpgrade) {
+    for (const [key, value] of Object.entries(def.cost)) {
+      upgradeCost[key as ResourceKey] = (value || 0) * (currentBuilding.level + 1);
+    }
+  }
+  const canAffordUpgrade = canUpgrade && Object.entries(upgradeCost).every(
+    ([key, value]) => (resources[key as ResourceKey] || 0) >= (value || 0)
+  );
+
+  const stars = '⭐'.repeat(currentBuilding.level);
+
   return (
     <div className="bg-navy-800/95 border border-steel/30 rounded-xl p-3 animate-slide-in">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-2xl">{def.emoji}</span>
           <div>
-            <div className="text-steel font-bold text-sm">{def.name}</div>
+            <div className="text-steel font-bold text-sm">
+              {def.name} {stars}
+            </div>
             <div className="text-steel/50 text-[10px]">{def.description}</div>
           </div>
         </div>
@@ -193,6 +273,46 @@ function WorkerPanel({
           ✕
         </button>
       </div>
+
+      {/* Upgrade button */}
+      {hasForge && currentBuilding.level < 3 && (
+        <div className="mb-3">
+          <button
+            onClick={() => {
+              if (canAffordUpgrade) {
+                playClickSound();
+                upgradeBuilding(currentBuilding.id);
+              }
+            }}
+            disabled={!canAffordUpgrade}
+            className={`w-full p-2 rounded-lg border text-sm transition-all duration-200
+              ${canAffordUpgrade
+                ? 'border-accent/40 bg-accent/10 hover:bg-accent/20 hover:border-accent/60 cursor-pointer text-accent'
+                : 'border-navy-700/30 bg-navy-900/50 opacity-40 cursor-not-allowed text-steel/40'
+              }`}
+          >
+            <span className="font-medium">⬆️ Ameliorer</span>
+            <span className="text-[10px] ml-2">
+              (Niv. {currentBuilding.level} → {currentBuilding.level + 1})
+              {' — '}
+              {Object.entries(upgradeCost)
+                .map(([k, v]) => {
+                  const icons: Record<string, string> = {
+                    food: '🌾', wood: '🪵', stone: '🪨', magicules: '✨', gold: '💰',
+                  };
+                  return `${icons[k] || k}${v}`;
+                })
+                .join(' ')}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {!hasForge && currentBuilding.level < 3 && (
+        <div className="mb-3 text-steel/30 text-[10px] italic">
+          Construisez une Forge pour ameliorer ce batiment.
+        </div>
+      )}
 
       {def.maxWorkers > 0 && (
         <>
@@ -315,15 +435,26 @@ function EventLog() {
 /* ─── Idle Citizens Banner ─── */
 function IdleBanner() {
   const citizens = useGameStore((s) => s.citizens);
+  const autoAssignWorkers = useGameStore((s) => s.autoAssignWorkers);
   const idleCount = citizens.filter((c) => !c.assignedTo).length;
 
   if (idleCount === 0) return null;
 
   return (
-    <div className="bg-yellow-900/40 border border-yellow-500/40 rounded-lg px-3 py-2 mb-3 text-center animate-slide-in">
+    <div className="bg-yellow-900/40 border border-yellow-500/40 rounded-lg px-3 py-2 mb-3 text-center animate-slide-in flex items-center justify-center gap-3">
       <span className="text-yellow-300 text-sm font-medium">
-        ⚠️ {idleCount} citoyen{idleCount > 1 ? 's' : ''} inactif{idleCount > 1 ? 's' : ''} — Assignez-les à des bâtiments !
+        ⚠️ {idleCount} citoyen{idleCount > 1 ? 's' : ''} inactif{idleCount > 1 ? 's' : ''} — Assignez-les !
       </span>
+      <button
+        onClick={() => {
+          playClickSound();
+          autoAssignWorkers();
+        }}
+        className="px-3 py-1 rounded-lg border border-yellow-500/50 bg-yellow-900/60 hover:bg-yellow-800/60
+                   text-yellow-200 text-xs font-medium transition-colors"
+      >
+        Auto-assigner
+      </button>
     </div>
   );
 }
@@ -336,7 +467,7 @@ function SaveIndicator() {
 
   return (
     <span className="text-accent/60 text-[10px] ml-2 animate-save-flash">
-      💾 Sauvegardé
+      💾 Sauvegarde
     </span>
   );
 }
@@ -362,7 +493,7 @@ export default function GameScreen() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left sidebar: Build menu */}
-        <div className="w-52 border-r border-steel/10 p-3 overflow-y-auto custom-scroll flex-shrink-0">
+        <div className="w-44 lg:w-52 border-r border-steel/10 p-3 overflow-y-auto custom-scroll flex-shrink-0">
           <BuildMenu />
         </div>
 
@@ -382,7 +513,7 @@ export default function GameScreen() {
         </div>
 
         {/* Right sidebar: Population + Events */}
-        <div className="w-56 border-l border-steel/10 p-3 overflow-y-auto custom-scroll flex-shrink-0 space-y-6">
+        <div className="w-48 lg:w-56 border-l border-steel/10 p-3 overflow-y-auto custom-scroll flex-shrink-0 space-y-6">
           <PopulationPanel />
           <EventLog />
         </div>
