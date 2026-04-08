@@ -8,6 +8,7 @@ import type {
 } from "../types";
 import { TOWER_DEFS, getTowerDamage, getTowerRange, getTowerAttackSpeed, getUpgradeCost, getSellValue } from "../data/towers";
 import { ENEMY_DEFS } from "../data/enemies";
+import * as sfx from "../utils/sounds";
 
 /* ═══════════════════════════════════════════════════════════
    GameEngine — handles logic, spawning, and canvas rendering
@@ -44,6 +45,7 @@ export class GameEngine {
 
   /* ── IDs ─────────────────────────── */
   private nextId = 1;
+  private lastShootSound = 0;
 
   /* ── rendering ───────────────────── */
   private cellSize = 0;
@@ -147,6 +149,7 @@ export class GameEngine {
       };
       this.towers.push(tower);
       this.recalcBuffs();
+      sfx.playPlace();
       this.emitState();
       return;
     }
@@ -177,6 +180,7 @@ export class GameEngine {
     this.spawnQueue.sort((a, b) => a.delay - b.delay);
     this.spawnTimer = 0;
     this.waveActive = true;
+    sfx.playWaveStart();
     this.emitState();
   }
 
@@ -189,6 +193,7 @@ export class GameEngine {
     this.gold -= cost;
     this.selectedTower.level++;
     this.recalcBuffs();
+    sfx.playUpgrade();
     this.emitState();
   }
 
@@ -199,6 +204,7 @@ export class GameEngine {
     this.towers = this.towers.filter((t) => t.id !== this.selectedTower!.id);
     this.selectedTower = null;
     this.recalcBuffs();
+    sfx.playSell();
     this.emitState();
   }
 
@@ -283,9 +289,11 @@ export class GameEngine {
         // Reached end
         this.lives = Math.max(0, this.lives - (e.isBoss ? 3 : 1));
         e.dead = true;
+        sfx.playLeak();
         this.emitState();
         if (this.lives <= 0) {
           this.gameStatus = "lost";
+          sfx.playDefeat();
           this.emitState();
         }
         continue;
@@ -356,6 +364,13 @@ export class GameEngine {
         isCrit,
         dead: false,
       });
+
+      // Throttled shoot sound (~5 per second max)
+      const now = performance.now();
+      if (now - this.lastShootSound > 200) {
+        this.lastShootSound = now;
+        sfx.playShoot();
+      }
     }
   }
 
@@ -461,17 +476,20 @@ export class GameEngine {
 
   private hitEnemy(target: EnemyInstance, p: Projectile) {
     let dmg = p.isCrit ? p.damage * 3 : p.damage;
+    if (p.isCrit) sfx.playCrit();
     dmg = Math.max(1, dmg - target.armor);
     target.hp -= dmg;
 
     if (target.hp <= 0 && !target.dead) {
       target.dead = true;
       this.gold += target.reward;
+      if (target.isBoss) sfx.playBossKill(); else sfx.playKill();
       this.emitState();
     }
 
     // Splash
     if (p.splashRadius) {
+      sfx.playSplash();
       for (const e of this.enemies) {
         if (e === target || e.dead) continue;
         const d = Math.hypot(e.x - target.x, e.y - target.y);
@@ -507,6 +525,7 @@ export class GameEngine {
 
     if (this.currentWave >= this.level.waves.length) {
       this.gameStatus = "won";
+      sfx.playVictory();
     }
     this.emitState();
   }
