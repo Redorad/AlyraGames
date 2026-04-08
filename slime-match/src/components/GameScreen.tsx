@@ -7,21 +7,16 @@ import {
   swapGems,
   areAdjacent,
   findMatches,
-  processMatches,
-  removeMatchedAndActivateSpecials,
-  removeGems,
-  applyGravity,
-  placeSpecials,
+  resolveMatches,
   hasValidMoves,
   shuffleBoard,
-  cloneBoard,
   getRows,
   getCols,
 } from '../engine/board';
 import { Gem, Position } from '../types';
 import { playSwap, playMatch, playSpecial, playInvalidSwap, playLevelComplete, playGameOver } from '../utils/sounds';
 
-type GamePhase = 'idle' | 'swapping' | 'matching' | 'falling' | 'cascading' | 'gameover' | 'levelcomplete';
+type GamePhase = 'idle' | 'swapping' | 'matching' | 'falling' | 'gameover' | 'levelcomplete';
 
 export default function GameScreen() {
   const { currentLevel, setScreen, completeLevel } = useGameStore();
@@ -38,14 +33,8 @@ export default function GameScreen() {
   const [comboDisplay, setComboDisplay] = useState<{ combo: number; key: number } | null>(null);
   const [invalidSwap, setInvalidSwap] = useState<Position | null>(null);
 
-  const phaseRef = useRef(phase);
-  phaseRef.current = phase;
-  const boardRef = useRef(board);
-  boardRef.current = board;
   const scoreRef = useRef(score);
   scoreRef.current = score;
-  const comboRef = useRef(combo);
-  comboRef.current = combo;
   const comboKeyRef = useRef(0);
 
   // Timer
@@ -80,11 +69,10 @@ export default function GameScreen() {
   }, [score, phase, levelConfig.targetScore, timeLeft, currentLevel, completeLevel]);
 
   const processCascade = useCallback((currentBoard: Gem[][], currentCombo: number) => {
-    const matches = findMatches(currentBoard);
-    if (matches.length === 0) {
+    const result = resolveMatches(currentBoard);
+    if (!result.hadMatch) {
       if (!hasValidMoves(currentBoard)) {
-        const shuffled = shuffleBoard(currentBoard);
-        setBoard(shuffled);
+        setBoard(shuffleBoard(currentBoard));
       }
       setCombo(0);
       setPhase('idle');
@@ -97,44 +85,23 @@ export default function GameScreen() {
     if (newCombo > 1) {
       comboKeyRef.current++;
       setComboDisplay({ combo: newCombo, key: comboKeyRef.current });
-    }
-
-    const matchInfo = processMatches(currentBoard);
-    setMatchedCells(matchInfo.matchedPositions);
-    setPhase('matching');
-
-    if (newCombo > 1) {
       playSpecial();
     } else {
       playMatch(newCombo);
     }
 
+    // Show matched cells
+    setMatchedCells(result.matchedPositions);
+    setPhase('matching');
+
+    const comboMultiplier = Math.min(newCombo, 5);
+    const earnedScore = result.score * comboMultiplier;
+
     setTimeout(() => {
-      const { totalScore, extraDestroyed } = removeMatchedAndActivateSpecials(currentBoard, matchInfo);
-      const comboMultiplier = Math.min(newCombo, 5);
-      const earnedScore = totalScore * comboMultiplier;
-
       setScore(prev => prev + earnedScore);
-
-      let afterRemoval = removeGems(currentBoard, extraDestroyed);
-
-      const validSpecials = matchInfo.specialsToCreate.filter(
-        s => !extraDestroyed.has(`${s.pos.row},${s.pos.col}`) || matchInfo.matchedPositions.has(`${s.pos.row},${s.pos.col}`)
-      );
-
       setMatchedCells(new Set());
-      setPhase('falling');
 
-      const { board: afterGravity } = applyGravity(afterRemoval);
-
-      let finalBoard = afterGravity;
-      if (validSpecials.length > 0) {
-        finalBoard = placeSpecials(afterGravity, validSpecials.map(s => ({
-          ...s,
-          pos: s.pos,
-        })));
-      }
-
+      // Show falling
       const allFalling = new Set<string>();
       for (let r = 0; r < getRows(); r++) {
         for (let c = 0; c < getCols(); c++) {
@@ -142,37 +109,26 @@ export default function GameScreen() {
         }
       }
       setFallingCells(allFalling);
-      setBoard(finalBoard);
+      setBoard(result.board);
+      setPhase('falling');
 
       setTimeout(() => {
         setFallingCells(new Set());
-        processCascade(finalBoard, newCombo);
+        processCascade(result.board, newCombo);
       }, 400);
     }, 350);
   }, []);
 
   const handleGemClick = useCallback((row: number, col: number) => {
     if (phase !== 'idle') return;
-
     const pos: Position = { row, col };
 
-    if (!selected) {
-      setSelected(pos);
-      return;
-    }
-
-    if (selected.row === row && selected.col === col) {
-      setSelected(null);
-      return;
-    }
-
-    if (!areAdjacent(selected, pos)) {
-      setSelected(pos);
-      return;
-    }
+    if (!selected) { setSelected(pos); return; }
+    if (selected.row === row && selected.col === col) { setSelected(null); return; }
+    if (!areAdjacent(selected, pos)) { setSelected(pos); return; }
 
     setPhase('swapping');
-    const swapped = swapGems(boardRef.current, selected, pos);
+    const swapped = swapGems(board, selected, pos);
     setBoard(swapped);
     playSwap();
 
@@ -191,13 +147,11 @@ export default function GameScreen() {
         }, 350);
         return;
       }
-
       processCascade(swapped, 0);
     }, 200);
-  }, [phase, selected, processCascade]);
+  }, [phase, selected, board, processCascade]);
 
   const handleBack = () => setScreen('title');
-
   const handleRestart = () => {
     setBoard(createBoard());
     setScore(0);
@@ -214,21 +168,15 @@ export default function GameScreen() {
   const isTimeLow = timeLeft <= 10;
 
   return (
-    <div className="h-full flex flex-col items-center p-3 sm:p-4 overflow-hidden">
+    <div className="h-full flex flex-col items-center p-3 sm:p-4 overflow-hidden bg-navy-900">
       {/* Header */}
       <div className="w-full max-w-sm mb-3 animate-slide-down">
         <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={handleBack}
-            className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded-lg transition-colors"
-          >
+          <button onClick={handleBack} className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded-lg transition">
             {"\u2190"} Retour
           </button>
           <span className="text-white font-bold text-sm">Niveau {currentLevel}</span>
-          <button
-            onClick={handleRestart}
-            className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded-lg transition-colors"
-          >
+          <button onClick={handleRestart} className="text-gray-400 hover:text-white text-sm px-2 py-1 rounded-lg transition">
             {"\u21BB"}
           </button>
         </div>
@@ -237,43 +185,28 @@ export default function GameScreen() {
         <div className="mb-2">
           <div className="flex justify-between text-xs mb-1">
             <span className="text-gray-500">Score</span>
-            <span className="text-accent font-bold animate-score-glow">
-              {score.toLocaleString()} / {levelConfig.targetScore.toLocaleString()}
-            </span>
+            <span className="text-accent font-bold">{score.toLocaleString()} / {levelConfig.targetScore.toLocaleString()}</span>
           </div>
           <div className="w-full h-2.5 bg-navy-800 rounded-full overflow-hidden border border-white/5">
-            <div
-              className="h-full bg-gradient-to-r from-accent/80 to-purple-400 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
+            <div className="h-full bg-gradient-to-r from-accent/80 to-purple-400 rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
 
-        {/* Timer bar */}
+        {/* Timer */}
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span className="text-gray-500">Temps</span>
-            <span className={`font-bold ${isTimeLow ? 'animate-timer-warning' : 'text-steel'}`}>
-              {timeLeft}s
-            </span>
+            <span className={`font-bold ${isTimeLow ? 'animate-timer-warning' : 'text-steel'}`}>{timeLeft}s</span>
           </div>
           <div className="w-full h-2 bg-navy-800 rounded-full overflow-hidden border border-white/5">
-            <div
-              className={`h-full rounded-full transition-all duration-1000 ease-linear ${
-                isTimeLow ? 'bg-gradient-to-r from-red-600 to-red-400' : 'bg-gradient-to-r from-steel/70 to-steel'
-              }`}
-              style={{ width: `${timePercent}%` }}
-            />
+            <div className={`h-full rounded-full transition-all duration-1000 ease-linear ${isTimeLow ? 'bg-gradient-to-r from-red-600 to-red-400' : 'bg-gradient-to-r from-steel/70 to-steel'}`} style={{ width: `${timePercent}%` }} />
           </div>
         </div>
       </div>
 
-      {/* Combo display */}
+      {/* Combo */}
       {comboDisplay && (
-        <div
-          key={comboDisplay.key}
-          className="absolute top-28 left-1/2 -translate-x-1/2 animate-combo-popup pointer-events-none z-20"
-        >
+        <div key={comboDisplay.key} className="absolute top-28 left-1/2 -translate-x-1/2 animate-combo-popup pointer-events-none z-20">
           <span className="text-2xl font-black text-yellow-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]">
             {comboDisplay.combo}x COMBO!
           </span>
@@ -283,9 +216,10 @@ export default function GameScreen() {
       {/* Game Board */}
       <div className="relative flex-1 flex items-center justify-center w-full max-w-sm">
         <div
-          className="game-board grid gap-[3px] p-2 rounded-2xl"
+          className="game-board grid p-1.5 rounded-2xl"
           style={{
             gridTemplateColumns: `repeat(${getCols()}, 1fr)`,
+            gap: '4px',
             aspectRatio: '1',
             width: '100%',
             maxWidth: '380px',
@@ -319,14 +253,25 @@ export default function GameScreen() {
                   `}
                   style={{
                     aspectRatio: '1',
-                    backgroundColor: isSelected ? `${gemColor}25` : `${gemColor}10`,
-                    border: isSelected ? `2px solid ${gemColor}60` : '1px solid rgba(255,255,255,0.04)',
+                    backgroundColor: `${gemColor}18`,
+                    border: isSelected
+                      ? `2px solid ${gemColor}90`
+                      : `1.5px solid ${gemColor}25`,
+                    borderRadius: '10px',
+                    boxShadow: isSelected
+                      ? `0 0 12px ${gemColor}40, inset 0 0 8px ${gemColor}15`
+                      : `inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.2)`,
                   }}
                   disabled={phase !== 'idle'}
                 >
                   <span className={isSpecial ? 'drop-shadow-lg' : 'drop-shadow-sm'}>
                     {getGemEmoji(gem.type)}
                   </span>
+                  {isSpecial && (
+                    <span className="absolute bottom-0.5 right-0.5 text-[8px]">
+                      {gem.special === 'bomb' ? '\u{1F4A5}' : '\u{2728}'}
+                    </span>
+                  )}
                 </button>
               );
             })
@@ -334,35 +279,23 @@ export default function GameScreen() {
         </div>
       </div>
 
-      {/* Game Over Overlay */}
+      {/* Game Over */}
       {phase === 'gameover' && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-30">
           <div className="bg-navy-800 border border-red-500/20 rounded-2xl p-6 text-center animate-fade-in max-w-xs mx-4 shadow-2xl">
             <div className="text-4xl mb-3">{"\u{23F0}"}</div>
             <h2 className="text-xl font-bold text-red-400 mb-2">Temps écoulé !</h2>
             <p className="text-gray-300 mb-1">Score : {score.toLocaleString()}</p>
-            <p className="text-gray-500 text-sm mb-5">
-              Objectif : {levelConfig.targetScore.toLocaleString()}
-            </p>
+            <p className="text-gray-500 text-sm mb-5">Objectif : {levelConfig.targetScore.toLocaleString()}</p>
             <div className="flex gap-3 justify-center">
-              <button
-                onClick={handleRestart}
-                className="px-5 py-2.5 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl font-bold transition border border-accent/30"
-              >
-                Réessayer
-              </button>
-              <button
-                onClick={handleBack}
-                className="px-5 py-2.5 bg-navy-700 hover:bg-navy-700/80 text-gray-300 rounded-xl font-medium transition border border-white/10"
-              >
-                Menu
-              </button>
+              <button onClick={handleRestart} className="px-5 py-2.5 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl font-bold transition border border-accent/30">Réessayer</button>
+              <button onClick={handleBack} className="px-5 py-2.5 bg-navy-700 hover:bg-navy-700/80 text-gray-300 rounded-xl font-medium transition border border-white/10">Menu</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Level Complete Overlay */}
+      {/* Level Complete */}
       {phase === 'levelcomplete' && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-30">
           <div className="bg-navy-800 border border-accent/20 rounded-2xl p-6 text-center animate-fade-in max-w-xs mx-4 shadow-2xl">
@@ -370,35 +303,21 @@ export default function GameScreen() {
             <h2 className="text-xl font-bold text-accent mb-1">Niveau réussi !</h2>
             <p className="text-yellow-400 text-lg mb-2">{"\u{2B50}"} {"\u{2B50}"} {"\u{2B50}"}</p>
             <p className="text-gray-300 mb-1">Score : {score.toLocaleString()}</p>
-            {timeLeft > 0 && (
-              <p className="text-gray-500 text-sm mb-5">Temps restant : {timeLeft}s</p>
-            )}
+            {timeLeft > 0 && <p className="text-gray-500 text-sm mb-5">Temps restant : {timeLeft}s</p>}
             <div className="flex gap-3 justify-center">
               {currentLevel < LEVELS.length && (
                 <button
                   onClick={() => {
                     const nextLevel = currentLevel + 1;
                     useGameStore.getState().setCurrentLevel(nextLevel);
-                    setBoard(createBoard());
-                    setScore(0);
-                    setCombo(0);
+                    setBoard(createBoard()); setScore(0); setCombo(0);
                     setTimeLeft(LEVELS[nextLevel - 1].timeSeconds);
-                    setSelected(null);
-                    setMatchedCells(new Set());
-                    setFallingCells(new Set());
-                    setPhase('idle');
+                    setSelected(null); setMatchedCells(new Set()); setFallingCells(new Set()); setPhase('idle');
                   }}
                   className="px-5 py-2.5 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl font-bold transition border border-accent/30"
-                >
-                  Suivant
-                </button>
+                >Suivant</button>
               )}
-              <button
-                onClick={handleBack}
-                className="px-5 py-2.5 bg-navy-700 hover:bg-navy-700/80 text-gray-300 rounded-xl font-medium transition border border-white/10"
-              >
-                Menu
-              </button>
+              <button onClick={handleBack} className="px-5 py-2.5 bg-navy-700 hover:bg-navy-700/80 text-gray-300 rounded-xl font-medium transition border border-white/10">Menu</button>
             </div>
           </div>
         </div>
