@@ -10,6 +10,7 @@ const TOWER_EMOJI: Record<string, string> = {
   goblin: "\u{1F3F9}", ranga: "\u{1F43A}", shion: "\u{2694}\u{FE0F}",
   benimaru: "\u{1F525}", souei: "\u{1F578}\u{FE0F}", shuna: "\u{1F338}",
   hakurou: "\u{1F3AF}", geld: "\u{1F6E1}\u{FE0F}", diablo: "\u{1F608}",
+  rimuru: "\u{1F9CA}",
 };
 
 const SPECIAL_LABELS: Record<string, string> = {
@@ -19,26 +20,38 @@ const SPECIAL_LABELS: Record<string, string> = {
   crit: "Coup critique",
   aura: "Aura de dégâts",
   priority: "Cible le + fort",
+  predator: "Prédateur",
 };
 
 interface Props {
   levelId: number;
+  hardMode?: boolean;
   onBack: () => void;
   onRestart: () => void;
 }
 
-export default function GameScreen({ levelId, onBack, onRestart }: Props) {
+export default function GameScreen({ levelId, hardMode = false, onBack, onRestart }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const completeLevel = useProgressStore((s) => s.completeLevel);
+  const completed = useProgressStore((s) => s.completed);
 
   const level = LEVELS.find((l) => l.id === levelId)!;
-  const towers = getAvailableTowers(levelId);
+  const allCompleted = LEVELS.every((l) => completed.includes(l.id));
+  // Hard mode: all towers available; Normal: unlock-based + rimuru if all done
+  const rimuruUnlocked = allCompleted;
+  const towers = hardMode
+    ? getAvailableTowers(99, rimuruUnlocked)
+    : getAvailableTowers(levelId, rimuruUnlocked);
+
+  // Hard mode: 60% gold, half lives
+  const startGold = hardMode ? Math.round(level.startGold * 0.6) : level.startGold;
+  const startLives = hardMode ? Math.max(1, Math.floor(level.lives / 2)) : level.lives;
 
   const [state, setState] = useState<GameState>({
-    gold: level.startGold,
-    lives: level.lives,
-    maxLives: level.lives,
+    gold: startGold,
+    lives: startLives,
+    maxLives: startLives,
     currentWave: 0,
     totalWaves: level.waves.length,
     waveActive: false,
@@ -57,15 +70,15 @@ export default function GameScreen({ levelId, onBack, onRestart }: Props) {
   const handleStateUpdate = useCallback((s: GameState) => {
     setState(s);
     if (s.gameStatus === "won") {
-      completeLevel(levelId);
+      completeLevel(levelId, hardMode);
     }
-  }, [levelId, completeLevel]);
+  }, [levelId, hardMode, completeLevel]);
 
   /* ── init engine ──────────────────────── */
   useEffect(() => {
     const canvas = canvasRef.current!;
     const towerIds = towers.map((t) => t.id);
-    const engine = new GameEngine(canvas, level, towerIds, handleStateUpdate);
+    const engine = new GameEngine(canvas, level, towerIds, handleStateUpdate, hardMode);
     engineRef.current = engine;
     engine.start();
 
@@ -124,6 +137,11 @@ export default function GameScreen({ levelId, onBack, onRestart }: Props) {
           ← Retour
         </button>
         <div className="flex items-center gap-4">
+          {hardMode && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-bold">
+              DIFFICILE
+            </span>
+          )}
           <span className="text-yellow-400 font-bold">{state.gold} G</span>
           <span className="text-red-400">
             {"♥".repeat(Math.min(state.lives, 10))}{" "}
@@ -199,6 +217,7 @@ export default function GameScreen({ levelId, onBack, onRestart }: Props) {
                       {def.special === "buff" && ` +${((def.specialValue ?? 0) * 100).toFixed(0)}%`}
                       {def.special === "crit" && ` ${((def.specialValue ?? 0) * 100).toFixed(0)}% ×3`}
                       {def.special === "splash" && ` r=${def.specialValue}`}
+                      {def.special === "predator" && ` Splash+Slow`}
                     </span>
                   </div>
                 )}
