@@ -91,6 +91,18 @@ export default function PrepScreen() {
         })}
       </div>
 
+      {/* Tutorial hint for round 1 */}
+      {round === 1 && placed.length === 0 && (
+        <div className="mb-2 p-2.5 rounded-xl bg-accent/10 border border-accent/30 text-sm text-accent flex-shrink-0">
+          {"\u{1F4A1}"} <strong>Astuce :</strong> Achète des unités dans la boutique ({"\u27A1"} droite), puis clique une case de la grille pour les placer. Quand tu es prêt, clique <strong>"Combattre !"</strong>
+        </div>
+      )}
+      {round === 1 && placed.length > 0 && bench.length === 0 && (
+        <div className="mb-2 p-2.5 rounded-xl bg-green-500/10 border border-green-500/30 text-sm text-green-400 flex-shrink-0">
+          {"\u{2705}"} Unités placées ! Clique <strong>"Combattre !"</strong> en bas à droite pour lancer le combat.
+        </div>
+      )}
+
       {/* Main area */}
       <div className="flex-1 flex gap-3 min-h-0">
         {/* Grid */}
