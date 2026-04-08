@@ -1,13 +1,22 @@
-import React from 'react';
-import { useGameStore } from '../store/gameStore';
+import React, { useMemo } from 'react';
+import { useGameStore, hasSaveData } from '../store/gameStore';
 import { playClickSound } from '../utils/sounds';
 
 export default function TitleScreen() {
   const startGame = useGameStore((s) => s.startGame);
+  const loadSave = useGameStore((s) => s.loadSave);
+  const clearSave = useGameStore((s) => s.clearSave);
+  const saveExists = useMemo(() => hasSaveData(), []);
 
-  const handleStart = () => {
+  const handleNewGame = () => {
     playClickSound();
+    clearSave();
     startGame();
+  };
+
+  const handleContinue = () => {
+    playClickSound();
+    loadSave();
   };
 
   return (
@@ -40,14 +49,26 @@ export default function TitleScreen() {
           Inspiré par &quot;That Time I Got Reincarnated as a Slime&quot;
         </p>
 
-        <button
-          onClick={handleStart}
-          className="px-10 py-4 bg-gradient-to-r from-navy-700 to-navy-800 border border-steel/40 rounded-xl
-                     text-steel text-xl font-semibold hover:border-steel hover:shadow-lg hover:shadow-steel/20
-                     transition-all duration-300 animate-pulse-glow"
-        >
-          Construire Tempest
-        </button>
+        <div className="flex flex-col items-center gap-3">
+          {saveExists && (
+            <button
+              onClick={handleContinue}
+              className="px-10 py-4 bg-gradient-to-r from-navy-700 to-navy-800 border border-accent/60 rounded-xl
+                         text-accent text-xl font-semibold hover:border-accent hover:shadow-lg hover:shadow-accent/20
+                         transition-all duration-300 animate-pulse-glow"
+            >
+              Continuer
+            </button>
+          )}
+          <button
+            onClick={handleNewGame}
+            className={`px-10 py-4 bg-gradient-to-r from-navy-700 to-navy-800 border border-steel/40 rounded-xl
+                       text-steel font-semibold hover:border-steel hover:shadow-lg hover:shadow-steel/20
+                       transition-all duration-300 ${saveExists ? 'text-lg' : 'text-xl animate-pulse-glow'}`}
+          >
+            Nouvelle Partie
+          </button>
+        </div>
 
         <div className="mt-12 text-sm text-steel/40 max-w-md mx-auto space-y-1">
           <p>Gerez les ressources, construisez des batiments,</p>
