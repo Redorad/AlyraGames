@@ -120,11 +120,28 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
     special: "priority",
     unlockLevel: 9,
   },
+  rimuru: {
+    id: "rimuru",
+    name: "Rimuru",
+    description: "Le Roi-Démon Rimuru. Splash + ralentissement. Extrêmement puissant.",
+    cost: 300,
+    range: 4,
+    damage: 100,
+    attackSpeed: 1.0,
+    color: "#60a5fa",
+    symbol: "★",
+    special: "predator",
+    specialValue: 1.5,
+    unlockLevel: 11,
+  },
 };
 
 /** Returns tower defs available for a given level */
-export function getAvailableTowers(level: number): TowerDef[] {
-  return Object.values(TOWER_DEFS).filter((t) => t.unlockLevel <= level);
+export function getAvailableTowers(level: number, rimuruUnlocked = false): TowerDef[] {
+  return Object.values(TOWER_DEFS).filter((t) => {
+    if (t.id === "rimuru") return rimuruUnlocked;
+    return t.unlockLevel <= level;
+  });
 }
 
 /** Get upgrade cost for a tower at a given level */

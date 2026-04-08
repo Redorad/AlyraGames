@@ -10,7 +10,7 @@ export interface TowerDef {
   attackSpeed: number; // attacks per second (0 = passive)
   color: string;
   symbol: string;
-  special?: "splash" | "slow" | "buff" | "crit" | "aura" | "priority";
+  special?: "splash" | "slow" | "buff" | "crit" | "aura" | "priority" | "predator";
   specialValue?: number; // splash radius / slow % / buff % / crit chance / dps / –
   unlockLevel: number; // first level this tower appears
 }

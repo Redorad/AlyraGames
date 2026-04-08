@@ -14,6 +14,7 @@ const TOWER_EMOJI: Record<string, string> = {
   goblin: "\u{1F3F9}", ranga: "\u{1F43A}", shion: "\u{2694}\u{FE0F}",
   benimaru: "\u{1F525}", souei: "\u{1F578}\u{FE0F}", shuna: "\u{1F338}",
   hakurou: "\u{1F3AF}", geld: "\u{1F6E1}\u{FE0F}", diablo: "\u{1F608}",
+  rimuru: "\u{1F9CA}",
 };
 
 const ENEMY_EMOJI: Record<string, string> = {
@@ -75,6 +76,9 @@ export class GameEngine {
   private gridCache: ImageBitmap | null = null;
   private gridDirty = true;
 
+  /* ── mode ─────────────────────────── */
+  private hardMode: boolean;
+
   /* ── callback ────────────────────── */
   private onUpdate: (s: GameState) => void;
 
@@ -84,18 +88,21 @@ export class GameEngine {
     level: LevelDef,
     availableTowerIds: string[],
     onUpdate: (s: GameState) => void,
+    hardMode = false,
   ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.level = level;
     this.availableTowerIds = availableTowerIds;
     this.onUpdate = onUpdate;
+    this.hardMode = hardMode;
 
     this.rows = level.grid.length;
     this.cols = level.grid[0].length;
-    this.gold = level.startGold;
-    this.lives = level.lives;
-    this.maxLives = level.lives;
+    // Hard mode: 60% gold, half lives
+    this.gold = hardMode ? Math.round(level.startGold * 0.6) : level.startGold;
+    this.lives = hardMode ? Math.max(1, Math.floor(level.lives / 2)) : level.lives;
+    this.maxLives = this.lives;
 
     this.resize();
     this.emitState();
@@ -308,17 +315,22 @@ export class GameEngine {
     const def = ENEMY_DEFS[defId];
     if (!def) return;
     const start = this.level.path[0];
+    // Hard mode: 2x HP, 20% faster, +2 armor
+    const hpMult = this.hardMode ? 2 : 1;
+    const spdMult = this.hardMode ? 1.2 : 1;
+    const armorBonus = this.hardMode ? 2 : 0;
+    const hp = Math.round(def.hp * hpMult);
     const enemy: EnemyInstance = {
       id: this.nextId++,
       defId,
-      hp: def.hp,
-      maxHp: def.hp,
+      hp,
+      maxHp: hp,
       x: start.col + 0.5,
       y: start.row + 0.5,
-      speed: def.speed,
+      speed: def.speed * spdMult,
       pathIndex: 1,
       reward: def.reward,
-      armor: def.armor,
+      armor: def.armor + armorBonus,
       slowTimer: 0,
       slowFactor: 0,
       dead: false,
@@ -414,8 +426,8 @@ export class GameEngine {
         damage: dmg,
         speed: 8,
         color: def.color,
-        splashRadius: def.special === "splash" ? def.specialValue : undefined,
-        slowAmount: def.special === "slow" ? def.specialValue : undefined,
+        splashRadius: def.special === "splash" || def.special === "predator" ? def.specialValue : undefined,
+        slowAmount: def.special === "slow" ? def.specialValue : def.special === "predator" ? 0.3 : undefined,
         isCrit,
         dead: false,
       });
@@ -1087,6 +1099,32 @@ export class GameEngine {
         ctx.stroke();
         ctx.fillStyle = `rgba(249, 168, 212, ${0.05 * pulse})`;
         ctx.fill();
+      }
+
+      // Predator aura for Rimuru (animated blue glow)
+      if (def.special === "predator") {
+        const range = getTowerRange(def, tower.level) * cs;
+        const pulse = 0.6 + Math.sin(this.frameCount * 0.05) * 0.4;
+        // Outer ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, range, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(96, 165, 250, ${0.5 * pulse})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.fillStyle = `rgba(96, 165, 250, ${0.06 * pulse})`;
+        ctx.fill();
+        // Inner spinning rune
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(this.frameCount * 0.015);
+        ctx.strokeStyle = `rgba(147, 197, 253, ${0.3 * pulse})`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.arc(0, 0, range * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
       }
     }
   }

@@ -4,18 +4,24 @@ import GameScreen from "./components/GameScreen";
 
 export default function App() {
   const [activeLevelId, setActiveLevelId] = useState<number | null>(null);
+  const [hardMode, setHardMode] = useState(false);
   const [restartKey, setRestartKey] = useState(0);
 
   if (activeLevelId !== null) {
     return (
       <GameScreen
-        key={`${activeLevelId}-${restartKey}`}
+        key={`${activeLevelId}-${restartKey}-${hardMode}`}
         levelId={activeLevelId}
-        onBack={() => setActiveLevelId(null)}
+        hardMode={hardMode}
+        onBack={() => { setActiveLevelId(null); setHardMode(false); }}
         onRestart={() => setRestartKey((k) => k + 1)}
       />
     );
   }
 
-  return <LevelSelect onSelect={setActiveLevelId} />;
+  return (
+    <LevelSelect
+      onSelect={(id, hard) => { setActiveLevelId(id); setHardMode(hard); }}
+    />
+  );
 }
