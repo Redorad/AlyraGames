@@ -55,6 +55,7 @@ export class GameEngine {
   running: boolean
   animFrame: number
   score: number
+  lastTime: number
   onScore: (pts: number) => void
   onWin: () => void
   onDie: () => void
@@ -77,6 +78,7 @@ export class GameEngine {
     this.onDie = onDie
     this.running = false
     this.animFrame = 0
+    this.lastTime = 0
     this.tick = 0
     this.projectileTimer = 0
     this.score = 0
@@ -116,9 +118,10 @@ export class GameEngine {
 
   start() {
     this.running = true
+    this.lastTime = 0
     window.addEventListener('keydown', this.handleKeyDown)
     window.addEventListener('keyup', this.handleKeyUp)
-    this.gameLoop()
+    requestAnimationFrame((t) => this.gameLoop(t))
   }
 
   stop() {
@@ -182,16 +185,20 @@ export class GameEngine {
     }
   }
 
-  gameLoop() {
+  gameLoop(time = 0) {
     if (!this.running) return
-    this.update()
+    if (this.lastTime === 0) this.lastTime = time
+    const rawDt = (time - this.lastTime) / (1000 / 60) // normalize to 60fps
+    const dt = Math.min(rawDt, 3) // cap to avoid huge jumps on tab switch
+    this.lastTime = time
+    if (dt > 0) this.update(dt)
     this.render()
-    requestAnimationFrame(this.gameLoop)
+    requestAnimationFrame((t) => this.gameLoop(t))
   }
 
-  update() {
+  update(dt: number) {
     if (this.player.dead) return
-    this.tick++
+    this.tick += dt
 
     const onGround = this.player.onGround
     const accel = onGround ? GROUND_ACCEL : AIR_ACCEL
@@ -199,14 +206,14 @@ export class GameEngine {
 
     // ── Horizontal movement ──
     if (this.keys.left) {
-      this.player.vx -= accel
+      this.player.vx -= accel * dt
       this.player.facingRight = false
     } else if (this.keys.right) {
-      this.player.vx += accel
+      this.player.vx += accel * dt
       this.player.facingRight = true
     } else {
-      // Apply friction only when no input (snappy stop)
-      this.player.vx *= friction
+      const f = Math.pow(friction, dt)
+      this.player.vx *= f
       if (Math.abs(this.player.vx) < 0.2) this.player.vx = 0
     }
     this.player.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, this.player.vx))
@@ -215,7 +222,7 @@ export class GameEngine {
     if (onGround) {
       this.coyoteTimer = COYOTE_FRAMES
     } else if (this.coyoteTimer > 0) {
-      this.coyoteTimer--
+      this.coyoteTimer -= dt
     }
 
     // ── Jump buffer ──
@@ -227,7 +234,7 @@ export class GameEngine {
       this.jumpReleased = true
     }
     if (this.jumpBufferTimer > 0) {
-      this.jumpBufferTimer--
+      this.jumpBufferTimer -= dt
     }
 
     // ── Jump execution ──
@@ -243,7 +250,7 @@ export class GameEngine {
         playDoubleJump()
         this.spawnParticles(this.player.x + PLAYER_SIZE / 2, this.player.y + PLAYER_SIZE, 4, '#a78bfa')
       } else {
-        this.player.jumpsLeft = 1 // 1 jump left (double jump)
+        this.player.jumpsLeft = 1
         playJump()
         this.spawnParticles(this.player.x + PLAYER_SIZE / 2, this.player.y + PLAYER_SIZE, 3, '#7ec8e3')
       }
@@ -251,17 +258,17 @@ export class GameEngine {
 
     // ── Variable jump height (release = cut velocity) ──
     if (!this.keys.jump && this.player.vy < -2) {
-      this.player.vy *= JUMP_CUT_MULT
+      this.player.vy *= Math.pow(JUMP_CUT_MULT, dt)
     }
 
     // ── Gravity (less gravity at peak for floatier feel) ──
     const grav = Math.abs(this.player.vy) < 2 ? GRAVITY * 0.6 : GRAVITY
-    this.player.vy += grav
+    this.player.vy += grav * dt
     if (this.player.vy > 12) this.player.vy = 12
 
     // ── Apply velocity ──
-    this.player.x += this.player.vx
-    this.player.y += this.player.vy
+    this.player.x += this.player.vx * dt
+    this.player.y += this.player.vy * dt
 
     // Update moving platforms
     for (const p of this.platforms) {
@@ -326,7 +333,7 @@ export class GameEngine {
 
     // Invincibility timer
     if (this.player.invincible > 0) {
-      this.player.invincible--
+      this.player.invincible -= dt
     }
 
     // Enemy update & collision
@@ -334,7 +341,7 @@ export class GameEngine {
       if (!e.alive) continue
 
       // Patrol
-      e.x += e.speed * e.direction
+      e.x += e.speed * e.direction * dt
       if (Math.abs(e.x - e.originalX) > e.patrolRange) {
         e.direction *= -1
       }
@@ -381,7 +388,7 @@ export class GameEngine {
 
     // Projectiles (level 5)
     if (this.level.hasProjectiles) {
-      this.projectileTimer++
+      this.projectileTimer += dt
       if (this.projectileTimer >= PROJECTILE_INTERVAL) {
         this.projectileTimer = 0
         // Spawn projectile from right side of screen
@@ -399,8 +406,8 @@ export class GameEngine {
 
       for (let i = this.projectiles.length - 1; i >= 0; i--) {
         const proj = this.projectiles[i]
-        proj.x += proj.vx
-        proj.y += proj.vy
+        proj.x += proj.vx * dt
+        proj.y += proj.vy * dt
         // Off screen
         if (proj.x < this.camera.x - 50 || proj.y < -50 || proj.y > CANVAS_HEIGHT + 50) {
           this.projectiles.splice(i, 1)
@@ -425,16 +432,16 @@ export class GameEngine {
 
     // Camera
     const targetX = this.player.x - this.canvasWidth / 3
-    this.camera.x += (targetX - this.camera.x) * 0.1
+    this.camera.x += (targetX - this.camera.x) * (1 - Math.pow(0.9, dt))
     this.camera.x = Math.max(0, Math.min(this.level.levelWidth - this.canvasWidth, this.camera.x))
 
     // Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i]
-      p.x += p.vx
-      p.y += p.vy
-      p.vy += 0.1
-      p.life--
+      p.x += p.vx * dt
+      p.y += p.vy * dt
+      p.vy += 0.1 * dt
+      p.life -= dt
       if (p.life <= 0) {
         this.particles.splice(i, 1)
       }

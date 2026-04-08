@@ -7,25 +7,6 @@ function genUid(prefix: string): string {
   return `${prefix}_${++uidCounter}`;
 }
 
-function computeSynergyBonuses(units: { def: UnitDef }[]): { atk: number; hp: number; crit: number; speed: number } {
-  const counts: Record<string, number> = {};
-  for (const u of units) {
-    for (const s of u.def.synergies) {
-      counts[s] = (counts[s] || 0) + 1;
-    }
-  }
-  let atk = 0, hp = 0, crit = 0, speed = 0;
-  for (const syn of SYNERGIES) {
-    if ((counts[syn.id] || 0) >= syn.threshold) {
-      atk += syn.effect.atk || 0;
-      hp += syn.effect.hp || 0;
-      crit += syn.effect.crit || 0;
-      speed += syn.effect.speed || 0;
-    }
-  }
-  return { atk, hp, crit, speed };
-}
-
 /** Only apply synergy bonuses to units that have the matching synergy tag */
 function computePerUnitSynergyBonuses(
   unit: UnitDef,

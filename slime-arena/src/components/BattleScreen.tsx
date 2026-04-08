@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { getUnitDef } from '../data/units';
 import { ENEMY_ROUNDS } from '../data/enemies';
-import { BattleUnit, DamageEvent, DeathEvent } from '../types';
+import { BattleUnit, DamageEvent, DeathEvent, HealEvent } from '../types';
 import { playHit, playCrit, playDeath, playVictory, playDefeat } from '../utils/sounds';
 
 interface AnimatedUnit {
@@ -16,20 +15,24 @@ interface AnimatedUnit {
   shaking: boolean;
   x: number;
   y: number;
+  burn: number;
+  poison: number;
+  stun: number;
 }
 
-interface FloatingDmg {
+interface FloatingText {
   id: number;
   x: number;
   y: number;
-  damage: number;
+  text: string;
+  color: string;
   isCrit: boolean;
 }
 
 export default function BattleScreen() {
   const { battleLog, round, endBattle, playerTeam, enemyTeam } = useGameStore();
   const [animUnits, setAnimUnits] = useState<AnimatedUnit[]>([]);
-  const [floatingDmgs, setFloatingDmgs] = useState<FloatingDmg[]>([]);
+  const [floatingTexts, setFloatingTexts] = useState<FloatingText[]>([]);
   const [currentTick, setCurrentTick] = useState(-1);
   const [battleDone, setBattleDone] = useState(false);
   const tickRef = useRef(0);
@@ -54,6 +57,9 @@ export default function BattleScreen() {
         shaking: false,
         x: 80 + (i % 4) * 90,
         y: 260 + Math.floor(i / 4) * 80,
+        burn: 0,
+        poison: 0,
+        stun: 0,
       });
     });
 
@@ -69,6 +75,9 @@ export default function BattleScreen() {
         shaking: false,
         x: 80 + (i % 4) * 90,
         y: 40 + Math.floor(i / 4) * 80,
+        burn: 0,
+        poison: 0,
+        stun: 0,
       });
     });
 
@@ -84,12 +93,14 @@ export default function BattleScreen() {
     const tick = tickRef.current;
     const tickDamages = battleLog.damages.filter((d: DamageEvent) => d.tick === tick);
     const tickDeaths = battleLog.deaths.filter((d: DeathEvent) => d.tick === tick);
+    const tickHeals = battleLog.heals.filter((h: HealEvent) => h.tick === tick);
 
-    if (tickDamages.length === 0 && tickDeaths.length === 0) {
+    if (tickDamages.length === 0 && tickDeaths.length === 0 && tickHeals.length === 0) {
       // No more events at this tick or beyond
       const maxTick = Math.max(
         ...battleLog.damages.map((d: DamageEvent) => d.tick),
         ...battleLog.deaths.map((d: DeathEvent) => d.tick),
+        ...battleLog.heals.map((h: HealEvent) => h.tick),
         0
       );
       if (tick > maxTick) {
@@ -105,7 +116,7 @@ export default function BattleScreen() {
 
     setCurrentTick(tick);
 
-    // Apply damage events
+    // Apply damage and heal events
     setAnimUnits(prev => {
       const next = prev.map(u => ({ ...u, shaking: false }));
 
@@ -123,20 +134,48 @@ export default function BattleScreen() {
 
           // Floating damage
           const fid = ++floatIdRef.current;
-          setFloatingDmgs(prev2 => [
+          // Self-damage (burn/poison) shows differently
+          const isSelfDmg = dmgEvt.attackerUid === dmgEvt.targetUid;
+          setFloatingTexts(prev2 => [
             ...prev2,
             {
               id: fid,
               x: target.x + Math.random() * 30 - 15,
               y: target.y - 10,
-              damage: dmgEvt.damage,
+              text: `-${dmgEvt.damage}${dmgEvt.isCrit ? '!' : ''}`,
+              color: isSelfDmg ? 'text-orange-400' : (dmgEvt.isCrit ? 'text-yellow-400' : 'text-red-400'),
               isCrit: dmgEvt.isCrit,
             },
           ]);
 
-          // Remove floating damage after animation
+          // Remove floating text after animation
           setTimeout(() => {
-            setFloatingDmgs(prev2 => prev2.filter(f => f.id !== fid));
+            setFloatingTexts(prev2 => prev2.filter(f => f.id !== fid));
+          }, 800);
+        }
+      }
+
+      // Process heals
+      for (const healEvt of tickHeals) {
+        const target = next.find(u => u.uid === healEvt.targetUid);
+        if (target) {
+          target.currentHp = Math.min(target.maxHp, target.currentHp + healEvt.amount);
+
+          const fid = ++floatIdRef.current;
+          setFloatingTexts(prev2 => [
+            ...prev2,
+            {
+              id: fid,
+              x: target.x + Math.random() * 30 - 15,
+              y: target.y - 10,
+              text: `+${healEvt.amount}`,
+              color: 'text-green-400',
+              isCrit: false,
+            },
+          ]);
+
+          setTimeout(() => {
+            setFloatingTexts(prev2 => prev2.filter(f => f.id !== fid));
           }, 800);
         }
       }
@@ -182,7 +221,9 @@ export default function BattleScreen() {
         <span className="text-sm text-gray-400">
           vs <span className="text-red-400">{enemyRound?.name}</span>
         </span>
-        <span className="text-sm text-gray-500">Tick {currentTick + 1}</span>
+        <div className="px-3 py-1 rounded-lg bg-navy-700 border border-accent/40">
+          <span className="text-sm font-bold text-accent">Tick {currentTick + 1}</span>
+        </div>
       </div>
 
       {/* Battle Arena */}
@@ -205,6 +246,14 @@ export default function BattleScreen() {
             style={{ left: unit.x, top: unit.y }}
           >
             <span className="text-3xl">{unit.emoji}</span>
+            {/* Status effect icons */}
+            {unit.alive && (unit.burn > 0 || unit.poison > 0 || unit.stun > 0) && (
+              <div className="flex gap-0.5 text-xs">
+                {unit.burn > 0 && <span title={`Brûlure (${unit.burn})`}>🔥</span>}
+                {unit.poison > 0 && <span title={`Poison (${unit.poison})`}>☠️</span>}
+                {unit.stun > 0 && <span title={`Étourdi (${unit.stun})`}>💫</span>}
+              </div>
+            )}
             <span className="text-[9px] font-bold">{unit.name}</span>
             {/* HP bar */}
             <div className="w-14 h-1.5 bg-gray-700 rounded-full mt-0.5">
@@ -221,16 +270,16 @@ export default function BattleScreen() {
           </div>
         ))}
 
-        {/* Floating damage */}
-        {floatingDmgs.map(f => (
+        {/* Floating text (damage and heals) */}
+        {floatingTexts.map(f => (
           <div
             key={f.id}
             className={`absolute animate-fade-up font-bold pointer-events-none
-              ${f.isCrit ? 'text-yellow-400 text-lg' : 'text-red-400 text-sm'}
+              ${f.color} ${f.isCrit ? 'text-lg' : 'text-sm'}
             `}
             style={{ left: f.x, top: f.y }}
           >
-            -{f.damage}{f.isCrit ? '!' : ''}
+            {f.text}
           </div>
         ))}
       </div>
