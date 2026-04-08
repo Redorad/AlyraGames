@@ -19,15 +19,20 @@ import {
   playHeal,
 } from '../utils/sounds'
 
-const GRAVITY = 0.6
-const JUMP_FORCE = -12
-const MOVE_SPEED = 0.6
-const MAX_SPEED = 5
-const FRICTION = 0.85
+const GRAVITY = 0.9
+const JUMP_FORCE = -13.5
+const GROUND_ACCEL = 1.2
+const AIR_ACCEL = 0.7
+const MAX_SPEED = 6.5
+const GROUND_FRICTION = 0.82
+const AIR_FRICTION = 0.94
 const PLAYER_SIZE = 28
 const INVINCIBLE_DURATION = 90
 const PROJECTILE_INTERVAL = 90
 const CANVAS_HEIGHT = 480
+const COYOTE_FRAMES = 8
+const JUMP_BUFFER_FRAMES = 8
+const JUMP_CUT_MULT = 0.4
 
 interface Keys {
   left: boolean
@@ -133,6 +138,9 @@ export class GameEngine {
   }
 
   private jumpPressed = false
+  private jumpReleased = true
+  private coyoteTimer = 0
+  private jumpBufferTimer = 0
 
   handleKeyDown(e: KeyboardEvent) {
     switch (e.code) {
@@ -185,42 +193,72 @@ export class GameEngine {
     if (this.player.dead) return
     this.tick++
 
-    // Input
+    const onGround = this.player.onGround
+    const accel = onGround ? GROUND_ACCEL : AIR_ACCEL
+    const friction = onGround ? GROUND_FRICTION : AIR_FRICTION
+
+    // ── Horizontal movement ──
     if (this.keys.left) {
-      this.player.vx -= MOVE_SPEED
+      this.player.vx -= accel
       this.player.facingRight = false
-    }
-    if (this.keys.right) {
-      this.player.vx += MOVE_SPEED
+    } else if (this.keys.right) {
+      this.player.vx += accel
       this.player.facingRight = true
+    } else {
+      // Apply friction only when no input (snappy stop)
+      this.player.vx *= friction
+      if (Math.abs(this.player.vx) < 0.2) this.player.vx = 0
+    }
+    this.player.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, this.player.vx))
+
+    // ── Coyote time ──
+    if (onGround) {
+      this.coyoteTimer = COYOTE_FRAMES
+    } else if (this.coyoteTimer > 0) {
+      this.coyoteTimer--
     }
 
-    // Jump (single press)
-    if (this.keys.jump && !this.jumpPressed) {
-      this.jumpPressed = true
-      if (this.player.jumpsLeft > 0) {
-        this.player.vy = JUMP_FORCE
-        this.player.jumpsLeft--
-        this.player.onGround = false
-        if (this.player.jumpsLeft === 0) {
-          playDoubleJump()
-          this.spawnParticles(this.player.x + PLAYER_SIZE / 2, this.player.y + PLAYER_SIZE, 4, '#a78bfa')
-        } else {
-          playJump()
-          this.spawnParticles(this.player.x + PLAYER_SIZE / 2, this.player.y + PLAYER_SIZE, 3, '#7ec8e3')
-        }
-      }
+    // ── Jump buffer ──
+    if (this.keys.jump && this.jumpReleased) {
+      this.jumpBufferTimer = JUMP_BUFFER_FRAMES
+      this.jumpReleased = false
     }
     if (!this.keys.jump) {
-      this.jumpPressed = false
+      this.jumpReleased = true
+    }
+    if (this.jumpBufferTimer > 0) {
+      this.jumpBufferTimer--
     }
 
-    // Physics
-    this.player.vx *= FRICTION
-    this.player.vx = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, this.player.vx))
-    this.player.vy += GRAVITY
-    if (this.player.vy > 12) this.player.vy = 12
+    // ── Jump execution ──
+    const canJump = this.coyoteTimer > 0 || this.player.jumpsLeft > 0
+    if (this.jumpBufferTimer > 0 && canJump) {
+      this.jumpBufferTimer = 0
+      const isDoubleJump = this.coyoteTimer <= 0 && this.player.jumpsLeft > 0
+      this.player.vy = JUMP_FORCE
+      this.player.onGround = false
+      this.coyoteTimer = 0
+      if (isDoubleJump) {
+        this.player.jumpsLeft--
+        playDoubleJump()
+        this.spawnParticles(this.player.x + PLAYER_SIZE / 2, this.player.y + PLAYER_SIZE, 4, '#a78bfa')
+      } else {
+        this.player.jumpsLeft = 1 // 1 jump left (double jump)
+        playJump()
+        this.spawnParticles(this.player.x + PLAYER_SIZE / 2, this.player.y + PLAYER_SIZE, 3, '#7ec8e3')
+      }
+    }
 
+    // ── Variable jump height (release = cut velocity) ──
+    if (!this.keys.jump && this.player.vy < 0) {
+      this.player.vy *= JUMP_CUT_MULT + 0.55
+    }
+
+    // ── Gravity ──
+    this.player.vy += GRAVITY
+    if (this.player.vy > 14) this.player.vy = 14
+
+    // ── Apply velocity ──
     this.player.x += this.player.vx
     this.player.y += this.player.vy
 
