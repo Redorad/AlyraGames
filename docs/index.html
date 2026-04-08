@@ -1,14 +1,178 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>Slime Idle — Reincarnated as a Slime</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🫧</text></svg>" />
-    <script type="module" crossorigin src="/AlyraGames/assets/index-CqgO-HXf.js"></script>
-    <link rel="stylesheet" crossorigin href="/AlyraGames/assets/index-BPZzKAXd.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlyraGames — Collection Slime</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: #0a0e27;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+      position: relative;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 200px;
+      background: radial-gradient(ellipse, rgba(167,139,250,0.12), transparent 70%);
+      pointer-events: none;
+    }
+    .logo { font-size: 4rem; margin-bottom: 0.5rem; }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    h1 .steel { color: #7ec8e3; }
+    h1 .accent { color: #a78bfa; }
+    .subtitle { color: #64748b; font-size: 0.95rem; margin-top: 0.4rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 960px;
+      padding: 0 1rem 3rem;
+    }
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem;
+      border-radius: 1rem;
+      border: 1.5px solid rgba(255,255,255,0.06);
+      background: linear-gradient(135deg, rgba(17,22,64,0.7), rgba(10,14,39,0.9));
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(167,139,250,0.35);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 20px rgba(167,139,250,0.08);
+    }
+    .card:active { transform: scale(0.98); }
+    .card-icon {
+      width: 60px; height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    .card-info { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+    }
+    .card-genre {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+    }
+    .card-desc {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 0.3rem;
+      line-height: 1.4;
+    }
+    .footer {
+      padding: 2rem;
+      text-align: center;
+      color: #374151;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🎮</div>
+    <h1><span class="steel">ALYRA</span><span class="accent">GAMES</span></h1>
+    <p class="subtitle">Collection de jeux — Tensei Shitara Slime Datta Ken</p>
+  </div>
+
+  <div class="grid">
+    <a href="slime-idle/" class="card">
+      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🫧</div>
+      <div class="card-info">
+        <div class="card-title">Slime Idle</div>
+        <div class="card-genre">Idle / Clicker</div>
+        <div class="card-desc">Fais évoluer Rimuru en cliquant et en débloquant des compétences.</div>
+      </div>
+    </a>
+
+    <a href="slime-td/" class="card">
+      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🏰</div>
+      <div class="card-info">
+        <div class="card-title">Slime TD</div>
+        <div class="card-genre">Tower Defense</div>
+        <div class="card-desc">10 niveaux, 10 tours, mode infini et mode difficile.</div>
+      </div>
+    </a>
+
+    <a href="slime-cards/" class="card">
+      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🃏</div>
+      <div class="card-info">
+        <div class="card-title">Slime Cards</div>
+        <div class="card-genre">Roguelike Deckbuilder</div>
+        <div class="card-desc">3 actes, 20+ cartes, combat au tour par tour, événements.</div>
+      </div>
+    </a>
+
+    <a href="slime-match/" class="card">
+      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🧩</div>
+      <div class="card-info">
+        <div class="card-title">Slime Match</div>
+        <div class="card-genre">Puzzle Match-3</div>
+        <div class="card-desc">Aligne 3+ slimes, combos, line clear et color bomb.</div>
+      </div>
+    </a>
+
+    <a href="slime-colony/" class="card">
+      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🏘️</div>
+      <div class="card-info">
+        <div class="card-title">Slime Colony</div>
+        <div class="card-genre">Colony Sim</div>
+        <div class="card-desc">Construis Tempest : bâtiments, ressources, population, événements.</div>
+      </div>
+    </a>
+
+    <a href="slime-arena/" class="card">
+      <div class="card-icon" style="background:rgba(251,191,36,0.15)">⚔️</div>
+      <div class="card-info">
+        <div class="card-title">Slime Arena</div>
+        <div class="card-genre">Auto-Battler</div>
+        <div class="card-desc">Achète des unités, place-les, synergies et combat auto.</div>
+      </div>
+    </a>
+
+    <a href="slime-run/" class="card">
+      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🏃</div>
+      <div class="card-info">
+        <div class="card-title">Slime Run</div>
+        <div class="card-genre">Platformer</div>
+        <div class="card-desc">5 niveaux, double saut, ennemis, collectibles.</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    AlyraGames — Tous les jeux sont jouables dans le navigateur.
+  </div>
+</body>
 </html>
