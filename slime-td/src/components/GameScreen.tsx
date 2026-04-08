@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { GameState } from "../types";
 import { LEVELS } from "../data/levels";
+import { ENDLESS_LEVEL } from "../data/endless";
 import { TOWER_DEFS, getAvailableTowers, getUpgradeCost, getTowerDamage, getTowerRange, getTowerAttackSpeed } from "../data/towers";
 import { GameEngine } from "../engine/GameEngine";
 import { useProgressStore } from "../store/gameStore";
@@ -26,21 +27,23 @@ const SPECIAL_LABELS: Record<string, string> = {
 interface Props {
   levelId: number;
   hardMode?: boolean;
+  endless?: boolean;
   onBack: () => void;
   onRestart: () => void;
 }
 
-export default function GameScreen({ levelId, hardMode = false, onBack, onRestart }: Props) {
+export default function GameScreen({ levelId, hardMode = false, endless = false, onBack, onRestart }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
   const completeLevel = useProgressStore((s) => s.completeLevel);
+  const addEndlessScore = useProgressStore((s) => s.addEndlessScore);
   const completed = useProgressStore((s) => s.completed);
+  const completedNoHit = useProgressStore((s) => s.completedNoHit);
 
-  const level = LEVELS.find((l) => l.id === levelId)!;
+  const level = endless ? ENDLESS_LEVEL : LEVELS.find((l) => l.id === levelId)!;
   const allCompleted = LEVELS.every((l) => completed.includes(l.id));
-  // Hard mode: all towers available; Normal: unlock-based + rimuru if all done
   const rimuruUnlocked = allCompleted;
-  const towers = hardMode
+  const towers = (hardMode || endless)
     ? getAvailableTowers(99, rimuruUnlocked)
     : getAvailableTowers(levelId, rimuruUnlocked);
 
@@ -53,7 +56,7 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
     lives: startLives,
     maxLives: startLives,
     currentWave: 0,
-    totalWaves: level.waves.length,
+    totalWaves: endless ? Infinity : level.waves.length,
     waveActive: false,
     gameStatus: "playing",
     selectedTowerDef: null,
@@ -62,23 +65,41 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
     upgradeCost: 0,
     sellValue: 0,
     towersPlaced: 0,
+    score: 0,
+    killCount: 0,
   });
 
   const [speed, setSpeedUI] = useState(1);
   const [sound, setSound] = useState(isSoundEnabled());
+  const [scoreSaved, setScoreSaved] = useState(false);
 
   const handleStateUpdate = useCallback((s: GameState) => {
     setState(s);
-    if (s.gameStatus === "won") {
+    if (s.gameStatus === "won" && !endless) {
       completeLevel(levelId, hardMode);
     }
-  }, [levelId, hardMode, completeLevel]);
+  }, [levelId, hardMode, endless, completeLevel]);
+
+  // Save endless score on loss or retreat
+  useEffect(() => {
+    if (endless && !scoreSaved && (state.gameStatus === "lost" || state.gameStatus === "retreat")) {
+      addEndlessScore(state.currentWave, state.killCount);
+      setScoreSaved(true);
+    }
+  }, [endless, state.gameStatus, state.currentWave, state.killCount, scoreSaved, addEndlessScore]);
+
+  // Track no-hit completion
+  useEffect(() => {
+    if (!endless && state.gameStatus === "won" && state.lives === state.maxLives) {
+      completeLevel(levelId, hardMode, true);
+    }
+  }, [state.gameStatus, state.lives, state.maxLives, endless, levelId, hardMode, completeLevel]);
 
   /* ── init engine ──────────────────────── */
   useEffect(() => {
     const canvas = canvasRef.current!;
     const towerIds = towers.map((t) => t.id);
-    const engine = new GameEngine(canvas, level, towerIds, handleStateUpdate, hardMode);
+    const engine = new GameEngine(canvas, level, towerIds, handleStateUpdate, hardMode, endless);
     engineRef.current = engine;
     engine.start();
 
@@ -118,6 +139,7 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
   };
 
   const startWave = () => engineRef.current?.startWave();
+  const retreat = () => engineRef.current?.retreat();
 
   const toggleSpeed = () => {
     const next = speed === 1 ? 2 : speed === 2 ? 3 : 1;
@@ -128,13 +150,17 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
   const upgrade = () => engineRef.current?.upgradeTower();
   const sell = () => engineRef.current?.sellTower();
 
+  const isEndlessOver = endless && (state.gameStatus === "lost" || state.gameStatus === "retreat");
+  const isNormalOver = !endless && state.gameStatus !== "playing";
+  const noHit = state.lives === state.maxLives;
+
   /* ── render ───────────────────────────── */
   return (
     <div className="h-full bg-navy-900 flex flex-col overflow-hidden">
       {/* ── Top bar ─────────────────────── */}
       <div className="flex items-center justify-between px-3 py-2 bg-navy-800 border-b border-white/5 text-sm shrink-0">
         <button onClick={onBack} className="text-gray-400 hover:text-white px-2">
-          ← Retour
+          {"\u2190"} Retour
         </button>
         <div className="flex items-center gap-4">
           {hardMode && (
@@ -142,14 +168,27 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
               DIFFICILE
             </span>
           )}
+          {endless && (
+            <span className="text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold">
+              INFINI
+            </span>
+          )}
           <span className="text-yellow-400 font-bold">{state.gold} G</span>
           <span className="text-red-400">
-            {"♥".repeat(Math.min(state.lives, 10))}{" "}
-            {state.lives > 10 && `×${state.lives}`}
+            {"\u2665".repeat(Math.min(state.lives, 10))}{" "}
+            {state.lives > 10 && `\u00D7${state.lives}`}
           </span>
+          {endless && (
+            <span className="text-purple-300 text-xs font-bold">
+              Kills: {state.killCount}
+            </span>
+          )}
         </div>
         <div className="text-gray-400 text-xs">
-          Vague {Math.min(state.currentWave + 1, state.totalWaves)}/{state.totalWaves}
+          {endless
+            ? `Vague ${state.currentWave + (state.waveActive ? 1 : 0)}`
+            : `Vague ${Math.min(state.currentWave + 1, state.totalWaves)}/${state.totalWaves}`
+          }
         </div>
       </div>
 
@@ -172,7 +211,7 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
         const lvl = placedTower ? placedTower.level : 1;
         const dmg = getTowerDamage(def, lvl);
         const range = getTowerRange(def, lvl).toFixed(1);
-        const spd = def.attackSpeed > 0 ? getTowerAttackSpeed(def, lvl).toFixed(1) : "—";
+        const spd = def.attackSpeed > 0 ? getTowerAttackSpeed(def, lvl).toFixed(1) : "\u2014";
         const emoji = TOWER_EMOJI[def.id] ?? "";
 
         return (
@@ -215,7 +254,7 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
                       {SPECIAL_LABELS[def.special] ?? def.special}
                       {def.special === "slow" && ` ${((def.specialValue ?? 0) * 100).toFixed(0)}%`}
                       {def.special === "buff" && ` +${((def.specialValue ?? 0) * 100).toFixed(0)}%`}
-                      {def.special === "crit" && ` ${((def.specialValue ?? 0) * 100).toFixed(0)}% ×3`}
+                      {def.special === "crit" && ` ${((def.specialValue ?? 0) * 100).toFixed(0)}% \u00D73`}
                       {def.special === "splash" && ` r=${def.specialValue}`}
                       {def.special === "predator" && ` Splash+Slow`}
                     </span>
@@ -252,12 +291,12 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
       <div className="bg-navy-800 border-t border-white/10 px-2 py-2 shrink-0">
         <div className="flex items-center gap-2 mb-2">
           {/* Start wave */}
-          {!state.waveActive && state.gameStatus === "playing" && state.currentWave < state.totalWaves && (
+          {!state.waveActive && state.gameStatus === "playing" && (endless || state.currentWave < state.totalWaves) && (
             <button
               onClick={startWave}
               className="pulse-btn px-4 py-1.5 rounded-lg bg-green-500/20 text-green-300 border border-green-500/40 text-sm font-bold"
             >
-              Vague {state.currentWave + 1} ▶
+              Vague {state.currentWave + 1} {"\u25B6"}
             </button>
           )}
           {state.waveActive && (
@@ -266,12 +305,22 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
 
           <div className="flex-1" />
 
+          {/* Retreat (endless only) */}
+          {endless && state.gameStatus === "playing" && !state.waveActive && state.currentWave > 0 && (
+            <button
+              onClick={retreat}
+              className="text-sm px-3 py-1.5 rounded-lg bg-yellow-500/15 text-yellow-300 border border-yellow-500/30"
+            >
+              {"\u{1F3F3}\u{FE0F}"} Retraite
+            </button>
+          )}
+
           {/* Restart */}
           <button
             onClick={onRestart}
             className="text-sm px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30"
           >
-            ↻ Restart
+            {"\u21BB"} Restart
           </button>
 
           {/* Sound toggle */}
@@ -291,7 +340,7 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
             onClick={toggleSpeed}
             className="text-xs px-3 py-1.5 rounded-lg bg-navy-700 text-steel border border-steel/20"
           >
-            ×{speed}
+            {"\u00D7"}{speed}
           </button>
         </div>
 
@@ -331,18 +380,36 @@ export default function GameScreen({ levelId, hardMode = false, onBack, onRestar
       </div>
 
       {/* ── Result overlay ──────────────── */}
-      {state.gameStatus !== "playing" && (
+      {(isNormalOver || isEndlessOver) && (
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="result-overlay bg-navy-800 border border-white/10 rounded-2xl p-6 text-center max-w-xs mx-4">
-            {state.gameStatus === "won" ? (
+            {endless ? (
               <>
-                <div className="text-4xl mb-2">🎉</div>
+                <div className="text-4xl mb-2">{state.gameStatus === "retreat" ? "\u{1F3F3}\u{FE0F}" : "\u{1F480}"}</div>
+                <h2 className="text-xl font-bold text-purple-400">
+                  {state.gameStatus === "retreat" ? "Retraite" : "Défaite"}
+                </h2>
+                <div className="mt-3 space-y-1">
+                  <p className="text-lg font-bold text-white">Vague {state.currentWave}</p>
+                  <p className="text-sm text-purple-300">{state.killCount} ennemis éliminés</p>
+                </div>
+              </>
+            ) : state.gameStatus === "won" ? (
+              <>
+                <div className="text-4xl mb-2">
+                  {"\u{1F389}"}{noHit && "\u{2B50}"}
+                </div>
                 <h2 className="text-xl font-bold text-green-400">Victoire !</h2>
                 <p className="text-gray-400 text-sm mt-2">{level.name} terminé</p>
+                {noHit && (
+                  <p className="text-yellow-400 text-sm mt-1 font-bold">
+                    {"\u{2B50}"} No Hit ! Parfait !
+                  </p>
+                )}
               </>
             ) : (
               <>
-                <div className="text-4xl mb-2">💀</div>
+                <div className="text-4xl mb-2">{"\u{1F480}"}</div>
                 <h2 className="text-xl font-bold text-red-400">Défaite</h2>
                 <p className="text-gray-400 text-sm mt-2">Tempest est tombé...</p>
               </>
