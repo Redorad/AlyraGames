@@ -29,7 +29,7 @@ const AIR_FRICTION = 0.94
 const PLAYER_SIZE = 28
 const INVINCIBLE_DURATION = 90
 const PROJECTILE_INTERVAL = 90
-const CANVAS_HEIGHT = 480
+const BASE_HEIGHT = 480 // design height — game scales to actual canvas
 const COYOTE_FRAMES = 8
 const JUMP_BUFFER_FRAMES = 8
 const JUMP_CUT_MULT = 0.45
@@ -56,6 +56,8 @@ export class GameEngine {
   animFrame: number
   score: number
   lastTime: number
+  canvasHeight: number
+  scale: number
   onScore: (pts: number) => void
   onWin: () => void
   onDie: () => void
@@ -83,6 +85,8 @@ export class GameEngine {
     this.projectileTimer = 0
     this.score = 0
     this.canvasWidth = canvas.width
+    this.canvasHeight = canvas.height
+    this.scale = canvas.height / BASE_HEIGHT
 
     this.player = {
       x: 60,
@@ -114,6 +118,14 @@ export class GameEngine {
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.handleKeyUp = this.handleKeyUp.bind(this)
     this.gameLoop = this.gameLoop.bind(this)
+  }
+
+  resize(w: number, h: number) {
+    this.canvas.width = w
+    this.canvas.height = h
+    this.canvasWidth = w
+    this.canvasHeight = h
+    this.scale = h / BASE_HEIGHT
   }
 
   start() {
@@ -316,7 +328,7 @@ export class GameEngine {
     }
 
     // Fall off screen
-    if (this.player.y > CANVAS_HEIGHT + 50) {
+    if (this.player.y > this.canvasHeight / this.scale + 50) {
       this.killPlayer()
       return
     }
@@ -392,7 +404,7 @@ export class GameEngine {
       if (this.projectileTimer >= PROJECTILE_INTERVAL) {
         this.projectileTimer = 0
         // Spawn projectile from right side of screen
-        const spawnX = this.camera.x + this.canvasWidth + 20
+        const spawnX = this.camera.x + this.canvasWidth / this.scale + 20
         const spawnY = 100 + Math.random() * 250
         this.projectiles.push({
           x: spawnX,
@@ -409,7 +421,7 @@ export class GameEngine {
         proj.x += proj.vx * dt
         proj.y += proj.vy * dt
         // Off screen
-        if (proj.x < this.camera.x - 50 || proj.y < -50 || proj.y > CANVAS_HEIGHT + 50) {
+        if (proj.x < this.camera.x - 50 || proj.y < -50 || proj.y > this.canvasHeight / this.scale + 50) {
           this.projectiles.splice(i, 1)
           continue
         }
@@ -431,9 +443,10 @@ export class GameEngine {
     }
 
     // Camera
-    const targetX = this.player.x - this.canvasWidth / 3
+    const viewW = this.canvasWidth / this.scale
+    const targetX = this.player.x - viewW / 3
     this.camera.x += (targetX - this.camera.x) * (1 - Math.pow(0.9, dt))
-    this.camera.x = Math.max(0, Math.min(this.level.levelWidth - this.canvasWidth, this.camera.x))
+    this.camera.x = Math.max(0, Math.min(this.level.levelWidth - viewW, this.camera.x))
 
     // Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -510,23 +523,29 @@ export class GameEngine {
 
   render() {
     const ctx = this.ctx
+    const s = this.scale
     const w = this.canvasWidth
-    const h = CANVAS_HEIGHT
+    const h = this.canvasHeight
     const cx = this.camera.x
 
+    ctx.save()
+    ctx.scale(s, s)
+    const logicalW = w / s
+    const logicalH = h / s
+
     // Background gradient
-    const grad = ctx.createLinearGradient(0, 0, 0, h)
+    const grad = ctx.createLinearGradient(0, 0, 0, logicalH)
     grad.addColorStop(0, this.level.bgGradient[0])
     grad.addColorStop(1, this.level.bgGradient[1])
     ctx.fillStyle = grad
-    ctx.fillRect(0, 0, w, h)
+    ctx.fillRect(0, 0, logicalW, logicalH)
 
     // Parallax stars/dots
     ctx.fillStyle = 'rgba(255,255,255,0.3)'
     for (let i = 0; i < 40; i++) {
       const sx = ((i * 137 + 50) % this.level.levelWidth) - cx * 0.3
-      const sy = (i * 73 + 30) % h
-      if (sx > -5 && sx < w + 5) {
+      const sy = (i * 73 + 30) % logicalH
+      if (sx > -5 && sx < logicalW + 5) {
         ctx.beginPath()
         ctx.arc(sx, sy, 1 + (i % 2), 0, Math.PI * 2)
         ctx.fill()
@@ -538,7 +557,7 @@ export class GameEngine {
 
     // Platforms
     for (const p of this.platforms) {
-      if (p.x + p.width < cx - 50 || p.x > cx + w + 50) continue
+      if (p.x + p.width < cx - 50 || p.x > cx + logicalW + 50) continue
 
       // Platform body
       ctx.fillStyle = '#3a7a3a'
@@ -566,7 +585,7 @@ export class GameEngine {
     ctx.textBaseline = 'middle'
     for (const c of this.collectibles) {
       if (c.collected) continue
-      if (c.x < cx - 50 || c.x > cx + w + 50) continue
+      if (c.x < cx - 50 || c.x > cx + logicalW + 50) continue
       const bobY = Math.sin(this.tick * 0.05 + c.x) * 4
       ctx.fillText(c.emoji, c.x + c.width / 2, c.y + c.height / 2 + bobY)
     }
@@ -575,7 +594,7 @@ export class GameEngine {
     ctx.font = '26px serif'
     for (const e of this.enemies) {
       if (!e.alive) continue
-      if (e.x < cx - 50 || e.x > cx + w + 50) continue
+      if (e.x < cx - 50 || e.x > cx + logicalW + 50) continue
       ctx.save()
       if (e.direction < 0) {
         ctx.translate(e.x + e.width / 2, e.y + e.height / 2)
@@ -677,7 +696,8 @@ export class GameEngine {
     }
     ctx.globalAlpha = 1
 
-    ctx.restore()
+    ctx.restore() // camera translate
+    ctx.restore() // scale
   }
 
   getHP() {

@@ -68,13 +68,19 @@ export default function GameScreen() {
     const resize = () => {
       const container = canvas.parentElement
       if (!container) return
-      canvas.width = container.clientWidth
-      canvas.height = 480
+      const w = container.clientWidth
+      const h = container.clientHeight
+      canvas.width = w
+      canvas.height = h
+      if (engineRef.current) {
+        engineRef.current.resize(w, h)
+      }
     }
     resize()
 
     const eng = new GameEngine(canvas, level, onScore, onWin, onDie)
     engineRef.current = eng
+    eng.resize(canvas.width, canvas.height)
     eng.start()
     startTimer()
 
@@ -87,7 +93,6 @@ export default function GameScreen() {
 
     const handleResize = () => {
       resize()
-      if (eng) eng.canvasWidth = canvas.width
     }
     window.addEventListener('resize', handleResize)
 
@@ -112,6 +117,7 @@ export default function GameScreen() {
     engineRef.current?.stop()
     const eng = new GameEngine(canvas, level, onScore, onWin, onDie)
     engineRef.current = eng
+    eng.resize(canvas.width, canvas.height)
     eng.start()
     startTimer()
     setHp(3)
@@ -131,6 +137,7 @@ export default function GameScreen() {
         engineRef.current?.stop()
         const eng = new GameEngine(canvas, nextLevel, onScore, onWin, onDie)
         engineRef.current = eng
+        eng.resize(canvas.width, canvas.height)
         eng.start()
         startTimer()
         setHp(3)
@@ -184,7 +191,7 @@ export default function GameScreen() {
 
       {/* Canvas */}
       <div className="flex-1 relative overflow-hidden">
-        <canvas ref={canvasRef} className="w-full block" style={{ height: 480 }} />
+        <canvas ref={canvasRef} className="w-full h-full block" />
 
         {overlay === 'victory' && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white z-10">
