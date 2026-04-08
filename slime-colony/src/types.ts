@@ -29,6 +29,10 @@ export interface BuildingInstance {
   defId: string;
   level: number;
   assignedWorkers: string[];
+  gridX: number;
+  gridY: number;
+  constructing: boolean;
+  constructionEnd: number;
 }
 
 export interface Citizen {
@@ -74,7 +78,7 @@ export interface GameState {
   loadSave: () => boolean;
   clearSave: () => void;
   tick: () => void;
-  buildBuilding: (defId: string) => void;
+  buildBuilding: (defId: string, gridX: number, gridY: number) => void;
   upgradeBuilding: (buildingId: string) => void;
   assignWorker: (citizenId: string, buildingId: string) => void;
   unassignWorker: (citizenId: string) => void;

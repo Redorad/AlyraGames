@@ -143,6 +143,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       defId: farmDef.id,
       level: 1,
       assignedWorkers: [initialCitizens[0].id],
+      gridX: 4,
+      gridY: 3,
+      constructing: false,
+      constructionEnd: 0,
     };
     // Mark the first citizen as assigned to the farm
     initialCitizens[0] = { ...initialCitizens[0], assignedTo: farmBuilding.id };
@@ -218,8 +222,18 @@ export const useGameStore = create<GameState>((set, get) => ({
     const happiness = computeHappiness(state.buildings, state.citizens, state.resources.food);
     const happinessMult = getHappinessMultiplier(happiness);
 
-    // Production from buildings
-    for (const b of state.buildings) {
+    // Check construction timers
+    const now = Date.now();
+    let newBuildings = state.buildings.map((b) => {
+      if (b.constructing && now >= b.constructionEnd) {
+        return { ...b, constructing: false, constructionEnd: 0 };
+      }
+      return b;
+    });
+
+    // Production from buildings (skip constructing buildings)
+    for (const b of newBuildings) {
+      if (b.constructing) continue;
       const def = getBuildingDef(b.defId);
       if (!def) continue;
       const workerCount = b.assignedWorkers.length;
@@ -264,7 +278,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     // Population growth: if food > 20 + 2 per citizen and under pop cap
-    const stats = computeStats(state.buildings, state.citizens);
+    const stats = computeStats(newBuildings, state.citizens);
     let newCitizens = [...state.citizens];
     if (
       newResources.food > 20 + state.citizens.length * 2 &&
@@ -308,10 +322,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Show save indicator every 10 ticks
     const showSaveIndicator = newTickCount % 10 === 0;
 
-    const updatedHappiness = computeHappiness(state.buildings, newCitizens, newResources.food);
+    const updatedHappiness = computeHappiness(newBuildings, newCitizens, newResources.food);
 
     set({
       resources: newResources,
+      buildings: newBuildings,
       tickCount: newTickCount,
       lastEventTick: newLastEventTick,
       eventLog: newLog,
@@ -347,11 +362,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  buildBuilding: (defId: string) => {
+  buildBuilding: (defId: string, gridX: number, gridY: number) => {
     const state = get();
     const def = BUILDING_DEFS.find((d) => d.id === defId);
     if (!def) return;
     if (!canAfford(state.resources, def.cost)) return;
+
+    // Check if cell is already occupied
+    const occupied = state.buildings.some((b) => b.gridX === gridX && b.gridY === gridY);
+    if (occupied) return;
 
     const newResources = subtractCost(state.resources, def.cost);
     const newBuilding: BuildingInstance = {
@@ -359,6 +378,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       defId: def.id,
       level: 1,
       assignedWorkers: [],
+      gridX,
+      gridY,
+      constructing: true,
+      constructionEnd: Date.now() + 5000,
     };
 
     const newBuildings = [...state.buildings, newBuilding];
@@ -366,7 +389,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     let logCounter = state.eventLogCounter + 1;
     const newLog = [
-      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} construit!`, emoji: '🔨' },
+      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} en construction...`, emoji: '🔨' },
       ...state.eventLog,
     ].slice(0, 20);
 
@@ -569,6 +592,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const happinessMult = getHappinessMultiplier(happiness);
 
     for (const b of state.buildings) {
+      if (b.constructing) continue;
       const def = getBuildingDef(b.defId);
       if (!def) continue;
       const workerCount = b.assignedWorkers.length;
