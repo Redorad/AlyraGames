@@ -178,7 +178,7 @@ export default function LevelSelect({ onSelect }: Props) {
                   <div className="flex items-center gap-2">
                     <span className="text-red-400 font-bold">{"\u{2620}\u{FE0F}"} Difficile</span>
                     <span className="text-gray-500 text-xs">
-                      2x PV ennemis, +armure, +vitesse, -or, -vies, toutes les tours
+                      1.8x PV, +armure, +vitesse, -vies, toutes les tours
                     </span>
                     {doneHard && (
                       <span className="ml-auto text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-medium">
