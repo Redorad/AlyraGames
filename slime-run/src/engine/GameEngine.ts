@@ -19,8 +19,8 @@ import {
   playHeal,
 } from '../utils/sounds'
 
-const GRAVITY = 0.9
-const JUMP_FORCE = -13.5
+const GRAVITY = 0.55
+const JUMP_FORCE = -11
 const GROUND_ACCEL = 1.2
 const AIR_ACCEL = 0.7
 const MAX_SPEED = 6.5
@@ -32,7 +32,7 @@ const PROJECTILE_INTERVAL = 90
 const CANVAS_HEIGHT = 480
 const COYOTE_FRAMES = 8
 const JUMP_BUFFER_FRAMES = 8
-const JUMP_CUT_MULT = 0.4
+const JUMP_CUT_MULT = 0.45
 
 interface Keys {
   left: boolean
@@ -250,13 +250,14 @@ export class GameEngine {
     }
 
     // ── Variable jump height (release = cut velocity) ──
-    if (!this.keys.jump && this.player.vy < 0) {
-      this.player.vy *= JUMP_CUT_MULT + 0.55
+    if (!this.keys.jump && this.player.vy < -2) {
+      this.player.vy *= JUMP_CUT_MULT
     }
 
-    // ── Gravity ──
-    this.player.vy += GRAVITY
-    if (this.player.vy > 14) this.player.vy = 14
+    // ── Gravity (less gravity at peak for floatier feel) ──
+    const grav = Math.abs(this.player.vy) < 2 ? GRAVITY * 0.6 : GRAVITY
+    this.player.vy += grav
+    if (this.player.vy > 12) this.player.vy = 12
 
     // ── Apply velocity ──
     this.player.x += this.player.vx
