@@ -29,7 +29,7 @@ export default function TitleScreen() {
       {/* Level Select */}
       <div className="w-full max-w-md space-y-3">
         <h2 className="text-xl font-semibold text-center text-steel mb-2">
-          S&eacute;lection du niveau
+          Level Select
         </h2>
         {levels.map((lv, idx) => {
           const unlocked = idx < levelsUnlocked
@@ -51,7 +51,7 @@ export default function TitleScreen() {
                 <span className="text-white">{lv.id}. {lv.name}</span>
               </span>
               {unlocked && (
-                <span className="text-accent text-sm">JOUER &rarr;</span>
+                <span className="text-accent text-sm">PLAY &rarr;</span>
               )}
             </button>
           )
@@ -60,8 +60,8 @@ export default function TitleScreen() {
 
       {/* Controls help */}
       <div className="mt-8 text-center text-gray-500 text-sm space-y-1">
-        <p>Fl&egrave;ches / WASD pour bouger &bull; Espace pour sauter</p>
-        <p>Double saut disponible &bull; Sauter sur les ennemis pour les &eacute;liminer</p>
+        <p>Arrow keys / WASD to move &bull; Space to jump</p>
+        <p>Double jump available &bull; Jump on enemies to defeat them</p>
       </div>
     </div>
   )

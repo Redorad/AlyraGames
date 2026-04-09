@@ -3,50 +3,50 @@ import * as sfx from "../utils/sounds";
 
 const EVENTS = [
   {
-    title: "Source Mystérieuse",
-    description: "Tu découvres une source d'eau magique dans la forêt. Son énergie semble curative...",
+    title: "Mysterious Spring",
+    description: "You discover a magical spring in the forest. Its energy seems curative...",
     emoji: "\u{1F4A7}",
     choices: [
-      { text: "Boire l'eau (+20 PV)", effect: "heal20" },
-      { text: "Ignorer et continuer", effect: "skip" },
+      { text: "Drink the water (+20 HP)", effect: "heal20" },
+      { text: "Ignore and continue", effect: "skip" },
     ],
   },
   {
-    title: "Marchant Ambulant",
-    description: "Un marchant étrange te propose un deal...",
+    title: "Traveling Merchant",
+    description: "A strange merchant offers you a deal...",
     emoji: "\u{1F9D9}",
     choices: [
-      { text: "Payer 50 or (+10 PV max)", effect: "maxhp10" },
-      { text: "Payer 30 or (+1 Énergie max)", effect: "energy1" },
-      { text: "Décliner", effect: "skip" },
+      { text: "Pay 50 gold (+10 Max HP)", effect: "maxhp10" },
+      { text: "Pay 30 gold (+1 Max Energy)", effect: "energy1" },
+      { text: "Decline", effect: "skip" },
     ],
   },
   {
-    title: "Autel Ancien",
-    description: "Un autel sombre émane une énergie puissante. Tu sens que tu peux faire un sacrifice...",
+    title: "Ancient Altar",
+    description: "A dark altar emanates powerful energy. You feel you can make a sacrifice...",
     emoji: "\u{1F5FF}",
     choices: [
-      { text: "Sacrifier 10 PV (+2 Force)", effect: "str2" },
-      { text: "Sacrifier 10 PV (+2 Dextérité)", effect: "dex2" },
-      { text: "Passer ton chemin", effect: "skip" },
+      { text: "Sacrifice 10 HP (+2 Strength)", effect: "str2" },
+      { text: "Sacrifice 10 HP (+2 Dexterity)", effect: "dex2" },
+      { text: "Walk away", effect: "skip" },
     ],
   },
   {
-    title: "Piège !",
-    description: "Tu tombes dans une embuscade ! Des flèches pleuvent du plafond !",
+    title: "Trap!",
+    description: "You fall into an ambush! Arrows rain from the ceiling!",
     emoji: "\u{1F4A2}",
     choices: [
-      { text: "Esquiver (-8 PV)", effect: "dmg8" },
-      { text: "Encaisser (-15 PV, +20 or)", effect: "dmg15gold20" },
+      { text: "Dodge (-8 HP)", effect: "dmg8" },
+      { text: "Endure (-15 HP, +20 gold)", effect: "dmg15gold20" },
     ],
   },
   {
-    title: "Cristal de Magicules",
-    description: "Un cristal brillant de magicules concentrées. Tu peux absorber son énergie.",
+    title: "Magicule Crystal",
+    description: "A brilliant crystal of concentrated magicules. You can absorb its energy.",
     emoji: "\u{1F48E}",
     choices: [
-      { text: "Absorber (+30 or)", effect: "gold30" },
-      { text: "Absorber l'énergie (Soigne 30 PV)", effect: "heal30" },
+      { text: "Absorb (+30 gold)", effect: "gold30" },
+      { text: "Absorb the energy (Heal 30 HP)", effect: "heal30" },
     ],
   },
 ];

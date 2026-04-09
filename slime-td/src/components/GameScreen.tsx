@@ -16,12 +16,12 @@ const TOWER_EMOJI: Record<string, string> = {
 
 const SPECIAL_LABELS: Record<string, string> = {
   splash: "Splash AoE",
-  slow: "Ralentissement",
-  buff: "Buff alliés",
-  crit: "Coup critique",
-  aura: "Aura de dégâts",
-  priority: "Cible le + fort",
-  predator: "Prédateur",
+  slow: "Slow",
+  buff: "Ally Buff",
+  crit: "Critical Hit",
+  aura: "Damage Aura",
+  priority: "Targets Strongest",
+  predator: "Predator",
 };
 
 interface Props {
@@ -160,17 +160,17 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
       {/* ── Top bar ─────────────────────── */}
       <div className="flex items-center justify-between px-3 py-2 bg-navy-800 border-b border-white/5 text-sm shrink-0">
         <button onClick={onBack} className="text-gray-400 hover:text-white px-2">
-          {"\u2190"} Retour
+          {"\u2190"} Back
         </button>
         <div className="flex items-center gap-4">
           {hardMode && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-bold">
-              DIFFICILE
+              HARD
             </span>
           )}
           {endless && (
             <span className="text-xs px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold">
-              INFINI
+              ENDLESS
             </span>
           )}
           <span className="text-yellow-400 font-bold">{state.gold} G</span>
@@ -186,8 +186,8 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
         </div>
         <div className="text-gray-400 text-xs">
           {endless
-            ? `Vague ${state.currentWave + (state.waveActive ? 1 : 0)}`
-            : `Vague ${Math.min(state.currentWave + 1, state.totalWaves)}/${state.totalWaves}`
+            ? `Wave ${state.currentWave + (state.waveActive ? 1 : 0)}`
+            : `Wave ${Math.min(state.currentWave + 1, state.totalWaves)}/${state.totalWaves}`
           }
         </div>
       </div>
@@ -231,20 +231,20 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
                     {def.name}
                   </span>
                   {placedTower && (
-                    <span className="text-xs text-gray-400">Nv.{lvl}</span>
+                    <span className="text-xs text-gray-400">Lv.{lvl}</span>
                   )}
                 </div>
                 <p className="text-xs text-gray-400 leading-snug mt-0.5">{def.description}</p>
                 {/* Stats row */}
                 <div className="flex gap-3 mt-1.5 text-xs">
                   {def.special !== "buff" && (
-                    <span className="text-red-300" title="Dégâts">
+                    <span className="text-red-300" title="Damage">
                       {def.special === "aura" ? `${dmg}/s` : dmg} DMG
                     </span>
                   )}
-                  <span className="text-blue-300" title="Portée">{range} POR</span>
+                  <span className="text-blue-300" title="Range">{range} RNG</span>
                   {def.attackSpeed > 0 && (
-                    <span className="text-green-300" title="Vitesse d'attaque">{spd}/s VIT</span>
+                    <span className="text-green-300" title="Attack Speed">{spd}/s SPD</span>
                   )}
                 </div>
                 {/* Special ability */}
@@ -271,14 +271,14 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
                       className={`text-xs px-3 py-1 rounded-lg font-medium
                         ${state.canUpgrade ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/40" : "bg-gray-700/30 text-gray-500 border border-gray-600/20"}`}
                     >
-                      Nv.{lvl + 1} ({state.upgradeCost}G)
+                      Lv.{lvl + 1} ({state.upgradeCost}G)
                     </button>
                   )}
                   <button
                     onClick={sell}
                     className="text-xs px-3 py-1 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40"
                   >
-                    Vendre ({state.sellValue}G)
+                    Sell ({state.sellValue}G)
                   </button>
                 </div>
               )}
@@ -296,11 +296,11 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
               onClick={startWave}
               className="pulse-btn px-4 py-1.5 rounded-lg bg-green-500/20 text-green-300 border border-green-500/40 text-sm font-bold"
             >
-              Vague {state.currentWave + 1} {"\u25B6"}
+              Wave {state.currentWave + 1} {"\u25B6"}
             </button>
           )}
           {state.waveActive && (
-            <span className="text-xs text-gray-400 px-2">En cours...</span>
+            <span className="text-xs text-gray-400 px-2">In progress...</span>
           )}
 
           <div className="flex-1" />
@@ -311,7 +311,7 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
               onClick={retreat}
               className="text-sm px-3 py-1.5 rounded-lg bg-yellow-500/15 text-yellow-300 border border-yellow-500/30"
             >
-              {"\u{1F3F3}\u{FE0F}"} Retraite
+              {"\u{1F3F3}\u{FE0F}"} Retreat
             </button>
           )}
 
@@ -332,7 +332,7 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
             }}
             className="text-xs px-3 py-1.5 rounded-lg bg-navy-700 text-steel border border-steel/20"
           >
-            {sound ? "Son" : "Muet"}
+            {sound ? "Sound" : "Mute"}
           </button>
 
           {/* Speed */}
@@ -387,11 +387,11 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
               <>
                 <div className="text-4xl mb-2">{state.gameStatus === "retreat" ? "\u{1F3F3}\u{FE0F}" : "\u{1F480}"}</div>
                 <h2 className="text-xl font-bold text-purple-400">
-                  {state.gameStatus === "retreat" ? "Retraite" : "Défaite"}
+                  {state.gameStatus === "retreat" ? "Retreat" : "Defeat"}
                 </h2>
                 <div className="mt-3 space-y-1">
-                  <p className="text-lg font-bold text-white">Vague {state.currentWave}</p>
-                  <p className="text-sm text-purple-300">{state.killCount} ennemis éliminés</p>
+                  <p className="text-lg font-bold text-white">Wave {state.currentWave}</p>
+                  <p className="text-sm text-purple-300">{state.killCount} enemies defeated</p>
                 </div>
               </>
             ) : state.gameStatus === "won" ? (
@@ -399,8 +399,8 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
                 <div className="text-4xl mb-2">
                   {"\u{1F389}"}{noHit && "\u{2B50}"}
                 </div>
-                <h2 className="text-xl font-bold text-green-400">Victoire !</h2>
-                <p className="text-gray-400 text-sm mt-2">{level.name} terminé</p>
+                <h2 className="text-xl font-bold text-green-400">Victory!</h2>
+                <p className="text-gray-400 text-sm mt-2">{level.name} completed</p>
                 {noHit && (
                   <p className="text-yellow-400 text-sm mt-1 font-bold">
                     {"\u{2B50}"} No Hit ! Parfait !
@@ -410,8 +410,8 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
             ) : (
               <>
                 <div className="text-4xl mb-2">{"\u{1F480}"}</div>
-                <h2 className="text-xl font-bold text-red-400">Défaite</h2>
-                <p className="text-gray-400 text-sm mt-2">Tempest est tombé...</p>
+                <h2 className="text-xl font-bold text-red-400">Defeat</h2>
+                <p className="text-gray-400 text-sm mt-2">Tempest has fallen...</p>
               </>
             )}
             <div className="flex gap-3 mt-4 justify-center">
@@ -419,13 +419,13 @@ export default function GameScreen({ levelId, hardMode = false, endless = false,
                 onClick={onBack}
                 className="px-4 py-2 rounded-lg bg-navy-700 text-gray-300 border border-white/10 text-sm"
               >
-                Niveaux
+                Levels
               </button>
               <button
                 onClick={onRestart}
                 className="px-4 py-2 rounded-lg bg-steel/20 text-steel border border-steel/30 text-sm font-medium"
               >
-                Rejouer
+                Replay
               </button>
             </div>
           </div>

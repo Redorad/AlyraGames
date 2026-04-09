@@ -11,10 +11,10 @@ export default function RewardScreen() {
   return (
     <div className="h-full flex flex-col items-center justify-center bg-navy-900 px-4">
       <div className="text-4xl mb-3">{"\u{1F389}"}</div>
-      <h2 className="text-xl font-bold text-green-400 mb-1">Victoire !</h2>
-      <p className="text-yellow-400 text-sm mb-6">+{combatReward.gold} or</p>
+      <h2 className="text-xl font-bold text-green-400 mb-1">Victory!</h2>
+      <p className="text-yellow-400 text-sm mb-6">+{combatReward.gold} gold</p>
 
-      <p className="text-gray-400 text-sm mb-4">Choisis une carte à ajouter à ton deck :</p>
+      <p className="text-gray-400 text-sm mb-4">Choose a card to add to your deck:</p>
 
       <div className="flex gap-3 flex-wrap justify-center mb-6">
         {combatReward.cardChoices.map((def) => {
@@ -35,7 +35,7 @@ export default function RewardScreen() {
               <div className="mt-1">
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full
                   ${def.rarity === "rare" ? "bg-yellow-500/20 text-yellow-400" : def.rarity === "uncommon" ? "bg-blue-500/20 text-blue-400" : "bg-gray-500/20 text-gray-400"}`}>
-                  {def.rarity === "rare" ? "Rare" : def.rarity === "uncommon" ? "Peu commun" : "Commun"}
+                  {def.rarity === "rare" ? "Rare" : def.rarity === "uncommon" ? "Uncommon" : "Common"}
                 </span>
               </div>
             </button>
@@ -47,7 +47,7 @@ export default function RewardScreen() {
         onClick={skipReward}
         className="text-gray-500 text-sm hover:text-gray-300 transition"
       >
-        Passer
+        Skip
       </button>
     </div>
   );

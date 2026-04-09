@@ -4,7 +4,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   goblin: {
     id: "goblin",
     name: "Goblin Archer",
-    description: "Tireur basique. Dégâts corrects, bonne portée.",
+    description: "Basic shooter. Decent damage, good range.",
     cost: 50,
     range: 3,
     damage: 20,
@@ -16,7 +16,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   ranga: {
     id: "ranga",
     name: "Ranga",
-    description: "Attaque très rapide. Efficace contre les groupes.",
+    description: "Very fast attacks. Effective against groups.",
     cost: 70,
     range: 2.5,
     damage: 8,
@@ -28,7 +28,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   shion: {
     id: "shion",
     name: "Shion",
-    description: "Dégâts massifs mais lente. Dévastatrice contre les tanks.",
+    description: "Massive damage but slow. Devastating against tanks.",
     cost: 100,
     range: 2,
     damage: 80,
@@ -40,7 +40,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   benimaru: {
     id: "benimaru",
     name: "Benimaru",
-    description: "Dégâts de zone (splash). Idéal dans les courbes.",
+    description: "Area of effect (splash). Ideal on curves.",
     cost: 120,
     range: 3,
     damage: 25,
@@ -54,7 +54,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   souei: {
     id: "souei",
     name: "Souei",
-    description: "Ralentit les ennemis de 40%. Crée des points de contrôle.",
+    description: "Slows enemies by 40%. Creates control points.",
     cost: 80,
     range: 3.5,
     damage: 5,
@@ -68,7 +68,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   shuna: {
     id: "shuna",
     name: "Shuna",
-    description: "Boost +35% dégâts des tours proches. Aucun dégât direct.",
+    description: "Boosts +35% damage of nearby towers. No direct damage.",
     cost: 130,
     range: 2.5,
     damage: 0,
@@ -82,7 +82,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   hakurou: {
     id: "hakurou",
     name: "Hakurou",
-    description: "Sniper longue portée. 25% de chance de coup critique ×3.",
+    description: "Long range sniper. 25% chance of critical hit x3.",
     cost: 150,
     range: 5,
     damage: 150,
@@ -96,7 +96,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   geld: {
     id: "geld",
     name: "Geld",
-    description: "Aura de dégâts continus. Place-le au bord du chemin.",
+    description: "Continuous damage aura. Place near the path.",
     cost: 100,
     range: 1.5,
     damage: 15,
@@ -110,7 +110,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   diablo: {
     id: "diablo",
     name: "Diablo",
-    description: "DPS d'élite. Cible toujours l'ennemi le plus fort.",
+    description: "Elite DPS. Always targets the strongest enemy.",
     cost: 200,
     range: 3.5,
     damage: 60,
@@ -123,7 +123,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
   rimuru: {
     id: "rimuru",
     name: "Rimuru",
-    description: "Le Roi-Démon Rimuru. Splash + ralentissement. Extrêmement puissant.",
+    description: "Demon Lord Rimuru. Splash + slow. Extremely powerful.",
     cost: 300,
     range: 4,
     damage: 100,

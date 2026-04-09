@@ -16,7 +16,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 1,
     name: "Forêt de Jura",
-    subtitle: "Les loups attaquent le village !",
+    subtitle: "The wolves are attacking the village!",
     startGold: 150,
     lives: 20,
     grid: [
@@ -64,7 +64,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 2,
     name: "L'Invasion Orc",
-    subtitle: "L'armée orc approche en masse.",
+    subtitle: "The orc army approaches en masse.",
     startGold: 180,
     lives: 20,
     grid: [
@@ -114,7 +114,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 3,
     name: "Le Seigneur Orc",
-    subtitle: "Les capitaines orcs mènent l'assaut.",
+    subtitle: "The orc captains lead the assault.",
     startGold: 220,
     lives: 20,
     grid: [
@@ -162,7 +162,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 4,
     name: "Les Flammes des Ogres",
-    subtitle: "Des hordes serrées arrivent dans les courbes.",
+    subtitle: "Tight hordes arrive through the curves.",
     startGold: 260,
     lives: 18,
     grid: [
@@ -214,7 +214,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 5,
     name: "Infiltration",
-    subtitle: "Des ennemis ultra-rapides filent dans l'ombre.",
+    subtitle: "Ultra-fast enemies slip through the shadows.",
     startGold: 280,
     lives: 15,
     grid: [
@@ -264,7 +264,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 6,
     name: "L'Alliance",
-    subtitle: "Combine les forces de tes alliés.",
+    subtitle: "Combine the strength of your allies.",
     startGold: 320,
     lives: 18,
     grid: [
@@ -312,7 +312,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 7,
     name: "Walpurgis",
-    subtitle: "Les Demon Lords envoient leurs armées.",
+    subtitle: "The Demon Lords send their armies.",
     startGold: 380,
     lives: 15,
     grid: [
@@ -364,7 +364,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 8,
     name: "La Croisade Sacrée",
-    subtitle: "Les chevaliers sacrés lancent l'assaut final.",
+    subtitle: "The holy knights launch the final assault.",
     startGold: 380,
     lives: 12,
     grid: [
@@ -415,7 +415,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 9,
     name: "Éveil Démoniaque",
-    subtitle: "Les démons envahissent le monde.",
+    subtitle: "Demons invade the world.",
     startGold: 420,
     lives: 10,
     grid: [
@@ -466,7 +466,7 @@ export const LEVELS: LevelDef[] = [
   {
     id: 10,
     name: "Tempête",
-    subtitle: "L'ultime bataille pour Tempest.",
+    subtitle: "The ultimate battle for Tempest.",
     startGold: 500,
     lives: 10,
     grid: [

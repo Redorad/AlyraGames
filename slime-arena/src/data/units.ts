@@ -11,7 +11,7 @@ export const UNITS: UnitDef[] = [
     def: 8,
     speed: 4,
     cost: 1,
-    special: 'Résistance : réduit les dégâts de 10%',
+    special: 'Resistance: reduces damage by 10%',
     synergies: ['monster'],
   },
   {
@@ -24,7 +24,7 @@ export const UNITS: UnitDef[] = [
     def: 3,
     speed: 10,
     cost: 1,
-    special: 'Éclair : attaque en premier',
+    special: 'Lightning: attacks first',
     synergies: ['monster', 'rapide'],
   },
   {
@@ -37,7 +37,7 @@ export const UNITS: UnitDef[] = [
     def: 5,
     speed: 7,
     cost: 1,
-    special: 'Meute : +5 ATK si un allié Loup est présent',
+    special: 'Pack: +5 ATK if a Wolf ally is present',
     synergies: ['monster'],
   },
   {
@@ -50,7 +50,7 @@ export const UNITS: UnitDef[] = [
     def: 6,
     speed: 5,
     cost: 2,
-    special: 'Coup Dévastateur : inflige des dégâts doubles 20% du temps',
+    special: 'Devastating Blow: deals double damage 20% of the time',
     synergies: ['ogre', 'kijin'],
   },
   {
@@ -63,7 +63,7 @@ export const UNITS: UnitDef[] = [
     def: 5,
     speed: 6,
     cost: 2,
-    special: 'Flamme Noire : inflige 15 dégâts à tous les ennemis',
+    special: 'Dark Flame: deals 15 damage to all enemies',
     synergies: ['ogre', 'kijin'],
   },
   {
@@ -76,7 +76,7 @@ export const UNITS: UnitDef[] = [
     def: 3,
     speed: 9,
     cost: 2,
-    special: 'Assassinat : cible l\'ennemi le plus faible',
+    special: 'Assassination: targets the weakest enemy',
     synergies: ['ogre', 'kijin', 'rapide'],
   },
   {
@@ -89,7 +89,7 @@ export const UNITS: UnitDef[] = [
     def: 4,
     speed: 3,
     cost: 2,
-    special: 'Soin : restaure 20 PV à l\'allié le plus blessé',
+    special: 'Heal: restores 20 HP to the most injured ally',
     synergies: ['ogre', 'kijin', 'guerisseur'],
   },
   {
@@ -102,7 +102,7 @@ export const UNITS: UnitDef[] = [
     def: 15,
     speed: 2,
     cost: 2,
-    special: 'Provocation : attire les attaques ennemies',
+    special: 'Taunt: draws enemy attacks',
     synergies: ['monster', 'guerisseur'],
   },
   {
@@ -115,7 +115,7 @@ export const UNITS: UnitDef[] = [
     def: 6,
     speed: 8,
     cost: 3,
-    special: 'Maître de l\'épée : 40% de chance de coup critique',
+    special: 'Sword Master: 40% critical hit chance',
     synergies: ['kijin', 'rapide'],
   },
   {
@@ -128,7 +128,7 @@ export const UNITS: UnitDef[] = [
     def: 8,
     speed: 7,
     cost: 3,
-    special: 'Mort Nucléaire : exécute les ennemis sous 25% PV',
+    special: 'Nuclear Death: executes enemies below 25% HP',
     synergies: ['monster', 'demon'],
   },
   {
@@ -141,7 +141,7 @@ export const UNITS: UnitDef[] = [
     def: 12,
     speed: 6,
     cost: 4,
-    special: 'Prédateur : copie la capacité de l\'ennemi le plus fort',
+    special: 'Predator: copies the ability of the strongest enemy',
     synergies: ['monster', 'kijin'],
   },
   {
@@ -154,7 +154,7 @@ export const UNITS: UnitDef[] = [
     def: 10,
     speed: 5,
     cost: 4,
-    special: 'Souffle du Dragon : inflige 30 dégâts à tous les ennemis',
+    special: 'Dragon Breath: deals 30 damage to all enemies',
     synergies: ['monster', 'demon'],
   },
 ];

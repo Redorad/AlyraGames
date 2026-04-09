@@ -4,8 +4,8 @@ export const CARDS: Record<string, CardDef> = {
   /* ── Starter cards ────────────────────────────── */
   strike: {
     id: "strike",
-    name: "Frappe",
-    description: "Inflige 6 dégâts.",
+    name: "Strike",
+    description: "Deal 6 damage.",
     type: "attack",
     rarity: "common",
     cost: 1,
@@ -16,8 +16,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   defend: {
     id: "defend",
-    name: "Défense",
-    description: "Gagne 5 de blocage.",
+    name: "Defend",
+    description: "Gain 5 block.",
     type: "skill",
     rarity: "common",
     cost: 1,
@@ -30,8 +30,8 @@ export const CARDS: Record<string, CardDef> = {
   /* ── Common attacks ───────────────────────────── */
   wolfFang: {
     id: "wolfFang",
-    name: "Croc de Ranga",
-    description: "Inflige 3 dégâts 3 fois.",
+    name: "Ranga's Fang",
+    description: "Deal 3 damage 3 times.",
     type: "attack",
     rarity: "common",
     cost: 1,
@@ -43,8 +43,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   slash: {
     id: "slash",
-    name: "Entaille",
-    description: "Inflige 8 dégâts.",
+    name: "Slash",
+    description: "Deal 8 damage.",
     type: "attack",
     rarity: "common",
     cost: 1,
@@ -55,8 +55,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   bash: {
     id: "bash",
-    name: "Coup de Poing",
-    description: "Inflige 8 dégâts. Applique 2 Vulnérable.",
+    name: "Bash",
+    description: "Deal 8 damage. Apply 2 Vulnerable.",
     type: "attack",
     rarity: "common",
     cost: 2,
@@ -70,8 +70,8 @@ export const CARDS: Record<string, CardDef> = {
   /* ── Common skills ────────────────────────────── */
   ironWall: {
     id: "ironWall",
-    name: "Mur de Geld",
-    description: "Gagne 8 de blocage.",
+    name: "Geld's Wall",
+    description: "Gain 8 block.",
     type: "skill",
     rarity: "common",
     cost: 1,
@@ -82,8 +82,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   shadowStep: {
     id: "shadowStep",
-    name: "Pas de l'Ombre",
-    description: "Gagne 3 de blocage. Pioche 2 cartes.",
+    name: "Shadow Step",
+    description: "Gain 3 block. Draw 2 cards.",
     type: "skill",
     rarity: "common",
     cost: 1,
@@ -95,8 +95,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   weaken: {
     id: "weaken",
-    name: "Affaiblir",
-    description: "Applique 2 Faiblesse.",
+    name: "Weaken",
+    description: "Apply 2 Weakness.",
     type: "skill",
     rarity: "common",
     cost: 1,
@@ -109,8 +109,8 @@ export const CARDS: Record<string, CardDef> = {
   /* ── Uncommon attacks ─────────────────────────── */
   fireStorm: {
     id: "fireStorm",
-    name: "Tempête de Feu",
-    description: "Inflige 8 dégâts à TOUS les ennemis.",
+    name: "Fire Storm",
+    description: "Deal 8 damage to ALL enemies.",
     type: "attack",
     rarity: "uncommon",
     cost: 2,
@@ -121,8 +121,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   ogreStrength: {
     id: "ogreStrength",
-    name: "Force de Shion",
-    description: "Inflige 14 dégâts.",
+    name: "Shion's Might",
+    description: "Deal 14 damage.",
     type: "attack",
     rarity: "uncommon",
     cost: 2,
@@ -133,8 +133,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   criticalCut: {
     id: "criticalCut",
-    name: "Coupe d'Hakurou",
-    description: "Inflige 10 dégâts. Si l'ennemi est Vulnérable, inflige 10 de plus.",
+    name: "Hakurou's Cut",
+    description: "Deal 10 damage. If the enemy is Vulnerable, deal 10 more.",
     type: "attack",
     rarity: "uncommon",
     cost: 1,
@@ -145,8 +145,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   heavyBlow: {
     id: "heavyBlow",
-    name: "Coup Dévastateur",
-    description: "Inflige 20 dégâts. Épuise.",
+    name: "Heavy Blow",
+    description: "Deal 20 damage. Exhaust.",
     type: "attack",
     rarity: "uncommon",
     cost: 2,
@@ -160,8 +160,8 @@ export const CARDS: Record<string, CardDef> = {
   /* ── Uncommon skills ──────────────────────────── */
   healingLight: {
     id: "healingLight",
-    name: "Lumière de Shuna",
-    description: "Soigne 7 PV.",
+    name: "Shuna's Light",
+    description: "Heal 7 HP.",
     type: "skill",
     rarity: "uncommon",
     cost: 1,
@@ -172,8 +172,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   fortress: {
     id: "fortress",
-    name: "Forteresse",
-    description: "Gagne 12 de blocage.",
+    name: "Fortress",
+    description: "Gain 12 block.",
     type: "skill",
     rarity: "uncommon",
     cost: 2,
@@ -184,8 +184,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   insight: {
     id: "insight",
-    name: "Clairvoyance",
-    description: "Pioche 3 cartes.",
+    name: "Insight",
+    description: "Draw 3 cards.",
     type: "skill",
     rarity: "uncommon",
     cost: 1,
@@ -196,8 +196,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   intimidate: {
     id: "intimidate",
-    name: "Intimidation",
-    description: "Applique 1 Faiblesse à TOUS les ennemis.",
+    name: "Intimidate",
+    description: "Apply 1 Weakness to ALL enemies.",
     type: "skill",
     rarity: "uncommon",
     cost: 1,
@@ -210,8 +210,8 @@ export const CARDS: Record<string, CardDef> = {
   /* ── Rare cards ───────────────────────────────── */
   predator: {
     id: "predator",
-    name: "Prédateur",
-    description: "Inflige 12 dégâts. Soigne les dégâts infligés.",
+    name: "Predator",
+    description: "Deal 12 damage. Heal for the damage dealt.",
     type: "attack",
     rarity: "rare",
     cost: 2,
@@ -223,8 +223,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   darkFlame: {
     id: "darkFlame",
-    name: "Flamme Noire",
-    description: "Inflige 25 dégâts. Épuise.",
+    name: "Dark Flame",
+    description: "Deal 25 damage. Exhaust.",
     type: "attack",
     rarity: "rare",
     cost: 3,
@@ -236,8 +236,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   demonLord: {
     id: "demonLord",
-    name: "Roi-Démon",
-    description: "Gagne 3 Force. Épuise.",
+    name: "Demon Lord",
+    description: "Gain 3 Strength. Exhaust.",
     type: "power",
     rarity: "rare",
     cost: 3,
@@ -249,8 +249,8 @@ export const CARDS: Record<string, CardDef> = {
   },
   ironSkin: {
     id: "ironSkin",
-    name: "Peau de Fer",
-    description: "Gagne 2 Dextérité. Épuise.",
+    name: "Iron Skin",
+    description: "Gain 2 Dexterity. Exhaust.",
     type: "power",
     rarity: "rare",
     cost: 2,
@@ -263,7 +263,7 @@ export const CARDS: Record<string, CardDef> = {
   megiddo: {
     id: "megiddo",
     name: "Megiddo",
-    description: "Inflige 15 dégâts à TOUS les ennemis. Épuise.",
+    description: "Deal 15 damage to ALL enemies. Exhaust.",
     type: "attack",
     rarity: "rare",
     cost: 3,

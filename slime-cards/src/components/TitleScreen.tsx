@@ -22,12 +22,12 @@ export default function TitleScreen() {
           onClick={startRun}
           className="pulse-glow px-8 py-3 rounded-xl bg-accent/20 text-accent border border-accent/40 text-lg font-bold hover:bg-accent/30 transition"
         >
-          Nouvelle Partie
+          New Game
         </button>
 
         <div className="mt-8 text-xs text-gray-600 max-w-xs mx-auto">
-          <p>3 actes, 3 boss. Construis ton deck,</p>
-          <p>bats tes ennemis, deviens Roi-Démon.</p>
+          <p>3 acts, 3 bosses. Build your deck,</p>
+          <p>defeat your enemies, become Demon Lord.</p>
         </div>
       </div>
     </div>

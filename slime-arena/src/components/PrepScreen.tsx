@@ -66,8 +66,8 @@ export default function PrepScreen() {
           <span className="text-yellow-400">💰 {gold}</span>
         </div>
         <div className="text-sm text-gray-400">
-          Ennemi : <span className="text-steel">{enemyRound?.name}</span>
-          {' '}({enemyRound?.units.length} unités)
+          Enemy: <span className="text-steel">{enemyRound?.name}</span>
+          {' '}({enemyRound?.units.length} units)
         </div>
       </div>
 
@@ -94,12 +94,12 @@ export default function PrepScreen() {
       {/* Tutorial hint for round 1 */}
       {round === 1 && placed.length === 0 && (
         <div className="mb-2 p-2.5 rounded-xl bg-accent/10 border border-accent/30 text-sm text-accent flex-shrink-0">
-          {"\u{1F4A1}"} <strong>Astuce :</strong> Achète des unités dans la boutique ({"\u27A1"} droite), puis clique une case de la grille pour les placer. Quand tu es prêt, clique <strong>"Combattre !"</strong>
+          {"\u{1F4A1}"} <strong>Tip:</strong> Buy units from the shop ({"\u27A1"} right), then click a grid cell to place them. When ready, click <strong>"Fight!"</strong>
         </div>
       )}
       {round === 1 && placed.length > 0 && bench.length === 0 && (
         <div className="mb-2 p-2.5 rounded-xl bg-green-500/10 border border-green-500/30 text-sm text-green-400 flex-shrink-0">
-          {"\u{2705}"} Unités placées ! Clique <strong>"Combattre !"</strong> en bas à droite pour lancer le combat.
+          {"\u{2705}"} Units placed! Click <strong>"Fight!"</strong> at the bottom right to start combat.
         </div>
       )}
 
@@ -107,11 +107,11 @@ export default function PrepScreen() {
       <div className="flex-1 flex gap-3 min-h-0">
         {/* Grid */}
         <div className="flex-1 flex flex-col">
-          <div className="text-xs text-gray-500 mb-1">Votre grille (glissez ou cliquez pour placer)</div>
+          <div className="text-xs text-gray-500 mb-1">Your grid (drag or click to place)</div>
           {[0, 1].map(row => (
             <div key={row} className="mb-1.5">
               <div className="text-[10px] font-bold mb-0.5" style={{ color: row === 0 ? '#facc15' : '#60a5fa' }}>
-                {row === 0 ? 'Avant (front)' : 'Arrière (back -20% dégâts)'}
+                {row === 0 ? 'Front' : 'Back (-20% damage)'}
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {Array.from({ length: 4 }).map((_, col) => {
@@ -150,12 +150,12 @@ export default function PrepScreen() {
                           <button
                             onClick={(e) => { e.stopPropagation(); removeUnit(unit.uid); playClick(); setSelectedUid(null); }}
                             className="w-5 h-5 bg-gray-700 rounded-full text-[10px] hover:bg-gray-600"
-                            title="Retirer"
+                            title="Remove"
                           >↩</button>
                           <button
                             onClick={(e) => { e.stopPropagation(); sellUnit(unit.uid); playClick(); setSelectedUid(null); }}
                             className="w-5 h-5 bg-red-700 rounded-full text-[10px] hover:bg-red-600"
-                            title="Vendre"
+                            title="Sell"
                           >💰</button>
                         </div>
                       )}
@@ -171,7 +171,7 @@ export default function PrepScreen() {
           <div className="mb-1"></div>
 
           {/* Bench */}
-          <div className="text-xs text-gray-500 mb-1">Banc ({bench.length}/4)</div>
+          <div className="text-xs text-gray-500 mb-1">Bench ({bench.length}/4)</div>
           <div className="flex gap-1.5">
             {bench.map(unit => {
               const def = getUnitDef(unit.defId);
@@ -192,14 +192,14 @@ export default function PrepScreen() {
                     <button
                       onClick={(e) => { e.stopPropagation(); sellUnit(unit.uid); playClick(); setSelectedUid(null); }}
                       className="absolute -top-1 -right-1 w-5 h-5 bg-red-700 rounded-full text-[10px] hover:bg-red-600"
-                      title="Vendre"
+                      title="Sell"
                     >💰</button>
                   )}
                 </div>
               );
             })}
             {bench.length === 0 && (
-              <div className="text-xs text-gray-600 py-4">Achetez des unités dans le shop</div>
+              <div className="text-xs text-gray-600 py-4">Buy units from the shop</div>
             )}
           </div>
         </div>
@@ -207,14 +207,14 @@ export default function PrepScreen() {
         {/* Shop panel */}
         <div className="w-56 flex flex-col flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-bold text-steel">Boutique</span>
+            <span className="text-sm font-bold text-steel">Shop</span>
             <button
               onClick={() => { rollShop(); playReroll(); }}
               disabled={gold < 1}
               className="px-2 py-0.5 text-xs bg-navy-700 border border-steel/40 rounded hover:bg-navy-800
                          disabled:opacity-30 disabled:cursor-not-allowed text-steel"
             >
-              🔄 Relancer (1💰)
+              🔄 Reroll (1💰)
             </button>
           </div>
 
@@ -269,7 +269,7 @@ export default function PrepScreen() {
             className="mt-2 w-full py-3 bg-red-600/80 border-2 border-red-500 rounded-xl text-lg font-bold
                        hover:bg-red-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            ⚔️ Combattre !
+            ⚔️ Fight!
           </button>
         </div>
       </div>

@@ -46,7 +46,7 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
           {/* Progress bar */}
           <div className="mt-4 max-w-xs mx-auto">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>Progression</span>
+              <span>Progress</span>
               <span>{totalDone}/{LEVELS.length}</span>
             </div>
             <div className="h-2 bg-navy-700 rounded-full overflow-hidden">
@@ -58,7 +58,7 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
             {totalHard > 0 && (
               <div className="mt-2">
                 <div className="flex justify-between text-xs text-gray-500 mb-1">
-                  <span className="text-red-400">Difficile</span>
+                  <span className="text-red-400">Hard</span>
                   <span className="text-red-400">{totalHard}/{LEVELS.length}</span>
                 </div>
                 <div className="h-2 bg-navy-700 rounded-full overflow-hidden">
@@ -73,7 +73,7 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
 
           {allCompleted && (
             <div className="mt-3 text-xs px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 inline-block">
-              {"\u{1F9CA}"} Rimuru débloqué ! Mode Difficile disponible !
+              {"\u{1F9CA}"} Rimuru unlocked! Hard Mode available!
             </div>
           )}
         </div>
@@ -93,21 +93,21 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-base font-bold text-purple-300">Mode Infini</span>
+                <span className="text-base font-bold text-purple-300">Endless Mode</span>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">
-                Vagues infinies de difficulté croissante. Toutes les tours disponibles.
+                Infinite waves of increasing difficulty. All towers available.
               </p>
               {bestEndless && (
                 <div className="mt-1.5 flex items-center gap-3">
                   <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                    {"\u{1F3C6}"} Record : Vague {bestEndless.wave} ({bestEndless.kills} kills)
+                    {"\u{1F3C6}"} Record: Wave {bestEndless.wave} ({bestEndless.kills} kills)
                   </span>
                 </div>
               )}
             </div>
             <div className="text-right shrink-0">
-              <div className="text-xs text-purple-400">{"\u221E"} vagues</div>
+              <div className="text-xs text-purple-400">{"\u221E"} waves</div>
               <div className="text-xs text-red-400/70 mt-0.5">
                 {"\u{2764}\u{FE0F}"} 20
               </div>
@@ -121,14 +121,14 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
         {/* ── Leaderboard (if scores exist) ── */}
         {endlessScores.length > 0 && (
           <div className="rounded-xl border border-purple-500/20 bg-navy-800/50 p-3">
-            <h3 className="text-sm font-bold text-purple-300 mb-2">{"\u{1F3C6}"} Leaderboard Infini</h3>
+            <h3 className="text-sm font-bold text-purple-300 mb-2">{"\u{1F3C6}"} Endless Leaderboard</h3>
             <div className="space-y-1">
               {endlessScores.map((s, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs">
                   <span className={`w-5 text-center font-bold ${i === 0 ? "text-yellow-400" : i === 1 ? "text-gray-300" : i === 2 ? "text-orange-400" : "text-gray-500"}`}>
                     {i + 1}.
                   </span>
-                  <span className="text-white font-medium">Vague {s.wave}</span>
+                  <span className="text-white font-medium">Wave {s.wave}</span>
                   <span className="text-gray-500">{s.kills} kills</span>
                   <span className="ml-auto text-gray-600">{s.date}</span>
                 </div>
@@ -212,7 +212,7 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className="text-xs text-gray-500">{lvl.waves.length} vagues</div>
+                    <div className="text-xs text-gray-500">{lvl.waves.length} waves</div>
                     <div className="text-xs text-red-400/70 mt-0.5">
                       {"\u{2764}\u{FE0F}"} {lvl.lives}
                     </div>
@@ -233,9 +233,9 @@ export default function LevelSelect({ onSelect, onEndless }: Props) {
                     }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="text-red-400 font-bold">{"\u{2620}\u{FE0F}"} Difficile</span>
+                    <span className="text-red-400 font-bold">{"\u{2620}\u{FE0F}"} Hard</span>
                     <span className="text-gray-500 text-xs">
-                      1.8x PV, +armure, +vitesse, -vies, toutes les tours
+                      1.8x HP, +armor, +speed, -lives, all towers
                     </span>
                     {doneHard && (
                       <span className="ml-auto text-xs px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-medium">

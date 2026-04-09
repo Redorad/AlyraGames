@@ -58,7 +58,7 @@ function ResourceBar() {
       </div>
       <div className="hud-stats">
         {saveIndicator && <span className="hud-save">💾</span>}
-        <span className="hud-stat" title={`Bonheur: ${happiness}%`}>
+        <span className="hud-stat" title={`Happiness: ${happiness}%`}>
           {happinessEmoji} {happiness}%
         </span>
         <span className="hud-stat">
@@ -134,12 +134,12 @@ function BuildingInfoPopup({
             <span className="popup-emoji">{def.emoji}</span>
             <div>
               <div className="popup-title">{def.name}</div>
-              <div className="popup-subtitle">En construction...</div>
+              <div className="popup-subtitle">Under construction...</div>
             </div>
             <button onClick={onClose} className="popup-close">✕</button>
           </div>
           <div className="popup-construction">
-            <div className="construction-text">⏳ {remaining}s restantes</div>
+            <div className="construction-text">⏳ {remaining}s remaining</div>
             <div className="construction-bar-bg">
               <div
                 className="construction-bar-fill"
@@ -210,7 +210,7 @@ function BuildingInfoPopup({
 
         {def.populationCap && (
           <div className="popup-production">
-            <span className="prod-label">Capacite:</span> +{def.populationCap * currentBuilding.level} pop
+            <span className="prod-label">Capacity:</span> +{def.populationCap * currentBuilding.level} pop
           </div>
         )}
 
@@ -232,7 +232,7 @@ function BuildingInfoPopup({
             disabled={!canAffordUpgrade}
             className={`popup-upgrade-btn ${canAffordUpgrade ? 'affordable' : 'unaffordable'}`}
           >
-            <span>⬆️ Ameliorer Niv.{currentBuilding.level} → {currentBuilding.level + 1}</span>
+            <span>⬆️ Upgrade Lv.{currentBuilding.level} → {currentBuilding.level + 1}</span>
             <span className="upgrade-cost">
               {Object.entries(upgradeCost).map(([k, v]) => `${icons[k] || k}${v}`).join(' ')}
             </span>
@@ -240,14 +240,14 @@ function BuildingInfoPopup({
         )}
 
         {!hasForge && currentBuilding.level < 3 && (
-          <div className="popup-hint">Construisez une Forge pour ameliorer.</div>
+          <div className="popup-hint">Build a Forge to unlock upgrades.</div>
         )}
 
         {/* Workers */}
         {def.maxWorkers > 0 && (
           <div className="popup-workers">
             <div className="workers-title">
-              👷 Travailleurs ({assigned.length}/{def.maxWorkers})
+              👷 Workers ({assigned.length}/{def.maxWorkers})
             </div>
             {assigned.map((c) => (
               <div key={c.id} className="worker-row">
@@ -256,13 +256,13 @@ function BuildingInfoPopup({
                   onClick={() => { playClickSound(); unassignWorker(c.id); }}
                   className="worker-remove"
                 >
-                  Retirer
+                  Remove
                 </button>
               </div>
             ))}
             {!isFull && unassigned.length > 0 && (
               <div className="worker-available">
-                <div className="workers-subtitle">Disponibles</div>
+                <div className="workers-subtitle">Available</div>
                 <div className="worker-list-scroll">
                   {unassigned.map((c) => (
                     <button
@@ -276,12 +276,12 @@ function BuildingInfoPopup({
                 </div>
               </div>
             )}
-            {isFull && <div className="popup-hint">Batiment complet.</div>}
+            {isFull && <div className="popup-hint">Building full.</div>}
           </div>
         )}
 
         {def.maxWorkers === 0 && (
-          <div className="popup-hint">Ce batiment ne necessite pas de travailleurs.</div>
+          <div className="popup-hint">This building does not require workers.</div>
         )}
       </div>
     </div>
@@ -425,8 +425,8 @@ function BottomBuildBar({
     <div className="bottom-bar">
       {selectedDef && (
         <div className="placing-indicator">
-          <span>Placez le batiment sur la grille</span>
-          <button onClick={onCancel} className="cancel-btn">✕ Annuler</button>
+          <span>Place the building on the grid</span>
+          <button onClick={onCancel} className="cancel-btn">✕ Cancel</button>
         </div>
       )}
       <div className="build-scroll-area">
@@ -462,7 +462,7 @@ function BottomBuildBar({
             onClick={() => { playClickSound(); autoAssignWorkers(); }}
             className="auto-btn idle-btn"
           >
-            ⚠️ {idleCount} inactif{idleCount > 1 ? 's' : ''} — Auto-assigner
+            ⚠️ {idleCount} idle — Auto-assign
           </button>
         )}
         <button
@@ -494,7 +494,7 @@ function SidePanel({
     <div className="side-panel-overlay" onClick={onClose}>
       <div className="side-panel" onClick={(e) => e.stopPropagation()}>
         <div className="side-panel-header">
-          <h2>{show === 'population' ? '👥 Population' : '📜 Evenements'}</h2>
+          <h2>{show === 'population' ? '👥 Population' : '📜 Events'}</h2>
           <button onClick={onClose} className="popup-close">✕</button>
         </div>
         {show === 'population' && (
@@ -506,7 +506,7 @@ function SidePanel({
                 <div key={c.id} className="citizen-row">
                   <span>🧑 {c.name}</span>
                   <span className="citizen-status">
-                    {def ? `${def.emoji} ${def.name}` : '💤 Libre'}
+                    {def ? `${def.emoji} ${def.name}` : '💤 Idle'}
                   </span>
                 </div>
               );
@@ -516,7 +516,7 @@ function SidePanel({
         {show === 'events' && (
           <div className="side-panel-content">
             {eventLog.length === 0 ? (
-              <div className="empty-text">En attente...</div>
+              <div className="empty-text">Waiting...</div>
             ) : (
               eventLog.map((entry) => (
                 <div key={entry.id} className="event-row">
@@ -539,30 +539,30 @@ function HelpPanel({ onClose }: { onClose: () => void }) {
       <div className="popup-card help-card" onClick={(e) => e.stopPropagation()}>
         <div className="popup-header">
           <span className="popup-emoji">❓</span>
-          <div><div className="popup-title">Comment jouer</div></div>
+          <div><div className="popup-title">How to Play</div></div>
           <button onClick={onClose} className="popup-close">✕</button>
         </div>
         <div className="help-content">
           <div className="help-item">
-            <strong>🏗️ Construire:</strong> Selectionnez un batiment en bas, puis cliquez sur une case verte de la grille.
+            <strong>🏗️ Build:</strong> Select a building at the bottom, then click on a green cell in the grid.
           </div>
           <div className="help-item">
-            <strong>👷 Travailleurs:</strong> Cliquez sur un batiment place pour assigner des citoyens. Sans travailleurs, pas de production !
+            <strong>👷 Workers:</strong> Click on a placed building to assign citizens. No workers, no production!
           </div>
           <div className="help-item">
-            <strong>🌾 Nourriture:</strong> Chaque citoyen consomme 0.3/s. Construisez des Fermes en priorite !
+            <strong>🌾 Food:</strong> Each citizen consumes 0.3/s. Build Farms first!
           </div>
           <div className="help-item">
-            <strong>👥 Population:</strong> De nouveaux citoyens arrivent si vous avez assez de nourriture et de Huttes.
+            <strong>👥 Population:</strong> New citizens arrive if you have enough food and Huts.
           </div>
           <div className="help-item">
-            <strong>⬆️ Ameliorations:</strong> Construisez une Forge pour debloquer les ameliorations (Niv.1 a 3).
+            <strong>⬆️ Upgrades:</strong> Build a Forge to unlock upgrades (Lv.1 to 3).
           </div>
           <div className="help-item">
-            <strong>😊 Bonheur:</strong> Tavernes (+10), nourriture (&gt;50: +10), inactifs (-5). Bonheur &gt;70% = +20% production !
+            <strong>😊 Happiness:</strong> Taverns (+10), food (&gt;50: +10), idle (-5). Happiness &gt;70% = +20% production!
           </div>
           <div className="help-item">
-            <strong>⏳ Construction:</strong> Les batiments mettent 5 secondes a construire. Ils ne produisent rien pendant ce temps.
+            <strong>⏳ Construction:</strong> Buildings take 5 seconds to build. They produce nothing during this time.
           </div>
         </div>
       </div>
@@ -615,8 +615,8 @@ export default function GameScreen() {
       <div className="game-middle">
         <div className="game-side-buttons">
           <button onClick={() => setSidePanel('population')} className="side-toggle-btn" title="Population">👥</button>
-          <button onClick={() => setSidePanel('events')} className="side-toggle-btn" title="Evenements">📜</button>
-          <button onClick={() => setShowHelp(true)} className="side-toggle-btn" title="Aide">❓</button>
+          <button onClick={() => setSidePanel('events')} className="side-toggle-btn" title="Events">📜</button>
+          <button onClick={() => setShowHelp(true)} className="side-toggle-btn" title="Help">❓</button>
         </div>
 
         <VillageGrid

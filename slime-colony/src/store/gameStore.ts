@@ -301,7 +301,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       newCitizens = [...newCitizens, newCitizen];
       logCounter++;
       newLog = [
-        { id: logCounter, timestamp: Date.now(), text: `${newCitizen.name} a rejoint Tempest!`, emoji: '🎉' },
+        { id: logCounter, timestamp: Date.now(), text: `${newCitizen.name} joined Tempest!`, emoji: '🎉' },
         ...newLog,
       ].slice(0, 20);
     }
@@ -316,7 +316,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           {
             id: logCounter,
             timestamp: Date.now(),
-            text: `Tempest atteint ${m} habitants! La ville grandit!`,
+            text: `Tempest reached ${m} citizens! The city grows!`,
             emoji: '🏆',
           },
           ...newLog,
@@ -418,7 +418,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     let logCounter = state.eventLogCounter + 1;
     const newLog = [
-      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} en construction...`, emoji: '🔨' },
+      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} under construction...`, emoji: '🔨' },
       ...state.eventLog,
     ].slice(0, 20);
 
@@ -464,7 +464,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     let logCounter = state.eventLogCounter + 1;
     const stars = '⭐'.repeat(building.level + 1);
     const newLog = [
-      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} ameliore! ${stars}`, emoji: '⬆️' },
+      { id: logCounter, timestamp: Date.now(), text: `${def.emoji} ${def.name} upgraded! ${stars}`, emoji: '⬆️' },
       ...state.eventLog,
     ].slice(0, 20);
 
