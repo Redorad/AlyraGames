@@ -181,10 +181,8 @@ export default function Game() {
       } else {
         // Update balls
         updateBalls(balls, paddle, bricks, dt, (brick: Brick) => {
-          const points = (brick.maxHits - Math.max(brick.hits, 0)) * 10
           if (!brick.alive) {
-            const earned = brick.maxHits * 10
-            addScore(earned)
+            addScore(brick.maxHits * 10)
             const pu = maybeSpawnPowerUp(brick)
             if (pu) pus.push(pu)
           }
