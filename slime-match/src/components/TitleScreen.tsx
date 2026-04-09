@@ -30,23 +30,23 @@ export default function TitleScreen() {
           onClick={() => setShowRules(!showRules)}
           className="mt-3 text-xs px-3 py-1 rounded-lg bg-navy-700 text-steel border border-steel/20 hover:bg-navy-700/80 transition"
         >
-          {showRules ? 'Masquer les règles' : 'Règles du jeu'}
+          {showRules ? 'Hide rules' : 'Game rules'}
         </button>
       </div>
 
       {showRules && (
         <div className="w-full max-w-sm mb-4 p-4 rounded-xl bg-navy-800 border border-white/10 text-sm text-gray-300 space-y-2 animate-fade-in">
-          <h3 className="text-accent font-bold text-base mb-1">Comment jouer</h3>
-          <p>🔹 <strong>Échange</strong> deux slimes adjacents en cliquant dessus l'un après l'autre.</p>
-          <p>🔹 <strong>Aligne 3+</strong> slimes identiques en ligne ou en colonne pour les faire disparaître et marquer des points.</p>
-          <p>🔹 <strong>Gravité</strong> : les slimes tombent pour remplir les cases vides, de nouveaux apparaissent en haut.</p>
-          <p>🔹 <strong>Cascades</strong> : les matchs en chaîne augmentent le multiplicateur de combo (×2, ×3... jusqu'à ×5).</p>
-          <h3 className="text-accent font-bold text-base mt-3 mb-1">Gemmes spéciales</h3>
-          <p>✨ <strong>Match de 4</strong> → crée une gemme <span className="text-yellow-400">Ligne</span> qui détruit toute une ligne ou colonne.</p>
-          <p>💎 <strong>Match de 5+</strong> → crée une <span className="text-purple-400">Bombe</span> qui détruit toutes les gemmes de la même couleur.</p>
-          <h3 className="text-accent font-bold text-base mt-3 mb-1">Objectif</h3>
-          <p>🎯 Atteins le <strong>score cible</strong> avant la fin du <strong>temps</strong> (60 secondes par niveau).</p>
-          <p>⭐ 10 niveaux de difficulté croissante !</p>
+          <h3 className="text-accent font-bold text-base mb-1">How to Play</h3>
+          <p>🔹 <strong>Swap</strong> two adjacent slimes by clicking them one after the other.</p>
+          <p>🔹 <strong>Match 3+</strong> identical slimes in a row or column to clear them and score points.</p>
+          <p>🔹 <strong>Gravity</strong>: slimes fall to fill empty spaces, new ones appear at the top.</p>
+          <p>🔹 <strong>Cascades</strong>: chain matches increase the combo multiplier (x2, x3... up to x5).</p>
+          <h3 className="text-accent font-bold text-base mt-3 mb-1">Special Gems</h3>
+          <p>✨ <strong>Match 4</strong> → creates a <span className="text-yellow-400">Line</span> gem that destroys an entire row or column.</p>
+          <p>💎 <strong>Match 5+</strong> → creates a <span className="text-purple-400">Bomb</span> that destroys all gems of the same color.</p>
+          <h3 className="text-accent font-bold text-base mt-3 mb-1">Objective</h3>
+          <p>🎯 Reach the <strong>target score</strong> before <strong>time</strong> runs out (60 seconds per level).</p>
+          <p>⭐ 10 levels of increasing difficulty!</p>
         </div>
       )}
 

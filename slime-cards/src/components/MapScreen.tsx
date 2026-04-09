@@ -11,9 +11,9 @@ export default function MapScreen() {
       <PlayerBar />
 
       <div className="text-center py-3 border-b border-white/5">
-        <span className="text-xs text-gray-500">Acte {act}</span>
+        <span className="text-xs text-gray-500">Act {act}</span>
         <h2 className="text-lg font-bold text-white">
-          {act === 1 ? "Forêt de Jura" : act === 2 ? "Walpurgis" : "Le Monde des Démons"}
+          {act === 1 ? "Jura Forest" : act === 2 ? "Walpurgis" : "The Demon Realm"}
         </h2>
       </div>
 
@@ -55,7 +55,7 @@ export default function MapScreen() {
         {Object.entries(NODE_EMOJI).map(([type, emoji]) => (
           <span key={type} className="flex items-center gap-1">
             <span>{emoji}</span>
-            <span className="capitalize">{type === "combat" ? "Combat" : type === "elite" ? "Élite" : type === "boss" ? "Boss" : type === "event" ? "Événement" : type === "rest" ? "Repos" : "Boutique"}</span>
+            <span className="capitalize">{type === "combat" ? "Combat" : type === "elite" ? "Elite" : type === "boss" ? "Boss" : type === "event" ? "Event" : type === "rest" ? "Rest" : "Shop"}</span>
           </span>
         ))}
       </div>

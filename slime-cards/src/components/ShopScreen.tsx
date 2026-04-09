@@ -28,8 +28,8 @@ export default function ShopScreen() {
     <div className="h-full flex flex-col items-center justify-center bg-navy-900 px-4">
       <div className="text-center slide-up">
         <div className="text-5xl mb-4">{"\u{1F6D2}"}</div>
-        <h2 className="text-xl font-bold text-blue-400 mb-1">Boutique</h2>
-        <p className="text-yellow-400 text-sm mb-6">{player.gold} or disponible</p>
+        <h2 className="text-xl font-bold text-blue-400 mb-1">Shop</h2>
+        <p className="text-yellow-400 text-sm mb-6">{player.gold} gold available</p>
 
         <div className="flex gap-3 flex-wrap justify-center mb-4">
           {combatReward.cardChoices.map((def) => {
@@ -57,7 +57,7 @@ export default function ShopScreen() {
           disabled={player.gold < 30}
           className={`px-4 py-2 rounded-lg text-sm mb-4 ${player.gold >= 30 ? "bg-green-500/20 text-green-300 border border-green-500/40 hover:bg-green-500/30" : "bg-gray-700/30 text-gray-500 border border-gray-600/20 cursor-not-allowed"}`}
         >
-          {"\u{2764}\u{FE0F}"} Soigner +15 PV (30G)
+          {"\u{2764}\u{FE0F}"} Heal +15 HP (30G)
         </button>
 
         <div>
@@ -65,7 +65,7 @@ export default function ShopScreen() {
             onClick={goToMap}
             className="text-gray-500 text-sm hover:text-gray-300 transition"
           >
-            Quitter la boutique
+            Leave Shop
           </button>
         </div>
       </div>

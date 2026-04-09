@@ -170,14 +170,14 @@ export default function GameScreen() {
           onClick={handleBack}
           className="text-steel hover:text-accent transition-colors font-semibold"
         >
-          &larr; Retour
+          &larr; Back
         </button>
         <span className="font-bold text-accent">{level.name}</span>
         <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-xs" title="Temps">
+          <span className="text-gray-400 text-xs" title="Time">
             &#x23F1;&#xFE0F; {formatTime(elapsed)}
           </span>
-          <span className="text-gray-400 text-xs" title="Morts">
+          <span className="text-gray-400 text-xs" title="Deaths">
             &#x1F480; {deaths}
           </span>
           <span className="text-lg">
@@ -196,10 +196,10 @@ export default function GameScreen() {
         {overlay === 'victory' && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white z-10">
             <div className="text-5xl mb-4">&#x1F389;</div>
-            <h2 className="text-3xl font-bold text-accent mb-2">Niveau Termin&eacute; !</h2>
+            <h2 className="text-3xl font-bold text-accent mb-2">Level Complete!</h2>
             <div className="text-steel mb-1">Score: {score}</div>
-            <div className="text-gray-400 text-sm mb-1">Temps: {formatTime(elapsed)}</div>
-            <div className="text-gray-400 text-sm mb-6">Morts: {deaths}</div>
+            <div className="text-gray-400 text-sm mb-1">Time: {formatTime(elapsed)}</div>
+            <div className="text-gray-400 text-sm mb-6">Deaths: {deaths}</div>
             <div className="flex gap-4">
               <button
                 onClick={handleBack}
@@ -212,14 +212,14 @@ export default function GameScreen() {
                   onClick={handleNext}
                   className="px-6 py-2 bg-accent hover:bg-purple-500 rounded-lg font-semibold transition-colors text-navy-900"
                 >
-                  Suivant &rarr;
+                  Next &rarr;
                 </button>
               ) : (
                 <button
                   onClick={handleBack}
                   className="px-6 py-2 bg-accent hover:bg-purple-500 rounded-lg font-semibold transition-colors text-navy-900"
                 >
-                  Victoire Finale !
+                  Final Victory!
                 </button>
               )}
             </div>
@@ -231,8 +231,8 @@ export default function GameScreen() {
             <div className="text-5xl mb-4">&#x1F480;</div>
             <h2 className="text-3xl font-bold text-red-500 mb-2">Game Over</h2>
             <div className="text-gray-400 mb-1">Score: {score}</div>
-            <div className="text-gray-400 text-sm mb-1">Temps: {formatTime(elapsed)}</div>
-            <div className="text-gray-400 text-sm mb-6">Morts: {deaths}</div>
+            <div className="text-gray-400 text-sm mb-1">Time: {formatTime(elapsed)}</div>
+            <div className="text-gray-400 text-sm mb-6">Deaths: {deaths}</div>
             <div className="flex gap-4">
               <button
                 onClick={handleBack}
@@ -244,7 +244,7 @@ export default function GameScreen() {
                 onClick={handleRetry}
                 className="px-6 py-2 bg-steel hover:bg-blue-400 rounded-lg font-semibold transition-colors text-navy-900"
               >
-                R&eacute;essayer
+                Retry
               </button>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function GameScreen() {
           onMouseUp={() => touchEnd('jump')}
           className="w-20 h-14 bg-accent active:bg-purple-500 rounded-xl flex items-center justify-center text-lg text-navy-900 font-bold"
         >
-          SAUT
+          JUMP
         </button>
       </div>
     </div>

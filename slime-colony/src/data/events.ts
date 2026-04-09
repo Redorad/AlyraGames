@@ -3,8 +3,8 @@ import { GameEvent, GameState } from '../types';
 export const GAME_EVENTS: GameEvent[] = [
   {
     id: 'orc_raid',
-    title: 'Raid Orc!',
-    description: 'Des orcs attaquent Tempest!',
+    title: 'Orc Raid!',
+    description: 'Orcs are attacking Tempest!',
     emoji: '👹',
     effect: (state: GameState) => {
       const damage = Math.max(0, 15 - state.totalDefense - state.totalSoldiers * 2);
@@ -22,8 +22,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'merchant_visit',
-    title: 'Marchand itinerant',
-    description: 'Un marchand offre des ressources!',
+    title: 'Traveling Merchant',
+    description: 'A merchant offers resources!',
     emoji: '🧳',
     effect: (state: GameState) => ({
       resources: {
@@ -35,8 +35,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'harvest_bonus',
-    title: 'Recolte abondante',
-    description: 'Les champs donnent plus que prevu!',
+    title: 'Bountiful Harvest',
+    description: 'The fields yield more than expected!',
     emoji: '🌻',
     effect: (state: GameState) => ({
       resources: {
@@ -47,8 +47,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'magic_surge',
-    title: 'Vague de magie',
-    description: 'Une vague de magicules traverse la region!',
+    title: 'Magic Surge',
+    description: 'A wave of magicules sweeps through the region!',
     emoji: '💫',
     effect: (state: GameState) => ({
       resources: {
@@ -59,8 +59,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'goblin_trade',
-    title: 'Commerce Gobelin',
-    description: 'Les gobelins proposent du bois et de la pierre.',
+    title: 'Goblin Trade',
+    description: 'The goblins offer wood and stone.',
     emoji: '👺',
     effect: (state: GameState) => ({
       resources: {
@@ -72,8 +72,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'storm',
-    title: 'Tempete!',
-    description: 'Une tempete endommage les reserves de bois.',
+    title: 'Storm!',
+    description: 'A storm damages the wood reserves.',
     emoji: '🌩️',
     effect: (state: GameState) => ({
       resources: {
@@ -84,8 +84,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'rimuru_blessing',
-    title: 'Benediction de Rimuru',
-    description: 'Rimuru partage son pouvoir avec la colonie!',
+    title: 'Rimuru\'s Blessing',
+    description: 'Rimuru shares his power with the colony!',
     emoji: '🔵',
     effect: (state: GameState) => ({
       resources: {
@@ -97,8 +97,8 @@ export const GAME_EVENTS: GameEvent[] = [
   },
   {
     id: 'bandit_attack',
-    title: 'Attaque de bandits',
-    description: 'Des bandits volent de l\'or!',
+    title: 'Bandit Attack',
+    description: 'Bandits steal gold!',
     emoji: '🗡️',
     effect: (state: GameState) => {
       const loss = Math.max(0, 10 - state.totalDefense);

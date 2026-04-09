@@ -168,9 +168,9 @@ export default function GameScreen() {
       <div className="px-4 pt-3 pb-2 shrink-0">
         <div className="flex items-center justify-between mb-3">
           <button onClick={handleBack} className="text-gray-400 hover:text-white text-base px-3 py-1.5 rounded-lg transition">
-            {"\u2190"} Retour
+            {"\u2190"} Back
           </button>
-          <span className="text-white font-bold text-lg">Niveau {currentLevel}</span>
+          <span className="text-white font-bold text-lg">Level {currentLevel}</span>
           <button onClick={handleRestart} className="text-gray-400 hover:text-white text-base px-3 py-1.5 rounded-lg transition">
             {"\u21BB"} Restart
           </button>
@@ -179,6 +179,7 @@ export default function GameScreen() {
         <div className="mb-2">
           <div className="flex justify-between text-sm mb-1">
             <span className="text-gray-400">Score</span>
+
             <span className="text-accent font-bold text-base">{score.toLocaleString()} / {levelConfig.targetScore.toLocaleString()}</span>
           </div>
           <div className="w-full h-3.5 bg-navy-800 rounded-full overflow-hidden border border-white/5">
@@ -188,7 +189,7 @@ export default function GameScreen() {
 
         <div>
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-400">Temps</span>
+            <span className="text-gray-400">Time</span>
             <span className={`font-bold text-base ${isTimeLow ? 'animate-timer-warning' : 'text-steel'}`}>{timeLeft}s</span>
           </div>
           <div className="w-full h-3 bg-navy-800 rounded-full overflow-hidden border border-white/5">
@@ -284,11 +285,11 @@ export default function GameScreen() {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-30">
           <div className="bg-navy-800 border border-red-500/20 rounded-2xl p-8 text-center animate-fade-in max-w-sm mx-4 shadow-2xl">
             <div className="text-5xl mb-3">{"\u{23F0}"}</div>
-            <h2 className="text-2xl font-bold text-red-400 mb-2">Temps écoulé !</h2>
-            <p className="text-gray-300 text-lg mb-1">Score : {score.toLocaleString()}</p>
-            <p className="text-gray-500 mb-6">Objectif : {levelConfig.targetScore.toLocaleString()}</p>
+            <h2 className="text-2xl font-bold text-red-400 mb-2">Time's Up!</h2>
+            <p className="text-gray-300 text-lg mb-1">Score: {score.toLocaleString()}</p>
+            <p className="text-gray-500 mb-6">Target: {levelConfig.targetScore.toLocaleString()}</p>
             <div className="flex gap-3 justify-center">
-              <button onClick={handleRestart} className="px-6 py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl text-lg font-bold transition border border-accent/30">Réessayer</button>
+              <button onClick={handleRestart} className="px-6 py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl text-lg font-bold transition border border-accent/30">Retry</button>
               <button onClick={handleBack} className="px-6 py-3 bg-navy-700 hover:bg-navy-700/80 text-gray-300 rounded-xl text-lg font-medium transition border border-white/10">Menu</button>
             </div>
           </div>
@@ -300,10 +301,10 @@ export default function GameScreen() {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-30">
           <div className="bg-navy-800 border border-accent/20 rounded-2xl p-8 text-center animate-fade-in max-w-sm mx-4 shadow-2xl">
             <div className="text-5xl mb-2">{"\u{1F389}"}</div>
-            <h2 className="text-2xl font-bold text-accent mb-1">Niveau réussi !</h2>
+            <h2 className="text-2xl font-bold text-accent mb-1">Level Complete!</h2>
             <p className="text-yellow-400 text-2xl mb-2">{"\u{2B50}"} {"\u{2B50}"} {"\u{2B50}"}</p>
-            <p className="text-gray-300 text-lg mb-1">Score : {score.toLocaleString()}</p>
-            {timeLeft > 0 && <p className="text-gray-500 mb-6">Temps restant : {timeLeft}s</p>}
+            <p className="text-gray-300 text-lg mb-1">Score: {score.toLocaleString()}</p>
+            {timeLeft > 0 && <p className="text-gray-500 mb-6">Time remaining: {timeLeft}s</p>}
             <div className="flex gap-3 justify-center">
               {currentLevel < LEVELS.length && (
                 <button
@@ -315,7 +316,7 @@ export default function GameScreen() {
                     setSelected(null); setMatchedCells(new Set()); setFallingCells(new Set()); setPhase('idle');
                   }}
                   className="px-6 py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-xl text-lg font-bold transition border border-accent/30"
-                >Suivant</button>
+                >Next</button>
               )}
               <button onClick={handleBack} className="px-6 py-3 bg-navy-700 hover:bg-navy-700/80 text-gray-300 rounded-xl text-lg font-medium transition border border-white/10">Menu</button>
             </div>

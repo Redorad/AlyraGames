@@ -17,7 +17,7 @@ function StatusBadges({ weak, vulnerable, strength, block }: { weak: number; vul
     <div className="flex gap-1 flex-wrap justify-center mt-1">
       {block > 0 && <span className="text-xs px-1 rounded bg-blue-500/20 text-blue-300">{"\u{1F6E1}\u{FE0F}"}{block}</span>}
       {strength > 0 && <span className="text-xs px-1 rounded bg-red-500/20 text-red-300">{"\u{1F4AA}"}{strength}</span>}
-      {weak > 0 && <span className="text-xs px-1 rounded bg-purple-500/20 text-purple-300">Faible {weak}</span>}
+      {weak > 0 && <span className="text-xs px-1 rounded bg-purple-500/20 text-purple-300">Weak {weak}</span>}
       {vulnerable > 0 && <span className="text-xs px-1 rounded bg-yellow-500/20 text-yellow-300">Vuln {vulnerable}</span>}
     </div>
   );
@@ -136,7 +136,7 @@ export default function CombatScreen() {
               <div key={i} className={`w-5 h-5 rounded-full border-2 ${i < player.energy ? "bg-blue-500 border-blue-400" : "bg-navy-700 border-gray-600"}`} />
             ))}
           </div>
-          <span className="text-gray-500 text-xs">Tour {turn}</span>
+          <span className="text-gray-500 text-xs">Turn {turn}</span>
         </div>
       </div>
 
@@ -162,15 +162,15 @@ export default function CombatScreen() {
       {/* ── Pile info + End Turn ── */}
       <div className="flex items-center justify-between px-3 py-1.5 border-t border-white/5 shrink-0">
         <div className="flex gap-3 text-xs text-gray-500">
-          <span>Pioche: {drawPile.length}</span>
-          <span>Défausse: {discardPile.length}</span>
-          {exhaustPile.length > 0 && <span>Épuisé: {exhaustPile.length}</span>}
+          <span>Draw: {drawPile.length}</span>
+          <span>Discard: {discardPile.length}</span>
+          {exhaustPile.length > 0 && <span>Exhaust: {exhaustPile.length}</span>}
         </div>
         <button
           onClick={endTurn}
           className="px-4 py-1.5 rounded-lg bg-accent/20 text-accent border border-accent/40 text-sm font-bold hover:bg-accent/30 transition"
         >
-          Fin de tour
+          End Turn
         </button>
       </div>
 

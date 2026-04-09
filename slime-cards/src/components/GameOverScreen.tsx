@@ -12,31 +12,31 @@ export default function GameOverScreen({ won }: { won: boolean }) {
         {won ? (
           <>
             <div className="text-6xl mb-4">{"\u{1F451}"}</div>
-            <h2 className="text-2xl font-black text-yellow-400 mb-2">Roi-Démon !</h2>
+            <h2 className="text-2xl font-black text-yellow-400 mb-2">Demon Lord!</h2>
             <p className="text-gray-400 text-sm mb-1">
-              Tu as vaincu tous les actes et atteint le statut de Roi-Démon !
+              You defeated all acts and achieved Demon Lord status!
             </p>
           </>
         ) : (
           <>
             <div className="text-6xl mb-4">{"\u{1F480}"}</div>
-            <h2 className="text-2xl font-black text-red-400 mb-2">Défaite</h2>
+            <h2 className="text-2xl font-black text-red-400 mb-2">Defeat</h2>
             <p className="text-gray-400 text-sm mb-1">
-              Rimuru est tombé...
+              Rimuru has fallen...
             </p>
           </>
         )}
 
         <div className="mt-4 space-y-1 text-sm text-gray-500">
-          <p>Acte {act} — Étage {floor}</p>
-          <p>Deck : {deck.length} cartes</p>
+          <p>Act {act} — Floor {floor}</p>
+          <p>Deck: {deck.length} cards</p>
         </div>
 
         <button
           onClick={() => useGameStore.setState({ screen: "title" })}
           className="mt-6 px-6 py-3 rounded-xl bg-accent/20 text-accent border border-accent/40 font-bold hover:bg-accent/30 transition"
         >
-          Nouvelle Partie
+          New Game
         </button>
       </div>
     </div>

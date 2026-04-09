@@ -3,7 +3,7 @@ import { EnemyRound } from '../types';
 export const ENEMY_ROUNDS: EnemyRound[] = [
   {
     round: 1,
-    name: 'Meute de Goblins',
+    name: 'Goblin Pack',
     units: [
       { id: 'goblin', gridX: 0, gridY: 0 },
       { id: 'goblin', gridX: 1, gridY: 0 },
@@ -11,7 +11,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 2,
-    name: 'Loups Affamés',
+    name: 'Hungry Wolves',
     units: [
       { id: 'direwolf', gridX: 0, gridY: 0 },
       { id: 'direwolf', gridX: 1, gridY: 0 },
@@ -20,7 +20,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 3,
-    name: 'Patrouille Ogre',
+    name: 'Ogre Patrol',
     units: [
       { id: 'goblin', gridX: 0, gridY: 0 },
       { id: 'shion', gridX: 1, gridY: 0 },
@@ -29,7 +29,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 4,
-    name: 'Escouade de Feu',
+    name: 'Fire Squad',
     units: [
       { id: 'benimaru', gridX: 0, gridY: 0 },
       { id: 'shion', gridX: 1, gridY: 0 },
@@ -39,7 +39,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 5,
-    name: 'Assassins de l\'Ombre',
+    name: 'Shadow Assassins',
     units: [
       { id: 'souei', gridX: 0, gridY: 0 },
       { id: 'souei', gridX: 1, gridY: 0 },
@@ -49,7 +49,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 6,
-    name: 'Défense Lourde',
+    name: 'Heavy Defense',
     units: [
       { id: 'geld', gridX: 0, gridY: 0 },
       { id: 'geld', gridX: 1, gridY: 0 },
@@ -60,7 +60,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 7,
-    name: 'Kijins Éveillés',
+    name: 'Awakened Kijins',
     units: [
       { id: 'shion', gridX: 0, gridY: 0 },
       { id: 'benimaru', gridX: 1, gridY: 0 },
@@ -71,7 +71,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 8,
-    name: 'Légion Sombre',
+    name: 'Dark Legion',
     units: [
       { id: 'diablo', gridX: 0, gridY: 0 },
       { id: 'hakurou', gridX: 1, gridY: 0 },
@@ -83,7 +83,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 9,
-    name: 'Avant-Garde de Tempest',
+    name: 'Tempest Vanguard',
     units: [
       { id: 'diablo', gridX: 0, gridY: 0 },
       { id: 'hakurou', gridX: 1, gridY: 0 },
@@ -95,7 +95,7 @@ export const ENEMY_ROUNDS: EnemyRound[] = [
   },
   {
     round: 10,
-    name: 'Rimuru - Le Seigneur Démon',
+    name: 'Rimuru - The Demon Lord',
     units: [
       { id: 'rimuru', gridX: 1, gridY: 0 },
       { id: 'diablo', gridX: 0, gridY: 0 },

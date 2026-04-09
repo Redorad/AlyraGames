@@ -229,8 +229,8 @@ export default function BattleScreen() {
       {/* Battle Arena */}
       <div className="flex-1 relative bg-navy-800/50 rounded-xl border border-gray-700 overflow-hidden min-h-0">
         {/* Labels */}
-        <div className="absolute top-2 left-3 text-xs text-red-400 font-bold">ENNEMIS</div>
-        <div className="absolute bottom-2 left-3 text-xs text-blue-400 font-bold">VOTRE EQUIPE</div>
+        <div className="absolute top-2 left-3 text-xs text-red-400 font-bold">ENEMIES</div>
+        <div className="absolute bottom-2 left-3 text-xs text-blue-400 font-bold">YOUR TEAM</div>
 
         {/* Divider */}
         <div className="absolute left-0 right-0 top-1/2 border-t border-gray-700/50 border-dashed" />
@@ -249,9 +249,9 @@ export default function BattleScreen() {
             {/* Status effect icons */}
             {unit.alive && (unit.burn > 0 || unit.poison > 0 || unit.stun > 0) && (
               <div className="flex gap-0.5 text-xs">
-                {unit.burn > 0 && <span title={`Brûlure (${unit.burn})`}>🔥</span>}
+                {unit.burn > 0 && <span title={`Burn (${unit.burn})`}>🔥</span>}
                 {unit.poison > 0 && <span title={`Poison (${unit.poison})`}>☠️</span>}
-                {unit.stun > 0 && <span title={`Étourdi (${unit.stun})`}>💫</span>}
+                {unit.stun > 0 && <span title={`Stunned (${unit.stun})`}>💫</span>}
               </div>
             )}
             <span className="text-[9px] font-bold">{unit.name}</span>
@@ -290,11 +290,11 @@ export default function BattleScreen() {
           <div className={`text-3xl font-bold mb-2 ${
             battleLog.winner === 'player' ? 'text-green-400' : 'text-red-400'
           }`}>
-            {battleLog.winner === 'player' ? '🎉 Victoire !' : '💀 Défaite...'}
+            {battleLog.winner === 'player' ? '🎉 Victory!' : '💀 Defeat...'}
           </div>
           {battleLog.winner === 'enemy' && (
             <div className="text-sm text-red-300 mb-2">
-              {battleLog.survivingEnemies} ennemi(s) restant(s) — Vous perdez {battleLog.survivingEnemies * 10} PV
+              {battleLog.survivingEnemies} remaining enemy(ies) — You lose {battleLog.survivingEnemies * 10} HP
             </div>
           )}
           <button
@@ -302,7 +302,7 @@ export default function BattleScreen() {
             className="px-8 py-2 bg-accent/20 border-2 border-accent rounded-xl text-accent font-bold
                        hover:bg-accent/30 transition-all"
           >
-            Continuer
+            Continue
           </button>
         </div>
       )}

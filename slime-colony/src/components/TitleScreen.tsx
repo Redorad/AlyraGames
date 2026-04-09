@@ -46,7 +46,7 @@ export default function TitleScreen() {
         </h1>
         <p className="text-steel/70 text-lg mb-2">Colony Simulation</p>
         <p className="text-accent/60 text-sm mb-10 italic">
-          Inspiré par &quot;That Time I Got Reincarnated as a Slime&quot;
+          Inspired by &quot;That Time I Got Reincarnated as a Slime&quot;
         </p>
 
         <div className="flex flex-col items-center gap-3">
@@ -57,7 +57,7 @@ export default function TitleScreen() {
                          text-accent text-xl font-semibold hover:border-accent hover:shadow-lg hover:shadow-accent/20
                          transition-all duration-300 animate-pulse-glow"
             >
-              Continuer
+              Continue
             </button>
           )}
           <button
@@ -66,13 +66,13 @@ export default function TitleScreen() {
                        text-steel font-semibold hover:border-steel hover:shadow-lg hover:shadow-steel/20
                        transition-all duration-300 ${saveExists ? 'text-lg' : 'text-xl animate-pulse-glow'}`}
           >
-            Nouvelle Partie
+            New Game
           </button>
         </div>
 
         <div className="mt-12 text-sm text-steel/40 max-w-md mx-auto space-y-1">
-          <p>Gerez les ressources, construisez des batiments,</p>
-          <p>et faites grandir la ville de Tempest!</p>
+          <p>Manage resources, construct buildings,</p>
+          <p>and grow the city of Tempest!</p>
         </div>
       </div>
     </div>
