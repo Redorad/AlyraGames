@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboards — AlyraGames</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --navy-900: #0a0e27;
+      --navy-800: #111640;
+      --navy-700: #1a2050;
+      --steel: #7ec8e3;
+      --accent: #a78bfa;
+      --yellow: #fbbf24;
+      --gold: #fbbf24;
+      --silver: #cbd5e1;
+      --bronze: #d97706;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+    }
+    html, body {
+      min-height: 100vh;
+      background: var(--navy-900);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 14, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(126, 200, 227, 0.1);
+      padding: 14px 20px;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--text-dim); text-decoration: none;
+      font-size: 14px; font-weight: 600;
+    }
+    .back-btn:hover { color: var(--text); }
+    .page-title {
+      font-size: 18px; font-weight: 900; letter-spacing: -0.02em;
+      flex: 1;
+    }
+    .page-title .trophy { font-size: 24px; margin-right: 6px; }
+    .hero {
+      max-width: 1200px; margin: 0 auto;
+      padding: 40px 20px 20px; text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--yellow), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .hero p { color: var(--text-dim); font-size: 14px; }
+
+    .game-selector {
+      max-width: 1200px; margin: 20px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .game-selector::-webkit-scrollbar { display: none; }
+    .game-tab {
+      flex-shrink: 0;
+      padding: 10px 18px;
+      background: rgba(17, 22, 64, 0.6);
+      border: 1px solid rgba(126, 200, 227, 0.1);
+      border-radius: 20px;
+      color: var(--text-dim);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
+      white-space: nowrap;
+    }
+    .game-tab:hover {
+      background: rgba(26, 32, 80, 0.9);
+      color: var(--text);
+    }
+    .game-tab.active {
+      background: rgba(167, 139, 250, 0.15);
+      border-color: rgba(167, 139, 250, 0.5);
+      color: var(--accent);
+    }
+
+    .leaderboard {
+      max-width: 800px; margin: 30px auto; padding: 0 20px 60px;
+    }
+    .board-card {
+      background: linear-gradient(135deg, rgba(17, 22, 64, 0.8), rgba(10, 14, 39, 0.9));
+      border: 1px solid rgba(126, 200, 227, 0.1);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .board-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(126, 200, 227, 0.08);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .board-icon { font-size: 32px; }
+    .board-title { font-size: 18px; font-weight: 800; }
+    .board-subtitle { font-size: 12px; color: var(--text-muted); }
+    .rank-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 22px;
+      border-bottom: 1px solid rgba(126, 200, 227, 0.04);
+      font-size: 14px;
+    }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-row:nth-child(-n+3) { background: rgba(251, 191, 36, 0.03); }
+    .rank-num {
+      width: 36px; text-align: center;
+      font-size: 16px; font-weight: 900;
+      color: var(--text-muted);
+    }
+    .rank-row.gold .rank-num { color: var(--gold); font-size: 20px; }
+    .rank-row.silver .rank-num { color: var(--silver); font-size: 18px; }
+    .rank-row.bronze .rank-num { color: var(--bronze); font-size: 17px; }
+    .rank-nickname {
+      flex: 1; font-weight: 700;
+      text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+    }
+    .rank-score {
+      font-weight: 900; color: var(--accent);
+      font-size: 16px;
+    }
+    .rank-date {
+      font-size: 11px; color: var(--text-muted);
+      margin-left: 12px;
+    }
+
+    .empty {
+      padding: 60px 20px; text-align: center;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+    .loading {
+      padding: 40px 20px; text-align: center;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 640px) {
+      .rank-date { display: none; }
+      .rank-row { padding: 12px 14px; }
+      .board-header { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/AlyraGames/" class="back-btn">← Back</a>
+      <div class="page-title"><span class="trophy">🏆</span>Leaderboards</div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>🏆 Global Leaderboards</h1>
+    <p>Compete with players worldwide. Pick a game to see the top scores.</p>
+  </div>
+
+  <nav class="game-selector" id="game-tabs"></nav>
+
+  <div class="leaderboard">
+    <div class="board-card" id="board">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+
+  <script src="/AlyraGames/alyragames-sdk.js"></script>
+  <script>
+    const sdk = AlyraGames.init();
+
+    const GAMES_WITH_LB = [
+      { slug: 'game-snake',     title: 'Snake Neon',    icon: '🐍' },
+      { slug: 'game-2048',      title: '2048 Slime',    icon: '🫧' },
+      { slug: 'game-tetris',    title: 'Falling Blocks', icon: '🧱' },
+      { slug: 'game-flappy',    title: 'Flappy Clone',  icon: '🐦' },
+      { slug: 'game-space',     title: 'Space Dodge',   icon: '🚀' },
+      { slug: 'game-minesweeper', title: 'Minesweeper', icon: '💣' },
+      { slug: 'game-sudoku',    title: 'Sudoku Zen',    icon: '🧘' },
+      { slug: 'game-typing',    title: 'Typing Speed',  icon: '⌨️' },
+      { slug: 'game-reaction',  title: 'Reaction Time', icon: '⚡' },
+      { slug: 'game-math',      title: 'Math Blitz',    icon: '➗' },
+      { slug: 'game-memory',    title: 'Memory Cards',  icon: '🃏' },
+      { slug: 'game-breakout',  title: 'Breakout',      icon: '🧱' },
+    ];
+
+    let activeGame = GAMES_WITH_LB[0].slug;
+
+    function renderTabs() {
+      const bar = document.getElementById('game-tabs');
+      bar.innerHTML = GAMES_WITH_LB.map(g =>
+        '<button class="game-tab ' + (activeGame === g.slug ? 'active' : '') + '" data-slug="' + g.slug + '">' +
+        '<span>' + g.icon + '</span><span>' + g.title + '</span>' +
+        '</button>'
+      ).join('');
+      bar.querySelectorAll('.game-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeGame = btn.dataset.slug;
+          renderTabs();
+          loadBoard();
+        });
+      });
+    }
+
+    async function loadBoard() {
+      const board = document.getElementById('board');
+      const game = GAMES_WITH_LB.find(g => g.slug === activeGame);
+      board.innerHTML =
+        '<div class="board-header">' +
+        '<span class="board-icon">' + game.icon + '</span>' +
+        '<div>' +
+        '<div class="board-title">' + game.title + '</div>' +
+        '<div class="board-subtitle">Top scores worldwide</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="loading">Loading...</div>';
+
+      try {
+        const rows = await sdk.getLeaderboard(activeGame, 50);
+        const header = board.querySelector('.board-header').outerHTML;
+        if (!rows || rows.length === 0) {
+          board.innerHTML = header +
+            '<div class="empty">' +
+            '<div class="empty-icon">🏆</div>' +
+            '<p>No scores yet. Be the first!</p>' +
+            '<p style="font-size: 12px; margin-top: 6px;">Play ' + game.title + ' and submit your score.</p>' +
+            '</div>';
+          return;
+        }
+
+        // Dedupe: keep highest score per player
+        const bestByPlayer = {};
+        rows.forEach(r => {
+          if (!bestByPlayer[r.nickname] || r.score > bestByPlayer[r.nickname].score) {
+            bestByPlayer[r.nickname] = r;
+          }
+        });
+        const deduped = Object.values(bestByPlayer).sort((a, b) => b.score - a.score).slice(0, 20);
+
+        const rowsHtml = deduped.map((r, i) => {
+          const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+          const date = new Date(r.created_at).toLocaleDateString();
+          return '<div class="rank-row ' + rankClass + '">' +
+            '<div class="rank-num">' + medal + '</div>' +
+            '<div class="rank-nickname">' + escapeHtml(r.nickname) + '</div>' +
+            '<div class="rank-score">' + formatScore(r.score) + '</div>' +
+            '<div class="rank-date">' + date + '</div>' +
+            '</div>';
+        }).join('');
+
+        board.innerHTML = header + rowsHtml;
+      } catch (e) {
+        board.innerHTML =
+          '<div class="empty"><div class="empty-icon">⚠️</div><p>Failed to load leaderboard</p></div>';
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+    function formatScore(s) {
+      if (s >= 1000000) return (s / 1000000).toFixed(1) + 'M';
+      if (s >= 1000) return (s / 1000).toFixed(1) + 'K';
+      return Math.floor(s).toLocaleString();
+    }
+
+    renderTabs();
+    loadBoard();
+  </script>
+</body>
+</html>
