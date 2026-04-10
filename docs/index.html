@@ -5,7 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AlyraGames — Play 110+ Free Browser Games</title>
   <meta name="description" content="Play 110+ free browser games. Puzzle, arcade, strategy, RPG, casino, idle games and more. No download required." />
+  <meta name="theme-color" content="#0a0e27" />
+  <meta name="keywords" content="free games, browser games, online games, puzzle, arcade, strategy, rpg, no download, play free" />
+  <meta name="author" content="AlyraGames" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AlyraGames — 110+ Free Browser Games" />
+  <meta property="og:description" content="Play 110+ free browser games. No download, no sign-up required. Puzzle, arcade, strategy, RPG and more." />
+  <meta property="og:url" content="https://redorad.github.io/AlyraGames/" />
+  <meta property="og:site_name" content="AlyraGames" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="AlyraGames — 110+ Free Browser Games" />
+  <meta name="twitter:description" content="Play 110+ free browser games. No download required." />
+
+  <!-- Performance hints -->
+  <link rel="preconnect" href="https://kqcqsgepwcrnovdhmflr.supabase.co" crossorigin />
+  <link rel="dns-prefetch" href="https://kqcqsgepwcrnovdhmflr.supabase.co" />
+  <link rel="preload" href="/AlyraGames/alyragames-sdk.js" as="script" />
+
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
+  <link rel="manifest" href="/AlyraGames/manifest.json" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
@@ -729,6 +751,13 @@
     });
 
     updateUserButton();
+
+    // Register service worker for offline + fast loads
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/AlyraGames/sw.js').catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
