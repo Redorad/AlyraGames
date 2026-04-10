@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Challenge — AlyraGames</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --navy-900: #0a0e27;
+      --navy-800: #111640;
+      --navy-700: #1a2050;
+      --steel: #7ec8e3;
+      --accent: #a78bfa;
+      --yellow: #fbbf24;
+      --gold: #fbbf24;
+      --green: #4ade80;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+    }
+    html, body {
+      min-height: 100vh;
+      background: var(--navy-900);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 14, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(126, 200, 227, 0.1);
+      padding: 14px 20px;
+    }
+    .header-inner {
+      max-width: 1000px; margin: 0 auto;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .back-btn {
+      color: var(--text-dim); text-decoration: none;
+      font-size: 14px; font-weight: 600;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    .challenge-hero {
+      max-width: 700px; margin: 40px auto 20px;
+      padding: 40px 30px; text-align: center;
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(167, 139, 250, 0.05));
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      border-radius: 20px;
+    }
+    .challenge-date {
+      font-size: 13px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .challenge-title {
+      font-size: clamp(30px, 5vw, 44px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--yellow), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+    .challenge-game {
+      display: flex; align-items: center; justify-content: center;
+      gap: 16px; margin: 20px 0 28px;
+    }
+    .challenge-icon { font-size: 64px; }
+    .challenge-info { text-align: left; }
+    .challenge-game-name {
+      font-size: 24px; font-weight: 800;
+    }
+    .challenge-game-desc {
+      font-size: 13px; color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .play-btn {
+      display: inline-block;
+      padding: 14px 36px;
+      background: linear-gradient(135deg, var(--yellow), #f59e0b);
+      color: #0a0e27;
+      font-weight: 900; font-size: 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 6px 20px rgba(251, 191, 36, 0.3);
+      transition: transform 0.1s;
+    }
+    .play-btn:hover { transform: translateY(-2px); }
+    .play-btn:active { transform: translateY(0); }
+
+    .timer-box {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center; gap: 10px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .timer-value {
+      font-weight: 800; color: var(--yellow);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .section-title {
+      max-width: 700px; margin: 30px auto 16px; padding: 0 20px;
+      font-size: 14px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::before {
+      content: ''; width: 4px; height: 16px;
+      background: var(--yellow); border-radius: 2px;
+    }
+
+    .leaderboard {
+      max-width: 700px; margin: 0 auto; padding: 0 20px 60px;
+    }
+    .board {
+      background: linear-gradient(135deg, rgba(17, 22, 64, 0.8), rgba(10, 14, 39, 0.9));
+      border: 1px solid rgba(126, 200, 227, 0.1);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .rank-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 22px;
+      border-bottom: 1px solid rgba(126, 200, 227, 0.04);
+      font-size: 14px;
+    }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-row:nth-child(1) { background: rgba(251, 191, 36, 0.06); }
+    .rank-num {
+      width: 36px; text-align: center;
+      font-size: 18px; font-weight: 900;
+      color: var(--text-muted);
+    }
+    .rank-nickname { flex: 1; font-weight: 700; }
+    .rank-score { font-weight: 900; color: var(--yellow); font-size: 16px; }
+    .empty {
+      padding: 50px 20px; text-align: center;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/AlyraGames/" class="back-btn">← Back</a>
+      <div style="font-weight:800;">📅 Daily Challenge</div>
+    </div>
+  </header>
+
+  <div class="challenge-hero">
+    <div class="challenge-date" id="date-label">Today</div>
+    <div class="challenge-title">📅 DAILY CHALLENGE</div>
+    <div class="challenge-game">
+      <div class="challenge-icon" id="game-icon">🎮</div>
+      <div class="challenge-info">
+        <div class="challenge-game-name" id="game-name">Loading...</div>
+        <div class="challenge-game-desc" id="game-desc"></div>
+      </div>
+    </div>
+    <a href="#" id="play-btn" class="play-btn">▶ Play Now</a>
+    <div class="timer-box">
+      <span>⏰ Next challenge in</span>
+      <span class="timer-value" id="countdown">--:--:--</span>
+    </div>
+  </div>
+
+  <h2 class="section-title">🏆 Today's Top Scores</h2>
+  <div class="leaderboard">
+    <div class="board" id="board"><div class="empty">Loading...</div></div>
+  </div>
+
+  <script src="/AlyraGames/alyragames-sdk.js"></script>
+  <script>
+    const DAILY_GAMES = [
+      { slug: 'game-snake',    title: 'Snake Neon',    icon: '🐍', desc: 'How long can you grow?' },
+      { slug: 'game-2048',     title: '2048 Slime',    icon: '🫧', desc: 'Reach the highest tile' },
+      { slug: 'game-flappy',   title: 'Flappy Clone',  icon: '🐦', desc: 'Flap through as many pipes as you can' },
+      { slug: 'game-tetris',   title: 'Falling Blocks', icon: '🧱', desc: 'Clear as many lines as possible' },
+      { slug: 'game-space',    title: 'Space Dodge',   icon: '🚀', desc: 'Survive the asteroid field' },
+      { slug: 'game-reaction', title: 'Reaction Time', icon: '⚡', desc: 'How fast can you react?' },
+      { slug: 'game-math',     title: 'Math Blitz',    icon: '➗', desc: 'Solve as many problems as possible' },
+    ];
+
+    // Deterministic game selection based on date
+    function getDailyGame() {
+      const today = new Date();
+      const dateStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+      // Simple hash: sum char codes
+      let hash = 0;
+      for (let i = 0; i < dateStr.length; i++) hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0;
+      return { game: DAILY_GAMES[hash % DAILY_GAMES.length], date: dateStr };
+    }
+
+    function formatDate(d) {
+      return new Date(d).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+    function formatScore(s) {
+      if (s >= 1000000) return (s / 1000000).toFixed(1) + 'M';
+      if (s >= 1000) return (s / 1000).toFixed(1) + 'K';
+      return Math.floor(s).toLocaleString();
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    const sdk = AlyraGames.init();
+    const { game, date } = getDailyGame();
+    document.getElementById('date-label').textContent = formatDate(date);
+    document.getElementById('game-icon').textContent = game.icon;
+    document.getElementById('game-name').textContent = game.title;
+    document.getElementById('game-desc').textContent = game.desc;
+    document.getElementById('play-btn').href = '/AlyraGames/' + game.slug + '/';
+
+    // Countdown to tomorrow
+    function updateCountdown() {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const diff = tomorrow - now;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('countdown').textContent =
+        String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // Load today's leaderboard (filter by created_at >= midnight)
+    async function loadBoard() {
+      const board = document.getElementById('board');
+      try {
+        const rows = await sdk.getLeaderboard(game.slug, 100);
+        // Filter to today only
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const todayRows = rows.filter(r => new Date(r.created_at) >= startOfDay);
+
+        // Dedupe: best per player
+        const best = {};
+        todayRows.forEach(r => {
+          if (!best[r.nickname] || r.score > best[r.nickname].score) best[r.nickname] = r;
+        });
+        const sorted = Object.values(best).sort((a, b) => b.score - a.score).slice(0, 20);
+
+        if (sorted.length === 0) {
+          board.innerHTML = '<div class="empty">No scores yet today.<br><br>Play ' + escapeHtml(game.title) + ' to get on the board!</div>';
+          return;
+        }
+
+        board.innerHTML = sorted.map((r, i) => {
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+          return '<div class="rank-row">' +
+            '<div class="rank-num">' + medal + '</div>' +
+            '<div class="rank-nickname"><a href="/AlyraGames/profile.html?u=' + encodeURIComponent(r.nickname) + '" style="color:inherit;text-decoration:none;">' + escapeHtml(r.nickname) + '</a></div>' +
+            '<div class="rank-score">' + formatScore(r.score) + '</div>' +
+            '</div>';
+        }).join('');
+      } catch (e) {
+        board.innerHTML = '<div class="empty">Failed to load leaderboard</div>';
+      }
+    }
+    loadBoard();
+  </script>
+</body>
+</html>

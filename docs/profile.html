@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Profile — AlyraGames</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --navy-900: #0a0e27;
+      --navy-800: #111640;
+      --navy-700: #1a2050;
+      --steel: #7ec8e3;
+      --accent: #a78bfa;
+      --yellow: #fbbf24;
+      --gold: #fbbf24;
+      --green: #4ade80;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+    }
+    html, body {
+      min-height: 100vh;
+      background: var(--navy-900);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 14, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(126, 200, 227, 0.1);
+      padding: 14px 20px;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      color: var(--text-dim); text-decoration: none;
+      font-size: 14px; font-weight: 600;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    .profile-hero {
+      max-width: 900px; margin: 30px auto 20px;
+      padding: 40px 30px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(126, 200, 227, 0.05));
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      border-radius: 20px;
+      position: relative;
+    }
+    .avatar-circle {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--steel));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 42px; font-weight: 900;
+      margin: 0 auto 16px;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .nickname-big {
+      font-size: clamp(24px, 5vw, 36px);
+      font-weight: 900; letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .member-since {
+      font-size: 13px; color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .stats-row {
+      display: flex; justify-content: center; gap: 40px;
+      flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-value {
+      font-size: 28px; font-weight: 900;
+      color: var(--accent);
+    }
+    .stat-label {
+      font-size: 11px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-top: 4px;
+    }
+    .share-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: rgba(167, 139, 250, 0.15);
+      border: 1px solid rgba(167, 139, 250, 0.4);
+      border-radius: 10px;
+      color: var(--accent);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .share-btn:hover { background: rgba(167, 139, 250, 0.25); }
+
+    .section-title {
+      max-width: 900px; margin: 30px auto 16px; padding: 0 20px;
+      font-size: 14px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::before {
+      content: ''; width: 4px; height: 16px;
+      background: var(--accent); border-radius: 2px;
+    }
+
+    .scores-grid {
+      max-width: 900px; margin: 0 auto; padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .score-card {
+      background: linear-gradient(135deg, rgba(17, 22, 64, 0.8), rgba(10, 14, 39, 0.9));
+      border: 1px solid rgba(126, 200, 227, 0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit;
+      transition: transform 0.15s, border-color 0.2s;
+    }
+    .score-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(167, 139, 250, 0.4);
+    }
+    .score-card .icon { font-size: 30px; flex-shrink: 0; }
+    .score-card .info { flex: 1; min-width: 0; }
+    .score-card .title {
+      font-size: 13px; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .score-card .value {
+      font-size: 16px; font-weight: 900;
+      color: var(--yellow); margin-top: 2px;
+    }
+
+    .empty {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+    .loading { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+
+    .toast {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 14, 39, 0.95);
+      color: var(--green);
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(74, 222, 128, 0.4);
+      font-size: 13px; font-weight: 600;
+      z-index: 9999;
+      animation: slideUp 0.3s ease-out;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <a href="/AlyraGames/" class="back-btn">← Back to games</a>
+    </div>
+  </header>
+
+  <div id="content">
+    <div class="loading">Loading profile...</div>
+  </div>
+
+  <script src="/AlyraGames/alyragames-sdk.js"></script>
+  <script>
+    const GAME_META = {
+      'game-2048':        { title: '2048 Slime',      icon: '🫧' },
+      'game-2048hex':     { title: '2048 Hex',        icon: '⬡'  },
+      'game-basketball':  { title: 'Basketball Shot', icon: '🏀' },
+      'game-battleship':  { title: 'Battleship',      icon: '⚓' },
+      'game-breakout':    { title: 'Breakout',        icon: '🧱' },
+      'game-brickbreaker':{ title: 'Brick Breaker',   icon: '🧱' },
+      'game-checkers':    { title: 'Checkers',        icon: '♟️' },
+      'game-darts':       { title: 'Darts',           icon: '🎯' },
+      'game-flappy':      { title: 'Flappy Clone',    icon: '🐦' },
+      'game-frogger':     { title: 'Frogger',         icon: '🐸' },
+      'game-fruit':       { title: 'Fruit Ninja',     icon: '🍉' },
+      'game-geometry':    { title: 'Geometry Dash',   icon: '🔷' },
+      'game-gravity':     { title: 'Gravity Flip',    icon: '🌀' },
+      'game-helicopter':  { title: 'Helicopter',      icon: '🚁' },
+      'game-highlow':     { title: 'Higher Lower',    icon: '🃏' },
+      'game-lightsout':   { title: 'Lights Out',      icon: '💡' },
+      'game-match3':      { title: 'Match 3',         icon: '💎' },
+      'game-math':        { title: 'Math Blitz',      icon: '➗' },
+      'game-maze':        { title: 'Maze Runner',     icon: '🌀' },
+      'game-memory':      { title: 'Memory Cards',    icon: '🃏' },
+      'game-minesweeper': { title: 'Minesweeper',     icon: '💣' },
+      'game-penalty':     { title: 'Penalty Shoot',   icon: '⚽' },
+      'game-pinball':     { title: 'Pinball',         icon: '🎯' },
+      'game-pong':        { title: 'Pong Duel',       icon: '🏓' },
+      'game-reaction':    { title: 'Reaction Time',   icon: '⚡' },
+      'game-runner':      { title: 'Cyber Runner',    icon: '🏃' },
+      'game-sequence':    { title: 'Sequence',        icon: '🎵' },
+      'game-shooter':     { title: 'Top-Down Shooter',icon: '🔫' },
+      'game-snake':       { title: 'Snake Neon',      icon: '🐍' },
+      'game-solitaire':   { title: 'Solitaire',       icon: '♠️' },
+      'game-space':       { title: 'Space Dodge',     icon: '🚀' },
+      'game-sudoku':      { title: 'Sudoku Zen',      icon: '🧘' },
+      'game-tetris':      { title: 'Falling Blocks',  icon: '🧱' },
+      'game-typing':      { title: 'Typing Speed',    icon: '⌨️' },
+      'game-whack':       { title: 'Whack-a-Mole',    icon: '🔨' },
+    };
+
+    const sdk = AlyraGames.init();
+
+    function getNicknameFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('u') || params.get('nickname');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function formatScore(s) {
+      if (s >= 1000000) return (s / 1000000).toFixed(1) + 'M';
+      if (s >= 1000) return (s / 1000).toFixed(1) + 'K';
+      return Math.floor(s).toLocaleString();
+    }
+
+    async function loadProfile() {
+      const content = document.getElementById('content');
+      let nickname = getNicknameFromUrl();
+      let isOwn = false;
+
+      if (!nickname) {
+        // Show own profile
+        const p = sdk.getPlayer();
+        if (!p || p.isGuest || !p.nickname || p.nickname === 'Guest') {
+          content.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Sign in with a nickname to see your profile</p><p style="margin-top:8px;"><a href="/AlyraGames/" style="color: var(--accent);">← Go to hub and sign in</a></p></div>';
+          return;
+        }
+        nickname = p.nickname;
+        isOwn = true;
+      } else {
+        const p = sdk.getPlayer();
+        if (p && p.nickname === nickname) isOwn = true;
+      }
+
+      const [playerInfo, scores] = await Promise.all([
+        sdk.getPlayerByNickname(nickname),
+        sdk.getPlayerScores(nickname),
+      ]);
+
+      if (!playerInfo) {
+        content.innerHTML = '<div class="empty"><div class="empty-icon">❓</div><p>Player <strong>' + escapeHtml(nickname) + '</strong> not found</p></div>';
+        return;
+      }
+
+      const totalGames = scores.length;
+      const totalScore = scores.reduce((sum, s) => sum + Number(s.score), 0);
+      const memberSince = new Date(playerInfo.created_at).toLocaleDateString();
+      const shareUrl = window.location.origin + '/AlyraGames/profile.html?u=' + encodeURIComponent(nickname);
+      const initial = nickname[0].toUpperCase();
+
+      let scoresHtml;
+      if (scores.length === 0) {
+        scoresHtml = '<div class="empty"><div class="empty-icon">🎮</div><p>No scores yet — ' + (isOwn ? 'play some games to see them here!' : 'nothing to show yet') + '</p></div>';
+      } else {
+        scoresHtml = '<div class="scores-grid">' +
+          scores.map(s => {
+            const meta = GAME_META[s.game_id] || { title: s.game_id, icon: '🎮' };
+            return '<a href="/AlyraGames/' + s.game_id + '/" class="score-card">' +
+              '<div class="icon">' + meta.icon + '</div>' +
+              '<div class="info">' +
+              '<div class="title">' + escapeHtml(meta.title) + '</div>' +
+              '<div class="value">' + formatScore(s.score) + '</div>' +
+              '</div>' +
+              '</a>';
+          }).join('') +
+          '</div>';
+      }
+
+      content.innerHTML =
+        '<div class="profile-hero">' +
+        '<div class="avatar-circle">' + escapeHtml(initial) + '</div>' +
+        '<div class="nickname-big">' + escapeHtml(nickname) + '</div>' +
+        '<div class="member-since">Member since ' + memberSince + '</div>' +
+        '<div class="stats-row">' +
+        '<div class="stat-item"><div class="stat-value">' + totalGames + '</div><div class="stat-label">Games Played</div></div>' +
+        '<div class="stat-item"><div class="stat-value">' + formatScore(totalScore) + '</div><div class="stat-label">Total Score</div></div>' +
+        '</div>' +
+        '<button class="share-btn" onclick="copyShareUrl(\'' + shareUrl.replace(/'/g, "\\'") + '\')"><span>🔗</span> Share profile</button>' +
+        '</div>' +
+        '<h2 class="section-title">🏆 Best Scores</h2>' +
+        scoresHtml;
+    }
+
+    function copyShareUrl(url) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+          const t = document.createElement('div');
+          t.className = 'toast';
+          t.textContent = '🔗 Link copied to clipboard';
+          document.body.appendChild(t);
+          setTimeout(() => t.remove(), 2500);
+        });
+      } else {
+        prompt('Copy this link:', url);
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

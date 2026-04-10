@@ -149,10 +149,29 @@
       throw new Error('gameId required');
     }
 
-    // Also save locally as backup
+    // Rate limiting: max 1 submission per game per 2 seconds
+    const now = Date.now();
+    const lastKey = `alyragames_last_submit_${gameId}`;
+    try {
+      const last = Number(localStorage.getItem(lastKey) || 0);
+      if (now - last < 2000) {
+        // Too soon — queue for local only
+        saveLocalBest(gameId, score);
+        return null;
+      }
+    } catch (e) {}
+
+    // Only submit if the score is actually better than previous best
+    const localBest = getLocalBest(gameId);
+    if (score <= localBest) {
+      saveLocalBest(gameId, score); // still save (no-op if lower)
+      return null;
+    }
+
     saveLocalBest(gameId, score);
 
     try {
+      localStorage.setItem(lastKey, String(now));
       const created = await apiCall('/scores', {
         method: 'POST',
         body: JSON.stringify({
@@ -208,6 +227,41 @@
     }
   }
 
+  /** Get all scores for a specific player (by nickname). Returns best per game. */
+  async function getPlayerScores(nickname) {
+    try {
+      const rows = await apiCall(
+        `/scores?nickname=eq.${encodeURIComponent(nickname)}&select=game_id,score,created_at&order=score.desc&limit=500`
+      );
+      // Keep best score per game
+      const bestByGame = {};
+      (rows || []).forEach(r => {
+        if (!bestByGame[r.game_id] || r.score > bestByGame[r.game_id].score) {
+          bestByGame[r.game_id] = r;
+        }
+      });
+      return Object.entries(bestByGame).map(([gameId, row]) => ({
+        game_id: gameId,
+        score: row.score,
+        created_at: row.created_at,
+      })).sort((a, b) => b.score - a.score);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /** Get player info by nickname */
+  async function getPlayerByNickname(nickname) {
+    try {
+      const rows = await apiCall(
+        `/players?nickname=eq.${encodeURIComponent(nickname)}&select=id,nickname,created_at`
+      );
+      return rows && rows[0];
+    } catch (e) {
+      return null;
+    }
+  }
+
   /** Local best score (localStorage) */
   function getLocalBest(gameId) {
     try {
@@ -242,6 +296,8 @@
     submitScore,
     getLeaderboard,
     getMyRank,
+    getPlayerScores,
+    getPlayerByNickname,
     getLocalBest,
   };
 
