@@ -3,1085 +3,497 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AlyraGames — Slime Collection</title>
+  <title>AlyraGames — Play 110+ Free Browser Games</title>
+  <meta name="description" content="Play 110+ free browser games. Puzzle, arcade, strategy, RPG, casino, idle games and more. No download required." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --navy-900: #0a0e27;
+      --navy-800: #111640;
+      --navy-700: #1a2050;
+      --navy-600: #242b5c;
+      --steel: #7ec8e3;
+      --accent: #a78bfa;
+      --yellow: #fbbf24;
+      --green: #4ade80;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+    }
+    html, body {
       min-height: 100vh;
-      background: #0a0e27;
-      color: #e2e8f0;
+      background: var(--navy-900);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      -webkit-font-smoothing: antialiased;
     }
-    .header {
-      text-align: center;
-      padding: 3rem 1rem 2rem;
-      position: relative;
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(126, 200, 227, 0.1);
     }
-    .header::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 400px; height: 200px;
-      background: radial-gradient(ellipse, rgba(167,139,250,0.12), transparent 70%);
-      pointer-events: none;
-    }
-    .logo { font-size: 4rem; margin-bottom: 0.5rem; }
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-    }
-    h1 .steel { color: #7ec8e3; }
-    h1 .accent { color: #a78bfa; }
-    .subtitle { color: #64748b; font-size: 0.95rem; margin-top: 0.4rem; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem;
-      width: 100%;
-      max-width: 960px;
-      padding: 0 1rem 3rem;
-    }
-    .card {
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 14px 20px;
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 1.25rem;
-      border-radius: 1rem;
-      border: 1.5px solid rgba(255,255,255,0.06);
-      background: linear-gradient(135deg, rgba(17,22,64,0.7), rgba(10,14,39,0.9));
+      gap: 20px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       text-decoration: none;
       color: inherit;
-      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
-    }
-    .card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(167,139,250,0.35);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 20px rgba(167,139,250,0.08);
-    }
-    .card:active { transform: scale(0.98); }
-    .card-icon {
-      width: 60px; height: 60px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
       flex-shrink: 0;
+      cursor: pointer;
     }
-    .card-info { flex: 1; min-width: 0; }
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: white;
+    .logo-icon { font-size: 28px; }
+    .logo-text { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; }
+    .logo-text .steel { color: var(--steel); }
+    .logo-text .accent { color: var(--accent); }
+    .search-wrap { flex: 1; max-width: 500px; position: relative; }
+    .search-input {
+      width: 100%;
+      padding: 10px 16px 10px 40px;
+      background: rgba(17, 22, 64, 0.8);
+      border: 1px solid rgba(126, 200, 227, 0.15);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
     }
-    .card-genre {
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-top: 0.15rem;
+    .search-input:focus {
+      border-color: rgba(167, 139, 250, 0.5);
+      background: rgba(17, 22, 64, 1);
     }
-    .card-desc {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      margin-top: 0.3rem;
-      line-height: 1.4;
+    .search-input::placeholder { color: var(--text-muted); }
+    .search-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; pointer-events: none;
     }
+    .game-count { font-size: 13px; color: var(--text-dim); white-space: nowrap; }
+    .game-count strong { color: var(--accent); font-weight: 700; }
+
+    /* Hero */
+    .hero {
+      max-width: 1400px; margin: 0 auto;
+      padding: 30px 20px 16px; text-align: center; position: relative;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%); width: 500px; height: 150px;
+      background: radial-gradient(ellipse, rgba(167, 139, 250, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900; letter-spacing: -0.02em;
+      margin-bottom: 8px; position: relative;
+    }
+    .hero h1 .steel { color: var(--steel); }
+    .hero h1 .accent { color: var(--accent); }
+    .hero p { font-size: 15px; color: var(--text-dim); max-width: 600px; margin: 0 auto; }
+
+    /* Category Tabs */
+    .category-bar {
+      max-width: 1400px; margin: 20px auto 0; padding: 0 20px;
+      display: flex; gap: 8px; overflow-x: auto;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .category-bar::-webkit-scrollbar { display: none; }
+    .category-btn {
+      flex-shrink: 0; padding: 8px 16px;
+      background: rgba(17, 22, 64, 0.6);
+      border: 1px solid rgba(126, 200, 227, 0.1);
+      border-radius: 20px;
+      color: var(--text-dim);
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
+      white-space: nowrap;
+    }
+    .category-btn:hover {
+      background: rgba(26, 32, 80, 0.9);
+      color: var(--text);
+      border-color: rgba(126, 200, 227, 0.3);
+    }
+    .category-btn.active {
+      background: rgba(167, 139, 250, 0.15);
+      border-color: rgba(167, 139, 250, 0.5);
+      color: var(--accent);
+    }
+    .category-btn .count { font-size: 11px; opacity: 0.7; }
+
+    /* Section Title */
+    .section-title {
+      max-width: 1400px; margin: 30px auto 16px; padding: 0 20px;
+      font-size: 14px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::before {
+      content: ''; display: block;
+      width: 4px; height: 16px;
+      background: var(--accent); border-radius: 2px;
+    }
+
+    /* Games Grid */
+    .games-grid {
+      max-width: 1400px; margin: 0 auto; padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .game-card {
+      display: flex; flex-direction: column;
+      background: linear-gradient(135deg, rgba(17, 22, 64, 0.8), rgba(10, 14, 39, 0.9));
+      border: 1px solid rgba(126, 200, 227, 0.08);
+      border-radius: 14px; overflow: hidden;
+      text-decoration: none; color: inherit;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .game-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(167, 139, 250, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(167, 139, 250, 0.08);
+    }
+    .game-card:active { transform: translateY(-1px); }
+    .game-thumbnail {
+      aspect-ratio: 16 / 10;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 52px; position: relative;
+      background: var(--thumb-bg, linear-gradient(135deg, rgba(167,139,250,0.15), rgba(126,200,227,0.08)));
+    }
+    .game-thumbnail::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.3) 100%);
+      pointer-events: none;
+    }
+    .game-info {
+      padding: 10px 12px 12px;
+      flex: 1;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .game-title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .game-category {
+      font-size: 10px; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+    }
+    .game-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(167, 139, 250, 0.9); color: white;
+      font-size: 9px; font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 3px 7px; border-radius: 4px; z-index: 1;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--text-muted);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+    /* Footer */
     .footer {
-      padding: 2rem;
-      text-align: center;
-      color: #374151;
-      font-size: 0.75rem;
+      text-align: center; padding: 30px 20px 40px;
+      color: var(--text-muted); font-size: 12px;
+      border-top: 1px solid rgba(126, 200, 227, 0.05);
+      margin-top: 40px;
+    }
+
+    @media (max-width: 640px) {
+      .header-inner { padding: 10px 12px; gap: 10px; }
+      .logo-text { font-size: 16px; }
+      .game-count { display: none; }
+      .hero { padding: 20px 16px 10px; }
+      .games-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 0 12px 40px; }
+      .game-thumbnail { font-size: 38px; }
+      .game-title { font-size: 12px; }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">🎮</div>
-    <h1><span class="steel">ALYRA</span><span class="accent">GAMES</span></h1>
-    <p class="subtitle">Game Collection — Tensei Shitara Slime Datta Ken</p>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="logo" onclick="location.reload(); return false;">
+        <span class="logo-icon">🎮</span>
+        <span class="logo-text"><span class="steel">ALYRA</span><span class="accent">GAMES</span></span>
+      </a>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="search" placeholder="Search games..." autocomplete="off" />
+      </div>
+      <span class="game-count"><strong id="visible-count">110</strong> games</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1><span class="steel">PLAY</span> <span class="accent">FREE GAMES</span></h1>
+    <p>110+ browser games — puzzle, arcade, strategy, RPG and more. No download required.</p>
+  </section>
+
+  <nav class="category-bar" id="categories"></nav>
+
+  <div id="results-area">
+    <h2 class="section-title" id="section-title">All Games</h2>
+    <div class="games-grid" id="games-grid"></div>
   </div>
 
-  <div class="grid">
-    <a href="slime-idle/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🫧</div>
-      <div class="card-info">
-        <div class="card-title">Slime Idle</div>
-        <div class="card-genre">Idle / Clicker</div>
-        <div class="card-desc">Evolve Rimuru by clicking and unlocking skills.</div>
-      </div>
-    </a>
-
-    <a href="slime-td/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🏰</div>
-      <div class="card-info">
-        <div class="card-title">Slime TD</div>
-        <div class="card-genre">Tower Defense</div>
-        <div class="card-desc">10 levels, 10 towers, endless mode and hard mode.</div>
-      </div>
-    </a>
-
-    <a href="slime-cards/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🃏</div>
-      <div class="card-info">
-        <div class="card-title">Slime Cards</div>
-        <div class="card-genre">Roguelike Deckbuilder</div>
-        <div class="card-desc">3 acts, 20+ cards, turn-based combat, events.</div>
-      </div>
-    </a>
-
-    <a href="slime-match/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🧩</div>
-      <div class="card-info">
-        <div class="card-title">Slime Match</div>
-        <div class="card-genre">Puzzle Match-3</div>
-        <div class="card-desc">Match 3+ slimes, combos, line clear and color bomb.</div>
-      </div>
-    </a>
-
-    <a href="slime-colony/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🏘️</div>
-      <div class="card-info">
-        <div class="card-title">Slime Colony</div>
-        <div class="card-genre">Colony Sim</div>
-        <div class="card-desc">Build Tempest: buildings, resources, population, events.</div>
-      </div>
-    </a>
-
-    <a href="slime-arena/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">⚔️</div>
-      <div class="card-info">
-        <div class="card-title">Slime Arena</div>
-        <div class="card-genre">Auto-Battler</div>
-        <div class="card-desc">Buy units, place them, synergies and auto-battle.</div>
-      </div>
-    </a>
-
-    <a href="slime-run/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🏃</div>
-      <div class="card-info">
-        <div class="card-title">Slime Run</div>
-        <div class="card-genre">Platformer</div>
-        <div class="card-desc">5 levels, double jump, enemies, collectibles.</div>
-      </div>
-    </a>
-
-    <a href="game-2048/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🫧</div>
-      <div class="card-info">
-        <div class="card-title">2048 Slime</div>
-        <div class="card-genre">Puzzle</div>
-        <div class="card-desc">Fuse slimes on a 4x4 grid to reach the trophy!</div>
-      </div>
-    </a>
-
-    <a href="game-snake/" class="card">
-      <div class="card-icon" style="background:rgba(0,229,255,0.15)">🐍</div>
-      <div class="card-info">
-        <div class="card-title">Snake Neon</div>
-        <div class="card-genre">Arcade</div>
-        <div class="card-desc">Classic snake with neon glow, wrap-around mode, high scores.</div>
-      </div>
-    </a>
-
-    <a href="game-minesweeper/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">💣</div>
-      <div class="card-info">
-        <div class="card-title">Minesweeper</div>
-        <div class="card-genre">Puzzle / Classic</div>
-        <div class="card-desc">Classic Minesweeper with 3 difficulties and best times.</div>
-      </div>
-    </a>
-
-    <a href="game-memory/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🃏</div>
-      <div class="card-info">
-        <div class="card-title">Memory Cards</div>
-        <div class="card-genre">Puzzle / Memory</div>
-        <div class="card-desc">Match animal pairs with 3 grid sizes, timer, and star rating.</div>
-      </div>
-    </a>
-
-    <a href="game-flappy/" class="card">
-      <div class="card-icon" style="background:rgba(255,193,7,0.15)">🐦</div>
-      <div class="card-info">
-        <div class="card-title">Flappy Clone</div>
-        <div class="card-genre">Arcade</div>
-        <div class="card-desc">Flap through pipes, day/night cycle, medals and high scores.</div>
-      </div>
-    </a>
-
-    <a href="game-pong/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🏓</div>
-      <div class="card-info">
-        <div class="card-title">Pong Duel</div>
-        <div class="card-genre">Arcade</div>
-        <div class="card-desc">Classic Pong with neon glow. 3 AI difficulties, first to 11.</div>
-      </div>
-    </a>
-
-    <a href="game-tetris/" class="card">
-      <div class="card-icon" style="background:rgba(0,240,240,0.15)">🧱</div>
-      <div class="card-info">
-        <div class="card-title">Falling Blocks</div>
-        <div class="card-genre">Puzzle / Arcade</div>
-        <div class="card-desc">Classic falling blocks with ghost piece, hold, and increasing speed.</div>
-      </div>
-    </a>
-
-    <a href="game-brickbreaker/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🧱</div>
-      <div class="card-info">
-        <div class="card-title">Brick Breaker</div>
-        <div class="card-genre">Arcade / Breakout</div>
-        <div class="card-desc">5 levels, power-ups, neon glow, classic Arkanoid action.</div>
-      </div>
-    </a>
-
-    <a href="game-sudoku/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🧘</div>
-      <div class="card-info">
-        <div class="card-title">Sudoku Zen</div>
-        <div class="card-genre">Puzzle</div>
-        <div class="card-desc">Classic sudoku with 3 difficulties, notes, hints and best times.</div>
-      </div>
-    </a>
-
-    <a href="game-typing/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">⌨️</div>
-      <div class="card-info">
-        <div class="card-title">Typing Speed</div>
-        <div class="card-genre">Skill / Typing</div>
-        <div class="card-desc">Test your typing speed. 30s/60s/120s modes, WPM and accuracy.</div>
-      </div>
-    </a>
-
-    <a href="game-space/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🚀</div>
-      <div class="card-info">
-        <div class="card-title">Space Dodge</div>
-        <div class="card-genre">Bullet Hell / Arcade</div>
-        <div class="card-desc">Dodge asteroids and bullets. Survive as long as you can!</div>
-      </div>
-    </a>
-
-    <a href="game-fruit/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🍉</div>
-      <div class="card-info">
-        <div class="card-title">Fruit Ninja</div>
-        <div class="card-genre">Arcade / Action</div>
-        <div class="card-desc">Slash fruits with swipes, avoid bombs, build combos.</div>
-      </div>
-    </a>
-
-    <a href="game-runner/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🏃</div>
-      <div class="card-info">
-        <div class="card-title">Cyber Runner</div>
-        <div class="card-genre">Endless Runner</div>
-        <div class="card-desc">Jump and slide through neon obstacles. Speed increases!</div>
-      </div>
-    </a>
-
-    <a href="game-whack/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🔨</div>
-      <div class="card-info">
-        <div class="card-title">Whack-a-Mole</div>
-        <div class="card-genre">Arcade / Reflex</div>
-        <div class="card-desc">Whack moles in 30 seconds. 3x3 grid, fast reflexes needed.</div>
-      </div>
-    </a>
-
-    <a href="game-connect4/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🔴</div>
-      <div class="card-info">
-        <div class="card-title">Connect Four</div>
-        <div class="card-genre">Strategy / Board</div>
-        <div class="card-desc">Classic Connect 4 vs AI with minimax. Get 4 in a row!</div>
-      </div>
-    </a>
-
-    <a href="game-blackjack/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🃏</div>
-      <div class="card-info">
-        <div class="card-title">Blackjack</div>
-        <div class="card-genre">Card / Casino</div>
-        <div class="card-desc">Classic 21. Hit, stand, double down. Chip betting system.</div>
-      </div>
-    </a>
-
-    <a href="game-solitaire/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🃏</div>
-      <div class="card-info">
-        <div class="card-title">Solitaire</div>
-        <div class="card-genre">Card / Puzzle</div>
-        <div class="card-desc">Klondike solitaire. 7 tableau, 4 foundations, timer.</div>
-      </div>
-    </a>
-
-    <a href="game-cookie/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🍪</div>
-      <div class="card-info">
-        <div class="card-title">Cookie Factory</div>
-        <div class="card-genre">Idle / Clicker</div>
-        <div class="card-desc">Click cookies, buy upgrades, exponential growth!</div>
-      </div>
-    </a>
-
-    <a href="game-reaction/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">⚡</div>
-      <div class="card-info">
-        <div class="card-title">Reaction Time</div>
-        <div class="card-genre">Skill / Reflex</div>
-        <div class="card-desc">Test your reaction speed. Average over 5 tries, leaderboard.</div>
-      </div>
-    </a>
-
-    <a href="game-math/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🧮</div>
-      <div class="card-info">
-        <div class="card-title">Math Blitz</div>
-        <div class="card-genre">Skill / Math</div>
-        <div class="card-desc">Mental math speed game. 60 seconds, streak multiplier.</div>
-      </div>
-    </a>
-
-    <a href="game-wordle/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🔤</div>
-      <div class="card-info">
-        <div class="card-title">Word Guess</div>
-        <div class="card-genre">Word / Puzzle</div>
-        <div class="card-desc">Guess the 5-letter word in 6 tries with color feedback.</div>
-      </div>
-    </a>
-
-    <a href="game-pictoquiz/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🖼️</div>
-      <div class="card-info">
-        <div class="card-title">Emoji Quiz</div>
-        <div class="card-genre">Trivia / Puzzle</div>
-        <div class="card-desc">Guess the word from emoji clues. 55+ puzzles, hints.</div>
-      </div>
-    </a>
-
-    <a href="game-15puzzle/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🔢</div>
-      <div class="card-info">
-        <div class="card-title">Sliding 15</div>
-        <div class="card-genre">Puzzle / Classic</div>
-        <div class="card-desc">The classic 15-puzzle with move counter and timer.</div>
-      </div>
-    </a>
-
-    <a href="game-nonogram/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🧩</div>
-      <div class="card-info">
-        <div class="card-title">Picross</div>
-        <div class="card-genre">Puzzle / Logic</div>
-        <div class="card-desc">Nonogram logic puzzles in 5x5, 10x10 and 15x15 sizes.</div>
-      </div>
-    </a>
-
-    <a href="game-mastermind/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🎯</div>
-      <div class="card-info">
-        <div class="card-title">Mastermind</div>
-        <div class="card-genre">Puzzle / Deduction</div>
-        <div class="card-desc">Crack the 4-color code in 10 tries with peg feedback.</div>
-      </div>
-    </a>
-
-    <a href="game-rps/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">✂️</div>
-      <div class="card-info">
-        <div class="card-title">Rock Paper Scissors</div>
-        <div class="card-genre">Classic / Quick</div>
-        <div class="card-desc">Best of 5 or 10 against the AI. Full stats tracking.</div>
-      </div>
-    </a>
-
-    <a href="game-hangman/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">💀</div>
-      <div class="card-info">
-        <div class="card-title">Hangman</div>
-        <div class="card-genre">Word / Classic</div>
-        <div class="card-desc">Guess the word by category. 6 wrong tries and you're out.</div>
-      </div>
-    </a>
-
-    <a href="game-tictactoe/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">❌</div>
-      <div class="card-info">
-        <div class="card-title">Tic Tac Toe</div>
-        <div class="card-genre">Strategy / Classic</div>
-        <div class="card-desc">Play against an unbeatable minimax AI. Stats tracked.</div>
-      </div>
-    </a>
-
-    <a href="game-dice/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🎲</div>
-      <div class="card-info">
-        <div class="card-title">Dice Roller</div>
-        <div class="card-genre">Dice / Strategy</div>
-        <div class="card-desc">Roll 5 dice, keep some, score combos like full house.</div>
-      </div>
-    </a>
-
-    <a href="game-coinflip/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🪙</div>
-      <div class="card-info">
-        <div class="card-title">Coin Flip Streak</div>
-        <div class="card-genre">Luck / Quick</div>
-        <div class="card-desc">Guess heads or tails. How long can your streak last?</div>
-      </div>
-    </a>
-
-    <a href="game-simon/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🎵</div>
-      <div class="card-info">
-        <div class="card-title">Simon Says</div>
-        <div class="card-genre">Memory / Skill</div>
-        <div class="card-desc">Repeat the growing sequence of lights and sounds.</div>
-      </div>
-    </a>
-
-    <a href="game-whackmonster/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">👹</div>
-      <div class="card-info">
-        <div class="card-title">Whack-a-Monster</div>
-        <div class="card-genre">Arcade / Reflex</div>
-        <div class="card-desc">Smash monsters for 60s. Bosses need 3 hits for big points.</div>
-      </div>
-    </a>
-
-    <a href="game-drawing/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🎨</div>
-      <div class="card-info">
-        <div class="card-title">Drawing Pad</div>
-        <div class="card-genre">Creative / Tool</div>
-        <div class="card-desc">Paint with brushes, colors and eraser. Save as PNG.</div>
-      </div>
-    </a>
-
-    <a href="game-snake2p/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🐍</div>
-      <div class="card-info">
-        <div class="card-title">Snake Battle</div>
-        <div class="card-genre">Arcade / 2 Players</div>
-        <div class="card-desc">Two snakes on one grid. Arrows vs WASD. Last one alive wins.</div>
-      </div>
-    </a>
-
-    <a href="game-avoid/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🟥</div>
-      <div class="card-info">
-        <div class="card-title">Avoid the Blocks</div>
-        <div class="card-genre">Arcade / Survival</div>
-        <div class="card-desc">Dodge falling red blocks. Speed increases over time.</div>
-      </div>
-    </a>
-
-    <a href="game-guess/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🔢</div>
-      <div class="card-info">
-        <div class="card-title">Number Guess</div>
-        <div class="card-genre">Puzzle / Logic</div>
-        <div class="card-desc">Higher or lower. 1-100, 1-1000, 1-10000 with hot/cold hints.</div>
-      </div>
-    </a>
-
-    <a href="game-colormatch/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🌈</div>
-      <div class="card-info">
-        <div class="card-title">Color Match</div>
-        <div class="card-genre">Reflex / Brain</div>
-        <div class="card-desc">Stroop effect. Does the word match the ink color?</div>
-      </div>
-    </a>
-
-    <a href="game-spellit/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🔤</div>
-      <div class="card-info">
-        <div class="card-title">Spell It</div>
-        <div class="card-genre">Word / Puzzle</div>
-        <div class="card-desc">Unscramble letters to form a word. 10 rounds of rising difficulty.</div>
-      </div>
-    </a>
-
-    <a href="game-matchpairs/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🃏</div>
-      <div class="card-info">
-        <div class="card-title">Match Pairs Plus</div>
-        <div class="card-genre">Memory / Puzzle</div>
-        <div class="card-desc">Classic pairs with themes: food, countries, animals.</div>
-      </div>
-    </a>
-
-    <a href="game-runner2/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">⛷️</div>
-      <div class="card-info">
-        <div class="card-title">Ski Slalom</div>
-        <div class="card-genre">Arcade / Racing</div>
-        <div class="card-desc">Fly down the slope. Dodge trees and rocks, hit the gates.</div>
-      </div>
-    </a>
-
-    <a href="game-highlow/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🎴</div>
-      <div class="card-info">
-        <div class="card-title">High Low</div>
-        <div class="card-genre">Card / Luck</div>
-        <div class="card-desc">Guess if the next card is higher or lower. Build a streak!</div>
-      </div>
-    </a>
-
-    <a href="game-bowling/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🎳</div>
-      <div class="card-info">
-        <div class="card-title">Bowling</div>
-        <div class="card-genre">Sports / Arcade</div>
-        <div class="card-desc">Aim and throw, 10 frames with classic bowling scoring.</div>
-      </div>
-    </a>
-
-    <a href="game-archery/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🏹</div>
-      <div class="card-info">
-        <div class="card-title">Archery</div>
-        <div class="card-genre">Sports / Aim</div>
-        <div class="card-desc">10 arrows, target rings, wind effects. Aim for gold!</div>
-      </div>
-    </a>
-
-    <a href="game-slots/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🎰</div>
-      <div class="card-info">
-        <div class="card-title">Lucky Slots</div>
-        <div class="card-genre">Casino / Luck</div>
-        <div class="card-desc">3-reel slot machine. Bet chips, spin for the jackpot!</div>
-      </div>
-    </a>
-
-    <a href="game-bubble/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🫧</div>
-      <div class="card-info">
-        <div class="card-title">Bubble Shooter</div>
-        <div class="card-genre">Puzzle / Arcade</div>
-        <div class="card-desc">Shoot bubbles, match 3+ of a color to pop and clear the board.</div>
-      </div>
-    </a>
-
-    <a href="game-geometry/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🔺</div>
-      <div class="card-info">
-        <div class="card-title">Geometry Rush</div>
-        <div class="card-genre">Runner / Rhythm</div>
-        <div class="card-desc">One-button neon rhythm runner. Jump over spikes and blocks.</div>
-      </div>
-    </a>
-
-    <a href="game-helicopter/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🚁</div>
-      <div class="card-info">
-        <div class="card-title">Helicopter</div>
-        <div class="card-genre">Arcade / Skill</div>
-        <div class="card-desc">Hold to fly, release to fall. Dodge the procedural cave walls.</div>
-      </div>
-    </a>
-
-    <a href="game-lightsout/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">💡</div>
-      <div class="card-info">
-        <div class="card-title">Lights Out</div>
-        <div class="card-genre">Puzzle / Logic</div>
-        <div class="card-desc">Click a tile to toggle it and its neighbors. Turn all lights off.</div>
-      </div>
-    </a>
-
-    <a href="game-racing/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🏎️</div>
-      <div class="card-info">
-        <div class="card-title">Neon Racer</div>
-        <div class="card-genre">Racing / Arcade</div>
-        <div class="card-desc">Top-down racing. Arrow keys to drive. Lap timer and best lap.</div>
-      </div>
-    </a>
-
-    <a href="game-golf/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">⛳</div>
-      <div class="card-info">
-        <div class="card-title">Mini Golf</div>
-        <div class="card-genre">Sports / Physics</div>
-        <div class="card-desc">9 holes of mini golf. Drag to aim, release to putt.</div>
-      </div>
-    </a>
-
-    <a href="game-penalty/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">⚽</div>
-      <div class="card-info">
-        <div class="card-title">Penalty Kick</div>
-        <div class="card-genre">Sports / Reflex</div>
-        <div class="card-desc">Beat the AI keeper. 5 shots, score tracking and best run.</div>
-      </div>
-    </a>
-
-    <a href="game-pinball/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🎯</div>
-      <div class="card-info">
-        <div class="card-title">Neon Pinball</div>
-        <div class="card-genre">Arcade / Physics</div>
-        <div class="card-desc">Flippers, bumpers, ball physics. 3 balls, high score.</div>
-      </div>
-    </a>
-
-    <a href="game-fish/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🎣</div>
-      <div class="card-info">
-        <div class="card-title">Fishing Idle</div>
-        <div class="card-genre">Idle / Catching</div>
-        <div class="card-desc">Wait for the bite, reel in fish, upgrade your rod.</div>
-      </div>
-    </a>
-
-    <a href="game-pottery/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🏺</div>
-      <div class="card-info">
-        <div class="card-title">Pottery Workshop</div>
-        <div class="card-genre">Idle / Clicker</div>
-        <div class="card-desc">Click to craft pots, unlock kilns, sell for gold.</div>
-      </div>
-    </a>
-
-    <a href="game-mining/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">⛏️</div>
-      <div class="card-info">
-        <div class="card-title">Deep Miner</div>
-        <div class="card-genre">Idle / Mining</div>
-        <div class="card-desc">Break rocks, upgrade pickaxe, unlock deeper mines.</div>
-      </div>
-    </a>
-
-    <a href="game-garden/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🌱</div>
-      <div class="card-info">
-        <div class="card-title">Zen Garden</div>
-        <div class="card-genre">Sim / Idle</div>
-        <div class="card-desc">Plant seeds, wait, harvest, unlock new crops.</div>
-      </div>
-    </a>
-
-    <a href="game-farm/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🌾</div>
-      <div class="card-info">
-        <div class="card-title">Farm Clicker</div>
-        <div class="card-genre">Idle / Clicker</div>
-        <div class="card-desc">Harvest crops, buy animals for passive income.</div>
-      </div>
-    </a>
-
-    <a href="game-potion/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🧪</div>
-      <div class="card-info">
-        <div class="card-title">Potion Brewer</div>
-        <div class="card-genre">Idle / Crafting</div>
-        <div class="card-desc">Gather ingredients, combine recipes, brew and sell potions.</div>
-      </div>
-    </a>
-
-    <a href="game-trivia/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🧠</div>
-      <div class="card-info">
-        <div class="card-title">Trivia Quiz</div>
-        <div class="card-genre">Quiz / Knowledge</div>
-        <div class="card-desc">30 questions across categories. Multiple choice with score.</div>
-      </div>
-    </a>
-
-    <a href="game-flagquiz/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🏳️</div>
-      <div class="card-info">
-        <div class="card-title">Flag Quiz</div>
-        <div class="card-genre">Quiz / Geography</div>
-        <div class="card-desc">Guess the country from its flag. 55 countries, timer.</div>
-      </div>
-    </a>
-
-    <a href="game-capitalquiz/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🏛️</div>
-      <div class="card-info">
-        <div class="card-title">Capital Quiz</div>
-        <div class="card-genre">Quiz / Geography</div>
-        <div class="card-desc">Name the capital city for 55+ countries. Multiple choice.</div>
-      </div>
-    </a>
-
-    <a href="game-chess/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">♞</div>
-      <div class="card-info">
-        <div class="card-title">Chess</div>
-        <div class="card-genre">Strategy / Classic</div>
-        <div class="card-desc">Play chess vs AI with legal moves and check detection.</div>
-      </div>
-    </a>
-
-    <a href="game-reversi/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">⚫</div>
-      <div class="card-info">
-        <div class="card-title">Reversi</div>
-        <div class="card-genre">Strategy / Classic</div>
-        <div class="card-desc">Othello-style board game. Flip pieces, outsmart the AI.</div>
-      </div>
-    </a>
-
-    <a href="game-2p-fight/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">⚔️</div>
-      <div class="card-info">
-        <div class="card-title">2P Duel</div>
-        <div class="card-genre">Reaction / 2-Player</div>
-        <div class="card-desc">Two players, one keyboard. First to press wins the round.</div>
-      </div>
-    </a>
-
-    <a href="game-zombiewave/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🧟</div>
-      <div class="card-info">
-        <div class="card-title">Zombie Wave</div>
-        <div class="card-genre">Shooter / Arcade</div>
-        <div class="card-desc">Aim with mouse, survive endless waves of zombies.</div>
-      </div>
-    </a>
-
-    <a href="game-knifethrow/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🔪</div>
-      <div class="card-info">
-        <div class="card-title">Knife Throw</div>
-        <div class="card-genre">Skill / Arcade</div>
-        <div class="card-desc">Throw knives at a spinning log without hitting others.</div>
-      </div>
-    </a>
-
-    <a href="game-basketball/" class="card">
-      <div class="card-icon" style="background:rgba(251,146,60,0.15)">🏀</div>
-      <div class="card-info">
-        <div class="card-title">Basketball</div>
-        <div class="card-genre">Sports / Physics</div>
-        <div class="card-desc">Drag to aim, release to shoot. Score as many as you can.</div>
-      </div>
-    </a>
-
-    <a href="game-darts/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🎯</div>
-      <div class="card-info">
-        <div class="card-title">Darts</div>
-        <div class="card-genre">Sports / Precision</div>
-        <div class="card-desc">Throw darts at a scoring board. 3 darts per round.</div>
-      </div>
-    </a>
-
-    <a href="game-maze/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🌀</div>
-      <div class="card-info">
-        <div class="card-title">Maze Runner</div>
-        <div class="card-genre">Puzzle / Navigation</div>
-        <div class="card-desc">Escape a random maze from start to exit. Beat your best time!</div>
-      </div>
-    </a>
-
-    <a href="game-pipes/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🚰</div>
-      <div class="card-info">
-        <div class="card-title">Pipe Connect</div>
-        <div class="card-genre">Puzzle / Logic</div>
-        <div class="card-desc">Rotate tiles to connect the water source to the exit.</div>
-      </div>
-    </a>
-
-    <a href="game-sokoban/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">📦</div>
-      <div class="card-info">
-        <div class="card-title">Sokoban</div>
-        <div class="card-genre">Puzzle / Classic</div>
-        <div class="card-desc">Push boxes onto targets across 10 levels. Undo supported.</div>
-      </div>
-    </a>
-
-    <a href="game-frogger/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🐸</div>
-      <div class="card-info">
-        <div class="card-title">Frogger</div>
-        <div class="card-genre">Arcade / Classic</div>
-        <div class="card-desc">Cross the road avoiding cars. Classic arcade action.</div>
-      </div>
-    </a>
-
-    <a href="game-2048hex/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">⬡</div>
-      <div class="card-info">
-        <div class="card-title">2048 Hex</div>
-        <div class="card-genre">Puzzle</div>
-        <div class="card-desc">Hexagonal 2048 variant with six merge directions.</div>
-      </div>
-    </a>
-
-    <a href="game-match3/" class="card">
-      <div class="card-icon" style="background:rgba(236,72,153,0.15)">💎</div>
-      <div class="card-info">
-        <div class="card-title">Gem Match</div>
-        <div class="card-genre">Puzzle / Match-3</div>
-        <div class="card-desc">Swap gems to match 3+, build combos and chain reactions.</div>
-      </div>
-    </a>
-
-    <a href="game-breakout/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🎯</div>
-      <div class="card-info">
-        <div class="card-title">Breakout Power</div>
-        <div class="card-genre">Arcade / Breakout</div>
-        <div class="card-desc">Breakout with powerups, multi-balls and wide paddle drops.</div>
-      </div>
-    </a>
-
-    <a href="game-gravity/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🌌</div>
-      <div class="card-info">
-        <div class="card-title">Gravity Flip</div>
-        <div class="card-genre">Arcade / Reflex</div>
-        <div class="card-desc">Press space to flip gravity. Dodge spikes, survive long.</div>
-      </div>
-    </a>
-
-    <a href="game-shooter/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🔫</div>
-      <div class="card-info">
-        <div class="card-title">Top-Down Shooter</div>
-        <div class="card-genre">Action / Shooter</div>
-        <div class="card-desc">WASD to move, click to shoot. Survive endless enemy waves.</div>
-      </div>
-    </a>
-
-    <a href="game-shadowcat/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🐈‍⬛</div>
-      <div class="card-info">
-        <div class="card-title">Shadow Cat</div>
-        <div class="card-genre">Stealth / Puzzle</div>
-        <div class="card-desc">Sneak past guards' vision cones. Turn-based stealth puzzle.</div>
-      </div>
-    </a>
-
-    <a href="game-dungeon/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🏰</div>
-      <div class="card-info">
-        <div class="card-title">Dungeon Crawler</div>
-        <div class="card-genre">Roguelike</div>
-        <div class="card-desc">Explore procedural dungeons, fight monsters, loot chests, descend 5 floors.</div>
-      </div>
-    </a>
-
-    <a href="game-rpg/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">⚔️</div>
-      <div class="card-info">
-        <div class="card-title">Turn-Based RPG</div>
-        <div class="card-genre">RPG</div>
-        <div class="card-desc">Fight waves of monsters. Attack, defend, heal and level up your hero.</div>
-      </div>
-    </a>
-
-    <a href="game-treasurehunt/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🏴‍☠️</div>
-      <div class="card-info">
-        <div class="card-title">Treasure Hunt</div>
-        <div class="card-genre">Point-and-Click</div>
-        <div class="card-desc">Solve clues across a pirate island to unlock the buried treasure.</div>
-      </div>
-    </a>
-
-    <a href="game-monstertamer/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🐾</div>
-      <div class="card-info">
-        <div class="card-title">Monster Tamer</div>
-        <div class="card-genre">RPG / Collect</div>
-        <div class="card-desc">Catch wild monsters, level up, build a team of 6, use type advantages.</div>
-      </div>
-    </a>
-
-    <a href="game-vampire/" class="card">
-      <div class="card-icon" style="background:rgba(147,51,234,0.15)">🧛</div>
-      <div class="card-info">
-        <div class="card-title">Vampire Night</div>
-        <div class="card-genre">Bullet Heaven</div>
-        <div class="card-desc">Auto-attack survivor. Dodge enemies, pick upgrades, survive as long as possible.</div>
-      </div>
-    </a>
-
-    <a href="game-wizard/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🧙</div>
-      <div class="card-info">
-        <div class="card-title">Wizard Combat</div>
-        <div class="card-genre">Action / Combo</div>
-        <div class="card-desc">Cast spells via Q W E R combos. 7 spells, endless wave arena.</div>
-      </div>
-    </a>
-
-    <a href="game-quiz2/" class="card">
-      <div class="card-icon" style="background:rgba(34,211,238,0.15)">🔬</div>
-      <div class="card-info">
-        <div class="card-title">Science Quiz</div>
-        <div class="card-genre">Quiz / Knowledge</div>
-        <div class="card-desc">30 questions on physics, chemistry and biology. Test your knowledge.</div>
-      </div>
-    </a>
-
-    <a href="game-musicquiz/" class="card">
-      <div class="card-icon" style="background:rgba(236,72,153,0.15)">🎵</div>
-      <div class="card-info">
-        <div class="card-title">Music Quiz</div>
-        <div class="card-genre">Quiz / Audio</div>
-        <div class="card-desc">Listen to generated tones and guess the music genre. Web Audio based.</div>
-      </div>
-    </a>
-
-    <a href="game-palindrome/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🔤</div>
-      <div class="card-info">
-        <div class="card-title">Palindrome Hunt</div>
-        <div class="card-genre">Word Puzzle</div>
-        <div class="card-desc">Find hidden palindromes in a letter grid. Time-based word search.</div>
-      </div>
-    </a>
-
-    <a href="game-colorblind/" class="card">
-      <div class="card-icon" style="background:rgba(249,115,22,0.15)">👁️</div>
-      <div class="card-info">
-        <div class="card-title">Color Vision Test</div>
-        <div class="card-genre">Perception</div>
-        <div class="card-desc">Ishihara-style test. Identify the numbers hidden in colored dot patterns.</div>
-      </div>
-    </a>
-
-    <a href="game-sequence/" class="card">
-      <div class="card-icon" style="background:rgba(168,85,247,0.15)">🎯</div>
-      <div class="card-info">
-        <div class="card-title">Sequence Memory</div>
-        <div class="card-genre">Memory</div>
-        <div class="card-desc">Watch the color sequence and repeat it. Each level adds one more step.</div>
-      </div>
-    </a>
-
-    <a href="game-puzzle2/" class="card">
-      <div class="card-icon" style="background:rgba(234,179,8,0.15)">🧩</div>
-      <div class="card-info">
-        <div class="card-title">Jigsaw Puzzle</div>
-        <div class="card-genre">Puzzle</div>
-        <div class="card-desc">Swap pieces to reassemble the image. 3x3, 4x4 and 5x5 sizes, 5 images.</div>
-      </div>
-    </a>
-
-    <a href="game-spacewar/" class="card">
-      <div class="card-icon" style="background:rgba(6,182,212,0.15)">🚀</div>
-      <div class="card-info">
-        <div class="card-title">Space War</div>
-        <div class="card-genre">Shoot 'em Up</div>
-        <div class="card-desc">Fly your ship, shoot enemies, face powerful boss fights every 3 waves.</div>
-      </div>
-    </a>
-
-    <a href="game-spaceship/" class="card">
-      <div class="card-icon" style="background:rgba(126,200,227,0.15)">🚀</div>
-      <div class="card-info">
-        <div class="card-title">Spaceship Builder</div>
-        <div class="card-genre">Idle / Clicker</div>
-        <div class="card-desc">Click to build parts, unlock upgrades, and explore the galaxy.</div>
-      </div>
-    </a>
-
-    <a href="game-dragon/" class="card">
-      <div class="card-icon" style="background:rgba(239,68,68,0.15)">🐲</div>
-      <div class="card-info">
-        <div class="card-title">Dragon Breeder</div>
-        <div class="card-genre">Sim / Collection</div>
-        <div class="card-desc">Hatch eggs, feed dragons, and breed rare elemental types.</div>
-      </div>
-    </a>
-
-    <a href="game-robot/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">🤖</div>
-      <div class="card-info">
-        <div class="card-title">Robot Factory</div>
-        <div class="card-genre">Idle / Automation</div>
-        <div class="card-desc">Build assembly lines, auto-produce robots, and reinvest profits.</div>
-      </div>
-    </a>
-
-    <a href="game-aquarium/" class="card">
-      <div class="card-icon" style="background:rgba(96,165,250,0.15)">🐠</div>
-      <div class="card-info">
-        <div class="card-title">Mini Aquarium</div>
-        <div class="card-genre">Sim / Relax</div>
-        <div class="card-desc">Buy fish, feed them, and watch your tank come alive.</div>
-      </div>
-    </a>
-
-    <a href="game-tamagotchi/" class="card">
-      <div class="card-icon" style="background:rgba(251,191,36,0.15)">🐣</div>
-      <div class="card-info">
-        <div class="card-title">Pocket Pet</div>
-        <div class="card-genre">Virtual Pet</div>
-        <div class="card-desc">Feed, clean, and play with your pet. Keep hunger and happiness up!</div>
-      </div>
-    </a>
-
-    <a href="game-train/" class="card">
-      <div class="card-icon" style="background:rgba(34,197,94,0.15)">🚂</div>
-      <div class="card-info">
-        <div class="card-title">Train Dispatch</div>
-        <div class="card-genre">Puzzle / Arcade</div>
-        <div class="card-desc">Route colored trains to matching stations without collisions.</div>
-      </div>
-    </a>
-
-    <a href="game-hospital/" class="card">
-      <div class="card-icon" style="background:rgba(244,63,94,0.15)">🏥</div>
-      <div class="card-info">
-        <div class="card-title">Hospital Manager</div>
-        <div class="card-genre">Management</div>
-        <div class="card-desc">Treat patients, hire doctors, and upgrade your equipment.</div>
-      </div>
-    </a>
-
-    <a href="game-restaurant/" class="card">
-      <div class="card-icon" style="background:rgba(249,115,22,0.15)">🍽️</div>
-      <div class="card-info">
-        <div class="card-title">Restaurant Manager</div>
-        <div class="card-genre">Management / Time</div>
-        <div class="card-desc">Take orders, cook dishes, serve customers, and upgrade the kitchen.</div>
-      </div>
-    </a>
-
-    <a href="game-weather/" class="card">
-      <div class="card-icon" style="background:rgba(14,165,233,0.15)">⛅</div>
-      <div class="card-info">
-        <div class="card-title">Weather Oracle</div>
-        <div class="card-genre">Puzzle / Educational</div>
-        <div class="card-desc">Read the clues and predict tomorrow's weather. Learn science facts.</div>
-      </div>
-    </a>
-
-    <a href="game-crossword/" class="card">
-      <div class="card-icon" style="background:rgba(167,139,250,0.15)">📝</div>
-      <div class="card-info">
-        <div class="card-title">Mini Crossword</div>
-        <div class="card-genre">Word Puzzle</div>
-        <div class="card-desc">5x5 crossword with clues. Three puzzles, arrow keys to navigate.</div>
-      </div>
-    </a>
-  </div>
-
-  <div class="footer">
-    AlyraGames — All games are playable in the browser.
-  </div>
+  <footer class="footer">
+    AlyraGames — 110+ free browser games. Made with React, TypeScript and ☕.
+  </footer>
+
+  <script>
+    const GAMES = [
+      // Featured Slime Collection
+      { slug: 'slime-idle',   title: 'Slime Idle',   cat: 'Idle',     icon: '🫧', color: '96,165,250',  featured: true },
+      { slug: 'slime-td',     title: 'Slime TD',     cat: 'Strategy', icon: '🏰', color: '239,68,68',   featured: true },
+      { slug: 'slime-cards',  title: 'Slime Cards',  cat: 'Cards',    icon: '🃏', color: '167,139,250', featured: true },
+      { slug: 'slime-match',  title: 'Slime Match',  cat: 'Puzzle',   icon: '🧩', color: '234,179,8',   featured: true },
+      { slug: 'slime-colony', title: 'Slime Colony', cat: 'Sim',      icon: '🏘️', color: '34,197,94',   featured: true },
+      { slug: 'slime-arena',  title: 'Slime Arena',  cat: 'Strategy', icon: '⚔️', color: '251,191,36',  featured: true },
+      { slug: 'slime-run',    title: 'Slime Run',    cat: 'Action',   icon: '🏃', color: '96,165,250',  featured: true },
+
+      // Puzzle
+      { slug: 'game-2048',        title: '2048 Slime',      cat: 'Puzzle', icon: '🫧', color: '126,200,227' },
+      { slug: 'game-2048hex',     title: '2048 Hex',        cat: 'Puzzle', icon: '⬡',  color: '167,139,250' },
+      { slug: 'game-minesweeper', title: 'Minesweeper',     cat: 'Puzzle', icon: '💣', color: '148,163,184' },
+      { slug: 'game-sudoku',      title: 'Sudoku Zen',      cat: 'Puzzle', icon: '🧘', color: '167,139,250' },
+      { slug: 'game-wordle',      title: 'Word Guess',      cat: 'Puzzle', icon: '📝', color: '74,222,128' },
+      { slug: 'game-pictoquiz',   title: 'Emoji Quiz',      cat: 'Puzzle', icon: '❓', color: '251,191,36' },
+      { slug: 'game-15puzzle',    title: 'Sliding 15',      cat: 'Puzzle', icon: '🔢', color: '96,165,250' },
+      { slug: 'game-nonogram',    title: 'Nonogram',        cat: 'Puzzle', icon: '🎨', color: '236,72,153' },
+      { slug: 'game-mastermind',  title: 'Mastermind',      cat: 'Puzzle', icon: '🎯', color: '139,92,246' },
+      { slug: 'game-lightsout',   title: 'Lights Out',      cat: 'Puzzle', icon: '💡', color: '250,204,21' },
+      { slug: 'game-memory',      title: 'Memory Cards',    cat: 'Puzzle', icon: '🃏', color: '167,139,250' },
+      { slug: 'game-tetris',      title: 'Falling Blocks',  cat: 'Puzzle', icon: '🧱', color: '0,240,240' },
+      { slug: 'game-maze',        title: 'Maze Runner',     cat: 'Puzzle', icon: '🌀', color: '148,163,184' },
+      { slug: 'game-pipes',       title: 'Pipe Connect',    cat: 'Puzzle', icon: '🔧', color: '34,197,94' },
+      { slug: 'game-sokoban',     title: 'Sokoban',         cat: 'Puzzle', icon: '📦', color: '180,83,9' },
+      { slug: 'game-match3',      title: 'Gem Match',       cat: 'Puzzle', icon: '💎', color: '167,139,250' },
+      { slug: 'game-sequence',    title: 'Sequence Memory', cat: 'Puzzle', icon: '🔁', color: '96,165,250' },
+      { slug: 'game-puzzle2',     title: 'Jigsaw',          cat: 'Puzzle', icon: '🧩', color: '251,146,60' },
+      { slug: 'game-palindrome',  title: 'Palindrome',      cat: 'Puzzle', icon: '🔤', color: '244,114,182' },
+      { slug: 'game-crossword',   title: 'Crossword',       cat: 'Puzzle', icon: '📰', color: '148,163,184' },
+      { slug: 'game-simon',       title: 'Simon Says',      cat: 'Puzzle', icon: '🔴', color: '239,68,68' },
+
+      // Arcade
+      { slug: 'game-snake',        title: 'Snake Neon',    cat: 'Arcade', icon: '🐍', color: '0,229,255' },
+      { slug: 'game-flappy',       title: 'Flappy Clone',  cat: 'Arcade', icon: '🐦', color: '255,193,7' },
+      { slug: 'game-pong',         title: 'Pong Duel',     cat: 'Arcade', icon: '🏓', color: '167,139,250' },
+      { slug: 'game-brickbreaker', title: 'Brick Breaker', cat: 'Arcade', icon: '🧱', color: '167,139,250' },
+      { slug: 'game-breakout',     title: 'Breakout',      cat: 'Arcade', icon: '🎾', color: '74,222,128' },
+      { slug: 'game-space',        title: 'Space Dodge',   cat: 'Arcade', icon: '🚀', color: '126,200,227' },
+      { slug: 'game-bubble',       title: 'Bubble Shooter', cat: 'Arcade', icon: '🫧', color: '96,165,250' },
+      { slug: 'game-geometry',     title: 'Geometry Dash', cat: 'Arcade', icon: '◇', color: '244,114,182' },
+      { slug: 'game-helicopter',   title: 'Helicopter',    cat: 'Arcade', icon: '🚁', color: '251,191,36' },
+      { slug: 'game-frogger',      title: 'Frogger',       cat: 'Arcade', icon: '🐸', color: '34,197,94' },
+      { slug: 'game-avoid',        title: 'Avoid Blocks',  cat: 'Arcade', icon: '🟦', color: '239,68,68' },
+      { slug: 'game-gravity',      title: 'Gravity Flip',  cat: 'Arcade', icon: '⬆️', color: '139,92,246' },
+      { slug: 'game-runner',       title: 'Cyber Runner',  cat: 'Arcade', icon: '🏃', color: '236,72,153' },
+      { slug: 'game-colormatch',   title: 'Color Match',   cat: 'Arcade', icon: '🎨', color: '167,139,250' },
+      { slug: 'game-reaction',     title: 'Reaction Time', cat: 'Arcade', icon: '⚡', color: '250,204,21' },
+
+      // Action
+      { slug: 'game-fruit',       title: 'Fruit Ninja',       cat: 'Action', icon: '🍉', color: '239,68,68' },
+      { slug: 'game-shooter',     title: 'Top Shooter',       cat: 'Action', icon: '🔫', color: '239,68,68' },
+      { slug: 'game-zombiewave',  title: 'Zombie Wave',       cat: 'Action', icon: '🧟', color: '34,197,94' },
+      { slug: 'game-spacewar',    title: 'Space War',         cat: 'Action', icon: '🛸', color: '167,139,250' },
+      { slug: 'game-vampire',     title: 'Vampire Survivors', cat: 'Action', icon: '🧛', color: '185,28,28' },
+      { slug: 'game-knifethrow',  title: 'Knife Throw',       cat: 'Action', icon: '🔪', color: '148,163,184' },
+      { slug: 'game-whackmonster', title: 'Whack Monster',    cat: 'Action', icon: '👹', color: '34,197,94' },
+      { slug: 'game-whack',       title: 'Whack-a-Mole',      cat: 'Action', icon: '🐹', color: '180,83,9' },
+      { slug: 'game-2p-fight',    title: '2P Fight',          cat: 'Action', icon: '⚔️', color: '239,68,68' },
+      { slug: 'game-shadowcat',   title: 'Shadow Cat',        cat: 'Action', icon: '🐈', color: '107,114,128' },
+
+      // Strategy
+      { slug: 'game-chess',      title: 'Chess',      cat: 'Strategy', icon: '♟️', color: '148,163,184' },
+      { slug: 'game-checkers',   title: 'Checkers',   cat: 'Strategy', icon: '🔴', color: '185,28,28' },
+      { slug: 'game-reversi',    title: 'Reversi',    cat: 'Strategy', icon: '⚫', color: '148,163,184' },
+      { slug: 'game-connect4',   title: 'Connect 4',  cat: 'Strategy', icon: '🔴', color: '239,68,68' },
+      { slug: 'game-tictactoe',  title: 'Tic Tac Toe', cat: 'Strategy', icon: '❌', color: '96,165,250' },
+      { slug: 'game-battleship', title: 'Battleship', cat: 'Strategy', icon: '🚢', color: '96,165,250' },
+
+      // Cards & Casino
+      { slug: 'game-blackjack', title: 'Blackjack',      cat: 'Cards', icon: '🎰', color: '74,222,128' },
+      { slug: 'game-solitaire', title: 'Solitaire',      cat: 'Cards', icon: '🃏', color: '185,28,28' },
+      { slug: 'game-highlow',   title: 'Higher Lower',   cat: 'Cards', icon: '🎴', color: '251,191,36' },
+      { slug: 'game-slots',     title: 'Slot Machine',   cat: 'Cards', icon: '🎰', color: '250,204,21' },
+      { slug: 'game-dice',      title: 'Dice (Yahtzee)', cat: 'Cards', icon: '🎲', color: '236,72,153' },
+      { slug: 'game-coinflip',  title: 'Coin Flip',      cat: 'Cards', icon: '🪙', color: '251,191,36' },
+
+      // Idle / Clicker
+      { slug: 'game-cookie',    title: 'Cookie Factory', cat: 'Idle', icon: '🍪', color: '180,83,9' },
+      { slug: 'game-mining',    title: 'Planet Miner',   cat: 'Idle', icon: '⛏️', color: '148,163,184' },
+      { slug: 'game-fish',      title: 'Fish Tycoon',    cat: 'Idle', icon: '🎣', color: '96,165,250' },
+      { slug: 'game-pottery',   title: 'Pottery',        cat: 'Idle', icon: '🏺', color: '180,83,9' },
+      { slug: 'game-garden',    title: 'Garden Grow',    cat: 'Idle', icon: '🌱', color: '34,197,94' },
+      { slug: 'game-farm',      title: 'Farm Empire',    cat: 'Idle', icon: '🚜', color: '250,204,21' },
+      { slug: 'game-potion',    title: 'Potion Brewer',  cat: 'Idle', icon: '🧪', color: '139,92,246' },
+      { slug: 'game-dragon',    title: 'Dragon Hatcher', cat: 'Idle', icon: '🐉', color: '239,68,68' },
+      { slug: 'game-robot',     title: 'Robot Factory',  cat: 'Idle', icon: '🤖', color: '96,165,250' },
+      { slug: 'game-spaceship', title: 'Space Station',  cat: 'Idle', icon: '🛰️', color: '167,139,250' },
+
+      // Sports
+      { slug: 'game-bowling',    title: 'Bowling',    cat: 'Sports', icon: '🎳', color: '148,163,184' },
+      { slug: 'game-archery',    title: 'Archery',    cat: 'Sports', icon: '🏹', color: '74,222,128' },
+      { slug: 'game-pinball',    title: 'Pinball',    cat: 'Sports', icon: '🎱', color: '167,139,250' },
+      { slug: 'game-racing',     title: 'Racing',     cat: 'Sports', icon: '🏎️', color: '239,68,68' },
+      { slug: 'game-golf',       title: 'Mini Golf',  cat: 'Sports', icon: '⛳', color: '34,197,94' },
+      { slug: 'game-penalty',    title: 'Penalty',    cat: 'Sports', icon: '⚽', color: '255,255,255' },
+      { slug: 'game-basketball', title: 'Basketball', cat: 'Sports', icon: '🏀', color: '234,88,12' },
+      { slug: 'game-darts',      title: 'Darts',      cat: 'Sports', icon: '🎯', color: '239,68,68' },
+      { slug: 'game-runner2',    title: 'Ski Slalom', cat: 'Sports', icon: '⛷️', color: '219,234,254' },
+
+      // RPG / Adventure
+      { slug: 'game-dungeon',      title: 'Dungeon Crawl', cat: 'RPG', icon: '🏰', color: '148,163,184' },
+      { slug: 'game-rpg',          title: 'Dragon Quest',  cat: 'RPG', icon: '🐲', color: '239,68,68' },
+      { slug: 'game-treasurehunt', title: 'Treasure Hunt', cat: 'RPG', icon: '💰', color: '250,204,21' },
+      { slug: 'game-monstertamer', title: 'Monster Tamer', cat: 'RPG', icon: '🐾', color: '167,139,250' },
+      { slug: 'game-wizard',       title: 'Wizard Duel',   cat: 'RPG', icon: '🧙', color: '139,92,246' },
+
+      // Sim
+      { slug: 'game-aquarium',   title: 'Aquarium',        cat: 'Sim', icon: '🐠', color: '96,165,250' },
+      { slug: 'game-tamagotchi', title: 'Pet Care',        cat: 'Sim', icon: '🥚', color: '251,146,60' },
+      { slug: 'game-train',      title: 'Train Dispatch',  cat: 'Sim', icon: '🚆', color: '148,163,184' },
+      { slug: 'game-hospital',   title: 'Hospital Rush',   cat: 'Sim', icon: '🏥', color: '239,68,68' },
+      { slug: 'game-restaurant', title: 'Restaurant',      cat: 'Sim', icon: '🍽️', color: '251,146,60' },
+      { slug: 'game-weather',    title: 'Weather Station', cat: 'Sim', icon: '⛅', color: '96,165,250' },
+
+      // Quiz / Skill
+      { slug: 'game-trivia',      title: 'Trivia Master', cat: 'Quiz', icon: '🎓', color: '167,139,250' },
+      { slug: 'game-flagquiz',    title: 'Flag Quiz',     cat: 'Quiz', icon: '🏳️', color: '96,165,250' },
+      { slug: 'game-capitalquiz', title: 'Capital Quiz',  cat: 'Quiz', icon: '🗺️', color: '34,197,94' },
+      { slug: 'game-quiz2',       title: 'Science Quiz',  cat: 'Quiz', icon: '🔬', color: '167,139,250' },
+      { slug: 'game-musicquiz',   title: 'Music Quiz',    cat: 'Quiz', icon: '🎵', color: '244,114,182' },
+      { slug: 'game-hangman',     title: 'Hangman',       cat: 'Quiz', icon: '🪢', color: '239,68,68' },
+      { slug: 'game-math',        title: 'Math Blitz',    cat: 'Quiz', icon: '➗', color: '250,204,21' },
+      { slug: 'game-typing',      title: 'Typing Speed',  cat: 'Quiz', icon: '⌨️', color: '126,200,227' },
+      { slug: 'game-spellit',     title: 'Spell It',      cat: 'Quiz', icon: '🔤', color: '167,139,250' },
+      { slug: 'game-guess',       title: 'Number Guess',  cat: 'Quiz', icon: '🔢', color: '251,191,36' },
+      { slug: 'game-rps',         title: 'Rock Paper Scissors', cat: 'Quiz', icon: '✊', color: '239,68,68' },
+      { slug: 'game-colorblind',  title: 'Color Blind Test',    cat: 'Quiz', icon: '👁️', color: '34,197,94' },
+      { slug: 'game-drawing',     title: 'Drawing Pad',   cat: 'Quiz', icon: '🎨', color: '167,139,250' },
+
+      // Multiplayer
+      { slug: 'game-snake2p', title: 'Snake Battle', cat: 'Multi', icon: '🐍', color: '0,229,255' },
+    ];
+
+    const CATEGORIES = [
+      { id: 'all',      label: 'All',       icon: '🎮' },
+      { id: 'Featured', label: 'Featured',  icon: '⭐' },
+      { id: 'Puzzle',   label: 'Puzzle',    icon: '🧩' },
+      { id: 'Arcade',   label: 'Arcade',    icon: '👾' },
+      { id: 'Action',   label: 'Action',    icon: '⚔️' },
+      { id: 'Strategy', label: 'Strategy',  icon: '♟️' },
+      { id: 'Cards',    label: 'Cards',     icon: '🃏' },
+      { id: 'Idle',     label: 'Idle',      icon: '🍪' },
+      { id: 'Sports',   label: 'Sports',    icon: '🏀' },
+      { id: 'RPG',      label: 'RPG',       icon: '🐉' },
+      { id: 'Sim',      label: 'Sim',       icon: '🏘️' },
+      { id: 'Quiz',     label: 'Quiz',      icon: '🎓' },
+      { id: 'Multi',    label: '2 Players', icon: '👥' },
+    ];
+
+    let activeCategory = 'all';
+    let searchQuery = '';
+
+    function renderCategories() {
+      const bar = document.getElementById('categories');
+      bar.innerHTML = CATEGORIES.map(c => {
+        const count = c.id === 'all'
+          ? GAMES.length
+          : c.id === 'Featured'
+            ? GAMES.filter(g => g.featured).length
+            : GAMES.filter(g => g.cat === c.id).length;
+        return '<button class="category-btn ' + (activeCategory === c.id ? 'active' : '') + '" data-cat="' + c.id + '">' +
+          '<span>' + c.icon + '</span>' +
+          '<span>' + c.label + '</span>' +
+          '<span class="count">' + count + '</span>' +
+        '</button>';
+      }).join('');
+      bar.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeCategory = btn.dataset.cat;
+          renderCategories();
+          renderGames();
+        });
+      });
+    }
+
+    function renderGames() {
+      const grid = document.getElementById('games-grid');
+      const title = document.getElementById('section-title');
+      const counter = document.getElementById('visible-count');
+
+      let filtered = GAMES;
+
+      if (activeCategory === 'Featured') {
+        filtered = filtered.filter(g => g.featured);
+      } else if (activeCategory !== 'all') {
+        filtered = filtered.filter(g => g.cat === activeCategory);
+      }
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(g =>
+          g.title.toLowerCase().includes(q) ||
+          g.cat.toLowerCase().includes(q)
+        );
+      }
+
+      counter.textContent = filtered.length;
+
+      if (searchQuery) {
+        title.textContent = 'Search: "' + searchQuery + '"';
+      } else if (activeCategory === 'all') {
+        title.textContent = 'All Games';
+      } else if (activeCategory === 'Featured') {
+        title.textContent = '⭐ Featured Games';
+      } else {
+        const cat = CATEGORIES.find(c => c.id === activeCategory);
+        title.textContent = cat.icon + ' ' + cat.label + ' Games';
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">🔍</div><p>No games found</p></div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(g =>
+        '<a href="' + g.slug + '/" class="game-card">' +
+          (g.featured ? '<span class="game-badge">Featured</span>' : '') +
+          '<div class="game-thumbnail" style="--thumb-bg: linear-gradient(135deg, rgba(' + g.color + ',0.25), rgba(' + g.color + ',0.05));">' +
+            '<span>' + g.icon + '</span>' +
+          '</div>' +
+          '<div class="game-info">' +
+            '<div class="game-title">' + g.title + '</div>' +
+            '<div class="game-category">' + g.cat + '</div>' +
+          '</div>' +
+        '</a>'
+      ).join('');
+    }
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderGames();
+    });
+
+    renderCategories();
+    renderGames();
+  </script>
 </body>
 </html>
