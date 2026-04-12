@@ -81,6 +81,8 @@ export default function App() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d')!;
     let raf = 0;
+    let lastTime = 0;
+    const TARGET_DT = 1000 / 60; // 60 fps baseline
 
     const handleMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -88,7 +90,12 @@ export default function App() {
     };
     canvas.addEventListener('mousemove', handleMove);
 
-    const loop = () => {
+    const loop = (now: number) => {
+      if (!lastTime) lastTime = now;
+      const rawDt = now - lastTime;
+      lastTime = now;
+      const dt = Math.min(rawDt, 50) / TARGET_DT; // clamp to avoid spiral of death
+
       const s = stateRef.current;
       // Paddle follows mouse
       s.paddleX = Math.max(0, Math.min(W - s.paddleW, s.mouseX - s.paddleW / 2));
@@ -97,8 +104,8 @@ export default function App() {
         // Balls
         for (let i = s.balls.length - 1; i >= 0; i--) {
           const b = s.balls[i];
-          b.x += b.vx;
-          b.y += b.vy;
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
           if (b.x < BALL_R) { b.x = BALL_R; b.vx *= -1; }
           if (b.x > W - BALL_R) { b.x = W - BALL_R; b.vx *= -1; }
           if (b.y < BALL_R) { b.y = BALL_R; b.vy *= -1; }
@@ -133,7 +140,7 @@ export default function App() {
         // Powers fall
         for (let i = s.powers.length - 1; i >= 0; i--) {
           const p = s.powers[i];
-          p.y += 2.5;
+          p.y += 2.5 * dt;
           if (p.y > H) { s.powers.splice(i, 1); continue; }
           if (p.y > H - 30 && p.y < H - 30 + PADDLE_H + 10 && p.x > s.paddleX && p.x < s.paddleX + s.paddleW) {
             if (p.type === 'multi') {
