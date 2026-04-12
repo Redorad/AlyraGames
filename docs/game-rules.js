@@ -4,13 +4,13 @@
  * Adds a floating "?" button to every game that opens a rules modal.
  * The rules content for each game lives in GAME_RULES below.
  *
- * Usage: <script src="/AlyraGames/game-rules.js"></script>
+ * Usage: <script src="/game-rules.js"></script>
  * (Auto-initializes on load.)
  */
 (function () {
   'use strict';
 
-  // Detect game id from URL path, e.g. /AlyraGames/game-snake/ → 'game-snake'
+  // Detect game id from URL path, e.g. /game-snake/ → 'game-snake'
   function getGameId() {
     const m = location.pathname.match(/\/(game-[^/]+|slime-[^/]+)\//);
     return m ? m[1] : null;

@@ -2,7 +2,7 @@
  * AlyraGames Game Integration
  *
  * Auto-submits local high scores to the global leaderboard by watching localStorage.
- * Usage: <script src="/AlyraGames/game-integration.js"></script>
+ * Usage: <script src="/game-integration.js"></script>
  *        <script>AlyraGamesIntegration.watch('game-snake');</script>
  */
 (function (global) {
@@ -223,12 +223,26 @@
     };
   }
 
+  /** Track this game visit in recently-played list */
+  function trackVisit(gameId) {
+    const KEY = 'alyragames_recent';
+    const MAX = 12;
+    try {
+      let list = JSON.parse(localStorage.getItem(KEY) || '[]');
+      list = list.filter(s => s !== gameId);
+      list.unshift(gameId);
+      if (list.length > MAX) list = list.slice(0, MAX);
+      localStorage.setItem(KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
+
   /** Auto-detect game from URL path and start watching */
   function autoWatch() {
     const path = location.pathname;
     const match = path.match(/\/(game-[^/]+|slime-[^/]+)\//);
     if (match && GAME_KEYS[match[1]]) {
       watch(match[1]);
+      trackVisit(match[1]);
     }
   }
 

@@ -2,7 +2,7 @@
  * AlyraGames SDK - Shared leaderboard library
  *
  * Usage:
- *   <script src="/AlyraGames/alyragames-sdk.js"></script>
+ *   <script src="/alyragames-sdk.js"></script>
  *   <script>
  *     const sdk = AlyraGames.init();
  *     sdk.submitScore('game-snake', 1234);
