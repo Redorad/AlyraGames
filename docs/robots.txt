@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://redorad.github.io/AlyraGames/sitemap.xml
+Sitemap: https://games.alyraverse.com/sitemap.xml

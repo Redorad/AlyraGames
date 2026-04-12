@@ -2,7 +2,7 @@
  * AlyraGames Game Integration
  *
  * Auto-submits local high scores to the global leaderboard by watching localStorage.
- * Usage: <script src="/AlyraGames/game-integration.js"></script>
+ * Usage: <script src="/game-integration.js"></script>
  *        <script>AlyraGamesIntegration.watch('game-snake');</script>
  */
 (function (global) {

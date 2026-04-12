@@ -9,14 +9,14 @@ const HTML_CACHE = `alyragames-html-${CACHE_VERSION}`;
 
 // Core files to precache (hub + SDK)
 const PRECACHE = [
-  '/AlyraGames/',
-  '/AlyraGames/index.html',
-  '/AlyraGames/leaderboards.html',
-  '/AlyraGames/profile.html',
-  '/AlyraGames/daily.html',
-  '/AlyraGames/alyragames-sdk.js',
-  '/AlyraGames/game-integration.js',
-  '/AlyraGames/game-rules.js',
+  '/',
+  '/index.html',
+  '/leaderboards.html',
+  '/profile.html',
+  '/daily.html',
+  '/alyragames-sdk.js',
+  '/game-integration.js',
+  '/game-rules.js',
 ];
 
 self.addEventListener('install', (event) => {

@@ -171,7 +171,7 @@
 <body>
   <header class="header">
     <div class="header-inner">
-      <a href="/AlyraGames/" class="back-btn">← Back to games</a>
+      <a href="/" class="back-btn">← Back to games</a>
     </div>
   </header>
 
@@ -179,7 +179,7 @@
     <div class="loading">Loading profile...</div>
   </div>
 
-  <script src="/AlyraGames/alyragames-sdk.js"></script>
+  <script src="/alyragames-sdk.js"></script>
   <script>
     const GAME_META = {
       'game-2048':        { title: '2048 Slime',      icon: '🫧' },
@@ -247,7 +247,7 @@
         // Show own profile
         const p = sdk.getPlayer();
         if (!p || p.isGuest || !p.nickname || p.nickname === 'Guest') {
-          content.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Sign in with a nickname to see your profile</p><p style="margin-top:8px;"><a href="/AlyraGames/" style="color: var(--accent);">← Go to hub and sign in</a></p></div>';
+          content.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>Sign in with a nickname to see your profile</p><p style="margin-top:8px;"><a href="/" style="color: var(--accent);">← Go to hub and sign in</a></p></div>';
           return;
         }
         nickname = p.nickname;
@@ -270,7 +270,7 @@
       const totalGames = scores.length;
       const totalScore = scores.reduce((sum, s) => sum + Number(s.score), 0);
       const memberSince = new Date(playerInfo.created_at).toLocaleDateString();
-      const shareUrl = window.location.origin + '/AlyraGames/profile.html?u=' + encodeURIComponent(nickname);
+      const shareUrl = window.location.origin + '/profile.html?u=' + encodeURIComponent(nickname);
       const initial = nickname[0].toUpperCase();
 
       let scoresHtml;
@@ -280,7 +280,7 @@
         scoresHtml = '<div class="scores-grid">' +
           scores.map(s => {
             const meta = GAME_META[s.game_id] || { title: s.game_id, icon: '🎮' };
-            return '<a href="/AlyraGames/' + s.game_id + '/" class="score-card">' +
+            return '<a href="/' + s.game_id + '/" class="score-card">' +
               '<div class="icon">' + meta.icon + '</div>' +
               '<div class="info">' +
               '<div class="title">' + escapeHtml(meta.title) + '</div>' +

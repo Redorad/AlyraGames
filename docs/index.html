@@ -13,7 +13,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="AlyraGames — 110+ Free Browser Games" />
   <meta property="og:description" content="Play 110+ free browser games. No download, no sign-up required. Puzzle, arcade, strategy, RPG and more." />
-  <meta property="og:url" content="https://redorad.github.io/AlyraGames/" />
+  <meta property="og:url" content="https://games.alyraverse.com/" />
   <meta property="og:site_name" content="AlyraGames" />
 
   <!-- Twitter -->
@@ -24,10 +24,10 @@
   <!-- Performance hints -->
   <link rel="preconnect" href="https://kqcqsgepwcrnovdhmflr.supabase.co" crossorigin />
   <link rel="dns-prefetch" href="https://kqcqsgepwcrnovdhmflr.supabase.co" />
-  <link rel="preload" href="/AlyraGames/alyragames-sdk.js" as="script" />
+  <link rel="preload" href="/alyragames-sdk.js" as="script" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>" />
-  <link rel="manifest" href="/AlyraGames/manifest.json" />
+  <link rel="manifest" href="/manifest.json" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
@@ -364,11 +364,11 @@
         <input type="text" class="search-input" id="search" placeholder="Search games..." autocomplete="off" />
       </div>
       <span class="game-count"><strong id="visible-count">110</strong> games</span>
-      <a href="/AlyraGames/daily.html" class="user-btn" style="text-decoration:none;color:var(--green);background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.3);">
+      <a href="/daily.html" class="user-btn" style="text-decoration:none;color:var(--green);background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.3);">
         <span class="avatar">📅</span>
         <span class="username">Daily</span>
       </a>
-      <a href="/AlyraGames/leaderboards.html" class="user-btn" style="text-decoration:none;color:var(--yellow);background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);">
+      <a href="/leaderboards.html" class="user-btn" style="text-decoration:none;color:var(--yellow);background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);">
         <span class="avatar">🏆</span>
         <span class="username">Ranks</span>
       </a>
@@ -399,8 +399,8 @@
       <button class="modal-close" onclick="closeAccountModal()">✕</button>
       <h2 id="account-title">Your Account</h2>
       <p id="account-subtitle">Signed in as <strong id="account-nickname"></strong></p>
-      <a href="/AlyraGames/profile.html" class="modal-btn primary" style="display:block;text-align:center;text-decoration:none;line-height:1.5;">👤 View my profile</a>
-      <a href="/AlyraGames/leaderboards.html" class="modal-btn primary" style="display:block;text-align:center;text-decoration:none;line-height:1.5;background:rgba(251,191,36,0.9);">🏆 Leaderboards</a>
+      <a href="/profile.html" class="modal-btn primary" style="display:block;text-align:center;text-decoration:none;line-height:1.5;">👤 View my profile</a>
+      <a href="/leaderboards.html" class="modal-btn primary" style="display:block;text-align:center;text-decoration:none;line-height:1.5;background:rgba(251,191,36,0.9);">🏆 Leaderboards</a>
       <div class="modal-divider">or</div>
       <button class="modal-btn secondary" onclick="logoutPlayer()">Sign out</button>
     </div>
@@ -663,7 +663,7 @@
   </script>
 
   <!-- AlyraGames SDK -->
-  <script src="/AlyraGames/alyragames-sdk.js"></script>
+  <script src="/alyragames-sdk.js"></script>
   <script>
     const sdk = AlyraGames.init();
 
@@ -755,7 +755,7 @@
     // Register service worker for offline + fast loads
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/AlyraGames/sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
   </script>
