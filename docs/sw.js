@@ -3,7 +3,7 @@
  * Cache-first strategy for static assets, stale-while-revalidate for HTML.
  * Makes games load instantly on revisit + offline support.
  */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `alyragames-static-${CACHE_VERSION}`;
 const HTML_CACHE = `alyragames-html-${CACHE_VERSION}`;
 
@@ -16,6 +16,7 @@ const PRECACHE = [
   '/AlyraGames/daily.html',
   '/AlyraGames/alyragames-sdk.js',
   '/AlyraGames/game-integration.js',
+  '/AlyraGames/game-rules.js',
 ];
 
 self.addEventListener('install', (event) => {
