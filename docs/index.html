@@ -21,6 +21,9 @@
   <meta name="twitter:title" content="AlyraGames — 110+ Free Browser Games" />
   <meta name="twitter:description" content="Play 110+ free browser games. No download required." />
 
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1457858907490355" crossorigin="anonymous"></script>
+
   <!-- Google Analytics (GA4) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-75SFBMKFP7"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-75SFBMKFP7');</script>
@@ -225,6 +228,24 @@
       text-transform: uppercase; letter-spacing: 0.05em;
       padding: 3px 7px; border-radius: 4px; z-index: 1;
     }
+    .fav-btn {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(10, 14, 39, 0.7); border: none;
+      font-size: 16px; cursor: pointer; z-index: 2;
+      padding: 4px 6px; border-radius: 6px; line-height: 1;
+      transition: transform 0.15s;
+    }
+    .fav-btn:hover { transform: scale(1.2); }
+    .fav-btn.active { filter: none; }
+
+    /* Recently Played / Favorites rows */
+    .row-section { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+    .row-scroll {
+      display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .row-scroll::-webkit-scrollbar { display: none; }
+    .row-scroll .game-card { min-width: 170px; max-width: 200px; flex-shrink: 0; }
 
     /* Empty state */
     .empty-state {
@@ -416,6 +437,18 @@
   </section>
 
   <nav class="category-bar" id="categories"></nav>
+
+  <!-- Recently Played -->
+  <div id="recent-section" class="row-section" style="display:none;">
+    <h2 class="section-title">Recently Played</h2>
+    <div class="row-scroll" id="recent-row"></div>
+  </div>
+
+  <!-- Favorites -->
+  <div id="fav-section" class="row-section" style="display:none;">
+    <h2 class="section-title">Your Favorites</h2>
+    <div class="row-scroll" id="fav-row"></div>
+  </div>
 
   <div id="results-area">
     <h2 class="section-title" id="section-title">All Games</h2>
@@ -662,8 +695,134 @@
       renderGames();
     });
 
+    // ── Favorites ──
+    const FAV_KEY = 'alyragames_favorites';
+    function getFavorites() {
+      try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch { return []; }
+    }
+    function toggleFavorite(slug, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      let favs = getFavorites();
+      if (favs.includes(slug)) favs = favs.filter(s => s !== slug);
+      else favs.unshift(slug);
+      localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+      renderGames();
+      renderFavRow();
+    }
+
+    // ── Recently Played ──
+    const RECENT_KEY = 'alyragames_recent';
+    const MAX_RECENT = 12;
+    function getRecent() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+    }
+    function addRecent(slug) {
+      let list = getRecent().filter(s => s !== slug);
+      list.unshift(slug);
+      if (list.length > MAX_RECENT) list = list.slice(0, MAX_RECENT);
+      localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+    }
+
+    // Track clicks on game cards
+    document.addEventListener('click', (e) => {
+      const card = e.target.closest('.game-card');
+      if (card && card.href) {
+        const m = card.getAttribute('href').match(/(game-[^/]+|slime-[^/]+)/);
+        if (m) addRecent(m[1]);
+      }
+    });
+
+    function makeCardHtml(g, showFav) {
+      const favs = getFavorites();
+      const isFav = favs.includes(g.slug);
+      const favBtn = showFav
+        ? '<button class="fav-btn' + (isFav ? ' active' : '') + '" onclick="toggleFavorite(\'' + g.slug + '\', event)" title="' + (isFav ? 'Remove from favorites' : 'Add to favorites') + '">' + (isFav ? '⭐' : '☆') + '</button>'
+        : '';
+      return '<a href="' + g.slug + '/" class="game-card">' +
+        favBtn +
+        (g.featured ? '<span class="game-badge">Featured</span>' : '') +
+        '<div class="game-thumbnail" style="--thumb-bg: linear-gradient(135deg, rgba(' + g.color + ',0.25), rgba(' + g.color + ',0.05));">' +
+          '<span>' + g.icon + '</span>' +
+        '</div>' +
+        '<div class="game-info">' +
+          '<div class="game-title">' + g.title + '</div>' +
+          '<div class="game-category">' + g.cat + '</div>' +
+        '</div>' +
+      '</a>';
+    }
+
+    // Patch renderGames to use makeCardHtml with fav button
+    const _origRenderGames = renderGames;
+    renderGames = function() {
+      const grid = document.getElementById('games-grid');
+      const title = document.getElementById('section-title');
+      const counter = document.getElementById('visible-count');
+
+      let filtered = GAMES;
+      if (activeCategory === 'Featured') {
+        filtered = filtered.filter(g => g.featured);
+      } else if (activeCategory === 'Favorites') {
+        const favs = getFavorites();
+        filtered = GAMES.filter(g => favs.includes(g.slug));
+      } else if (activeCategory !== 'all') {
+        filtered = filtered.filter(g => g.cat === activeCategory);
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(g =>
+          g.title.toLowerCase().includes(q) ||
+          g.cat.toLowerCase().includes(q)
+        );
+      }
+      counter.textContent = filtered.length;
+      if (searchQuery) {
+        title.textContent = 'Search: "' + searchQuery + '"';
+      } else if (activeCategory === 'all') {
+        title.textContent = 'All Games';
+      } else if (activeCategory === 'Featured') {
+        title.textContent = '⭐ Featured Games';
+      } else if (activeCategory === 'Favorites') {
+        title.textContent = '⭐ Your Favorites';
+      } else {
+        const cat = CATEGORIES.find(c => c.id === activeCategory);
+        title.textContent = cat.icon + ' ' + cat.label + ' Games';
+      }
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">🔍</div><p>' +
+          (activeCategory === 'Favorites' ? 'No favorites yet — click ☆ on any game to bookmark it' : 'No games found') +
+          '</p></div>';
+        return;
+      }
+      grid.innerHTML = filtered.map(g => makeCardHtml(g, true)).join('');
+    };
+
+    function renderRecentRow() {
+      const section = document.getElementById('recent-section');
+      const row = document.getElementById('recent-row');
+      const recent = getRecent();
+      const games = recent.map(s => GAMES.find(g => g.slug === s)).filter(Boolean);
+      if (games.length === 0) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      row.innerHTML = games.slice(0, 8).map(g => makeCardHtml(g, false)).join('');
+    }
+
+    function renderFavRow() {
+      const section = document.getElementById('fav-section');
+      const row = document.getElementById('fav-row');
+      const favs = getFavorites();
+      const games = favs.map(s => GAMES.find(g => g.slug === s)).filter(Boolean);
+      if (games.length === 0) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      row.innerHTML = games.map(g => makeCardHtml(g, true)).join('');
+    }
+
+    // Add Favorites tab to categories
+    CATEGORIES.splice(2, 0, { id: 'Favorites', label: 'Favorites', icon: '⭐' });
+
     renderCategories();
     renderGames();
+    renderRecentRow();
+    renderFavRow();
   </script>
 
   <!-- AlyraGames SDK -->
